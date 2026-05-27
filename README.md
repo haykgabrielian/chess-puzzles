@@ -18,8 +18,8 @@ Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puz
 ### Install and run
 
 ```sh
-git clone https://github.com/haykgabrielian/Chess-Puzzle.git
-cd Chess-Puzzle
+git clone https://github.com/haykgabrielian/chess-puzzles.git
+cd chess-puzzles
 npm install
 npm run dev
 ```
