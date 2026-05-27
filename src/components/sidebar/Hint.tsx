@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -46,8 +46,12 @@ const EyeIcon = () => (
 );
 
 const Hint = () => {
-  const { puzzle, hasPuzzle } = usePuzzle();
+  const { puzzle, hasPuzzle, selectedDate } = usePuzzle();
   const [isRevealed, setIsRevealed] = useState(false);
+
+  useEffect(() => {
+    setIsRevealed(false);
+  }, [selectedDate]);
 
   const revealedHint = hasPuzzle ? `Try ${puzzle.parsed.moves[0]}.` : null;
 
