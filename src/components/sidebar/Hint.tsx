@@ -46,14 +46,16 @@ const EyeIcon = () => (
 );
 
 const Hint = () => {
-  const { puzzle } = usePuzzle();
+  const { puzzle, hasPuzzle } = usePuzzle();
   const [isRevealed, setIsRevealed] = useState(false);
 
-  const revealedHint = `Try ${puzzle.parsed.moves[0]}.`;
+  const revealedHint = hasPuzzle ? `Try ${puzzle.parsed.moves[0]}.` : null;
 
   return (
     <Card title="Hint" icon={<HintIcon />}>
-      {isRevealed ? (
+      {!hasPuzzle ? (
+        <RevealedHint>Check back later for today&apos;s puzzle.</RevealedHint>
+      ) : isRevealed ? (
         <RevealedHint>{revealedHint}</RevealedHint>
       ) : (
         <ShowHintButton type="button" onClick={() => setIsRevealed(true)}>

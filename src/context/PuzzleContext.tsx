@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 
-import { DUMMY_PUZZLE } from '@/data/dummyPuzzle';
+import { createPlaceholderPuzzle } from '@/data/dummyPuzzle';
 import {
   formatDateForUrl,
   getToday,
@@ -17,6 +17,7 @@ type PuzzleContextValue = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   puzzle: Puzzle;
+  hasPuzzle: boolean;
   isLoading: boolean;
 };
 
@@ -70,10 +71,11 @@ const PuzzleProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       selectedDate,
       setSelectedDate,
-      puzzle: fetchedPuzzle ?? DUMMY_PUZZLE,
+      puzzle: fetchedPuzzle ?? createPlaceholderPuzzle(dateString),
+      hasPuzzle: Boolean(fetchedPuzzle),
       isLoading,
     }),
-    [selectedDate, setSelectedDate, fetchedPuzzle, isLoading],
+    [selectedDate, setSelectedDate, fetchedPuzzle, dateString, isLoading],
   );
 
   return <PuzzleContext.Provider value={value}>{children}</PuzzleContext.Provider>;

@@ -2,6 +2,12 @@
 
 Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puzzle for that date, and solve it on a themed board.
 
+## Screenshots
+
+| Main page | Board theme menu |
+|-----------|------------------|
+| ![Chess Puzzles main page](./screenshot/page.png) | ![Board theme picker](./screenshot/menu.png) |
+
 ## Setup
 
 ### Prerequisites
@@ -76,6 +82,7 @@ src/
 
 job/               # Chess.com puzzle sync script
 puzzle/            # Generated puzzle JSON (local only, gitignored)
+screenshot/        # App screenshots (page.png, menu.png)
 ```
 
 ## License

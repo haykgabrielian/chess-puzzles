@@ -30,14 +30,18 @@ const SideToMove = styled.span`
 `;
 
 const PuzzleInfo = () => {
-  const { puzzle } = usePuzzle();
+  const { puzzle, hasPuzzle } = usePuzzle();
   const sideToMove = `${getSideLabel(puzzle.parsed.fen)} to move`;
 
   return (
     <Card title="Puzzle Info" icon={<PuzzleInfoIcon />}>
       <Content>
-        <PuzzleTitle>{puzzle.title}</PuzzleTitle>
-        <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
+        <PuzzleTitle>
+          {hasPuzzle ? puzzle.title : "Today's puzzle isn't available yet"}
+        </PuzzleTitle>
+        {hasPuzzle && (
+          <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
+        )}
         <SideToMove>{sideToMove}</SideToMove>
       </Content>
     </Card>
