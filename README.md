@@ -1,131 +1,83 @@
-# ZruyC - AI chat Application (Powered by Gemini API)
+# Chess Puzzles
 
-## 📌 Project Overview
-This application is a chatbot similar to ChatGPT, integrated with the **Gemini API** for AI-powered conversations. It is built using **React, Vite, TypeScript**, and **IndexedDB** for local data storage.
+Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puzzle for that date, and solve it on a themed board.
 
-## 🚀 Setup Instructions
+## Setup
 
-### 1️⃣ Prerequisites
-Ensure you have the following installed:
-- **Node.js** (v18 or later)
-- **npm** or **yarn** (package manager)
-- A **Google Gemini API key**
+### Prerequisites
 
-### 2️⃣ Installation Steps
+- Node.js 18+
+- npm
 
-1. Clone the repository:
-   ```sh
-   git clone <repo-url>
-   cd chat-with-ai
-   ```
+### Install and run
 
-2. Install dependencies:
-   ```sh
-   npm install
-   ```
+```sh
+git clone https://github.com/haykgabrielian/Chess-Puzzle.git
+cd Chess-Puzzle
+npm install
+npm run dev
+```
 
-3. Configure your Gemini API key:
-   - Add your API key to the environment variables
-   - Or update the API configuration in `src/api/gemini.ts`
+Open `http://localhost:5173`. The app redirects to today's date, for example `/2026-05-27`.
 
+### Puzzle data
 
-4. Start the development server:
-   ```sh
-   npm run dev
-   ```
+The `puzzle/` folder is **not** included in this repository. It contains monthly JSON files fetched from Chess.com and is listed in `.gitignore` so puzzle data stays local.
 
-5. Open your browser and navigate to `http://localhost:5173`
+Generate it before running the app:
 
-## 🛠️ Technologies Used
+```sh
+cd job
+npm install
+npm run sync
+```
 
-| **Technology**      | **Purpose** |
-|---------------------|------------|
-| **React 18**        | Modern component-based UI development |
-| **TypeScript**      | Type safety and enhanced developer experience |
-| **Vite**            | Fast build tool and development server |
-| **Styled Components** | CSS-in-JS styling with theme support |
-| **IndexedDB**       | Local database for persistent chat storage |
-| **Google Gemini API** | Advanced AI conversation capabilities |
-| **React Markdown**  | Rich text rendering for AI responses |
-| **React Router**    | Client-side routing and navigation |
+This creates `puzzle/{year}/{year}-{month}.json` at the project root. The dev server and production build serve files from that folder.
 
-## 🎯 Project Structure
+Useful job commands:
+
+| Command | Description |
+|---------|-------------|
+| `npm run sync` | Fetch missing months |
+| `npm run sync:check` | Dry run — show what would be fetched |
+| `npm run sync:force` | Re-fetch all months |
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint:check` | ESLint |
+| `npm run lint` | ESLint with auto-fix |
+
+## Tech stack
+
+- React 19 + TypeScript
+- Vite
+- TanStack Router — date-based URLs (`/YYYY-MM-DD`)
+- TanStack Query — monthly puzzle fetching
+- styled-components — UI and themes
+
+## Project structure
 
 ```
 src/
-├── components/
-│   ├── icons/           # Reusable SVG icon components
-│   │   ├── index.ts     # Icon exports
-│   │   └── ChatIcon.tsx # Chat/conversation icon
-│   ├── ChatList.tsx     # Sidebar with chat management & search
-│   ├── ChatWindow.tsx   # Main chat interface
-│   ├── ChatInput.tsx    # Message input component
-│   └── SidebarContainer.tsx # Sidebar wrapper with toggle
-├── hooks/
-│   └── useChats.ts      # Chat state management with search
-├── api/
-│   └── gemini.ts        # Gemini API integration
-├── db/
-│   └── db.ts           # IndexedDB operations
-├── theme/
-│   └── colors.ts       # Centralized color system
-├── types/
-│   └── common.ts       # TypeScript type definitions
-├── pages/
-│   ├── Home.tsx        # Main application page
-│   ├── About.tsx       # About page
-│   └── NotFound.tsx    # 404 error page
-├── assets/
-│   ├── zruyc_logo.svg  # Application logo
-│   └── react.svg       # React logo
-├── main.tsx            # Application entry point
-├── router.tsx          # Routing configuration
-└── main.css            # Global styles
+├── api/           # Puzzle fetch helpers
+├── assets/        # Logos and piece SVGs
+├── components/    # Board, sidebar, header
+├── context/       # Puzzle, theme, board theme providers
+├── helpers/       # FEN, dates, board themes
+├── hooks/         # usePuzzleForDate
+├── pages/         # Home
+└── router.tsx     # /$date routes
+
+job/               # Chess.com puzzle sync script
+puzzle/            # Generated puzzle JSON (local only, gitignored)
 ```
 
-## 🎨 Design System
+## License
 
-The application uses a comprehensive design system with:
-
-- **Color Constants**: Centralized color management for consistency
-- **Icon Components**: Reusable SVG icons with consistent styling
-- **Responsive Layout**: Adaptive design for all screen sizes
-- **Smooth Animations**: Polished user interactions
-
-## 🔒 Privacy & Security
-
-- **Local Storage**: All conversations stored locally on your device
-- **No Cloud Sync**: Your data never leaves your device
-- **Privacy First**: No tracking or data collection
-- **Secure API**: Direct communication with Google Gemini API
-
-## 🚀 Performance Features
-
-- **Fast Loading**: Optimized bundle size with Vite
-- **Smooth Scrolling**: Efficient chat list and message rendering
-- **Memory Efficient**: Optimized state management
-- **Offline Capable**: Works with cached data when offline
-
-## 🐛 Known Limitations
-
-- **Context Window**: Limited by Gemini API's context window size
-- **API Rate Limits**: Subject to Google Gemini API rate limits
-- **Local Storage**: Data is device-specific (no cross-device sync)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🖼️ Screenshots
-
-![ChatAI Interface](screenshots/screenshot.png)
-
-*ZruyC provides an intuitive interface for AI-powered conversations with local data storage and privacy protection.*
+MIT
