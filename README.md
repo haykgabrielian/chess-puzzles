@@ -4,9 +4,10 @@ Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puz
 
 ## Screenshots
 
-| Main page | Board theme menu |
-|-----------|------------------|
-| ![Chess Puzzles main page](./screenshot/page.png) | ![Board theme picker](./screenshot/menu.png) |
+<p align="center">
+  <img src="screenshot/page.png" alt="Chess Puzzles main page" width="48%" />
+  <img src="screenshot/menu.png" alt="Board theme picker" width="48%" />
+</p>
 
 ## Setup
 
