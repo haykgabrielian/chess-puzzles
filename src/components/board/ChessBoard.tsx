@@ -1,4 +1,4 @@
-import styled, { useTheme } from 'styled-components';
+import styled, { keyframes, useTheme } from 'styled-components';
 import { useContext, useMemo } from 'react';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
@@ -23,8 +23,35 @@ type ChessBoardProps = {
   hintSquares?: BoardMove | null;
   wrongMoveSquares?: BoardMove | null;
   canInteract?: boolean;
+  isSolved?: boolean;
   onSquareClick?: (square: string) => void;
 };
+
+const solvedFlash = keyframes`
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+`;
+
+const SolvedFlashOverlay = styled.span<{ $color: string }>`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background-color: ${({ $color }) => $color};
+  animation: ${solvedFlash} 1.1s ease-out forwards;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    opacity: 0;
+  }
+`;
 
 const BoardWrapper = styled.div`
   display: flex;
@@ -269,6 +296,7 @@ const ChessBoard = ({
   hintSquares = null,
   wrongMoveSquares = null,
   canInteract = false,
+  isSolved = false,
   onSquareClick,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
@@ -371,6 +399,13 @@ const ChessBoard = ({
                   <LastMoveOverlay
                     aria-hidden="true"
                     $color={appTheme.boardHighlight.lastMove}
+                  />
+                )}
+                {isLastMoveSquare && isSolved && (
+                  <SolvedFlashOverlay
+                    key={`${lastMove.from}-${lastMove.to}`}
+                    aria-hidden="true"
+                    $color={appTheme.accent}
                   />
                 )}
                 {showInsideLabels && displayFileIndex === 0 && (

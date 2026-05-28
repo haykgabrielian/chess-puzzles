@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 import ChessBoard from '@/components/board/ChessBoard';
 import PuzzleBoardFooter from '@/components/board/PuzzleBoardFooter';
+import SolveConfetti from '@/components/board/SolveConfetti';
 import Header from '@/components/Header';
 import Sidebar from '@/components/sidebar/Sidebar';
 import PuzzleProvider, { usePuzzle } from '@/context/PuzzleContext';
@@ -103,6 +104,7 @@ const HomeContent = () => {
     canInteract,
     onSquareClick,
     isHintRevealed,
+    status,
   } = usePuzzleGame();
   const layoutKey = `${formatDateForUrl(selectedDate)}-${hasPuzzle}-${isLoading}`;
   const { sidebarRef, boardSide } = useBoardSizeFromSidebar(isHintRevealed, layoutKey);
@@ -124,8 +126,10 @@ const HomeContent = () => {
                   hintSquares={hintSquares}
                   wrongMoveSquares={wrongMoveSquares}
                   canInteract={canInteract}
+                  isSolved={status === 'solved'}
                   onSquareClick={onSquareClick}
                 />
+                <SolveConfetti isSolved={status === 'solved'} lastMoveTo={lastMove?.to ?? null} />
                 <BoardFooterSlot>
                   <PuzzleBoardFooter />
                 </BoardFooterSlot>
