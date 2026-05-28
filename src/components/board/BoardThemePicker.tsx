@@ -2,18 +2,17 @@ import styled from 'styled-components';
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { ThemeToggleContext } from '@/context/ThemeContext';
 import { boardCoordinateModes, boardThemes } from '@/helpers/boardThemes';
 
 const Wrapper = styled.div`
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
+  position: relative;
   z-index: 100;
 `;
 
 const Menu = styled.div`
   position: absolute;
-  bottom: calc(100% + 12px);
+  top: calc(100% + 12px);
   right: 0;
   width: 280px;
   padding: 16px;
@@ -382,14 +381,14 @@ const TriggerWrapper = styled.div`
 
 const MenuTail = styled.div`
   position: absolute;
-  bottom: calc(100% + 4px);
+  top: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 8px solid ${({ theme }) => theme.popover.background};
+  border-bottom: 8px solid ${({ theme }) => theme.popover.background};
 `;
 
 const TriggerButton = styled.button`
@@ -400,12 +399,12 @@ const TriggerButton = styled.button`
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  color: ${({ theme }) => theme.header.text};
-  background-color: ${({ theme }) => `${theme.header.text}18`};
+  color: ${({ theme }) => theme.accent};
+  background-color: ${({ theme }) => theme.accentMuted};
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => `${theme.header.text}33`};
+    background-color: ${({ theme }) => `${theme.accent}33`};
   }
 
   svg {
@@ -453,6 +452,7 @@ const BoardThemePicker = () => {
     showCaptureIndicator,
     setShowCaptureIndicator,
   } = useContext(BoardThemeContext);
+  const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -472,7 +472,22 @@ const BoardThemePicker = () => {
   return (
     <Wrapper ref={wrapperRef}>
       {isOpen && (
-        <Menu role="dialog" aria-label="Chess board theme">
+        <Menu role="dialog" aria-label="Settings">
+          <CoordinateSectionTitle>Appearance</CoordinateSectionTitle>
+          <SettingsList>
+            <SettingsRow>
+              <SettingsLabel id="dark-mode-label">Dark mode</SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="dark-mode-label"
+                aria-checked={isDarkMode}
+                $on={isDarkMode}
+                onClick={toggleTheme}
+              />
+            </SettingsRow>
+          </SettingsList>
+          <MenuDivider />
           <MenuTitle>Chess Theme ({boardThemes.length} Options)</MenuTitle>
           <ThemeGrid>
             {boardThemes.map(theme => {
@@ -606,7 +621,7 @@ const BoardThemePicker = () => {
         {isOpen && <MenuTail aria-hidden="true" />}
         <TriggerButton
           type="button"
-          aria-label="Chess board theme settings"
+          aria-label="Settings"
           aria-expanded={isOpen}
           onClick={() => setIsOpen(prev => !prev)}
         >

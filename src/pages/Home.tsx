@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 
-import BoardThemePicker from '@/components/board/BoardThemePicker';
 import ChessBoard from '@/components/board/ChessBoard';
 import PuzzleBoardFooter from '@/components/board/PuzzleBoardFooter';
 import Header from '@/components/Header';
@@ -80,7 +79,6 @@ const HomeContent = () => {
         </BoardSection>
         <Sidebar />
       </Content>
-      <BoardThemePicker />
     </Page>
   );
 };
