@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -158,19 +158,14 @@ const ChevronRight = () => (
 
 const getMonthStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
 
-const getMonthKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}`;
-
 const Calendar = () => {
   const today = useMemo(() => getToday(), []);
   const { selectedDate, setSelectedDate } = usePuzzle();
-  const selectedMonthKey = getMonthKey(selectedDate);
   const [viewDate, setViewDate] = useState(() => getMonthStart(selectedDate));
-  const [syncedMonthKey, setSyncedMonthKey] = useState(selectedMonthKey);
 
-  if (selectedMonthKey !== syncedMonthKey) {
-    setSyncedMonthKey(selectedMonthKey);
+  useEffect(() => {
     setViewDate(getMonthStart(selectedDate));
-  }
+  }, [selectedDate]);
 
   const canGoNextMonth = canNavigateToNextMonth(viewDate);
 
@@ -197,9 +192,6 @@ const Calendar = () => {
   };
 
   const goToToday = () => {
-    const todayMonthKey = getMonthKey(today);
-    setViewDate(getMonthStart(today));
-    setSyncedMonthKey(todayMonthKey);
     setSelectedDate(today);
   };
 

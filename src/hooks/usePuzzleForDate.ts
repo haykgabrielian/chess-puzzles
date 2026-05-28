@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchMonthPuzzles, findPuzzleByDate, getMonthKey } from '@/api/puzzles';
@@ -21,12 +21,6 @@ export const usePuzzleForDate = (dateString: string) => {
 
     return findPuzzleByDate(monthQuery.data, dateString);
   }, [monthQuery.data, dateString]);
-
-  useEffect(() => {
-    if (puzzle) {
-      console.log(`Puzzle for ${dateString}:`, puzzle);
-    }
-  }, [dateString, puzzle]);
 
   return {
     puzzle,

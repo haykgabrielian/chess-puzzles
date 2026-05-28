@@ -62,6 +62,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   const { puzzle, hasPuzzle } = usePuzzle();
   const gameRef = useRef(createGame(puzzle.parsed.fen));
   const opponentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionRef = useRef(0);
 
   const [fen, setFen] = useState(puzzle.parsed.fen);
   const [moveIndex, setMoveIndex] = useState(0);
@@ -89,7 +90,14 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
   const playOpponentMove = useCallback(
     (startIndex: number, solutionMoves: string[]) => {
+      clearTimers();
+      const session = sessionRef.current;
+
       opponentTimerRef.current = setTimeout(() => {
+        if (session !== sessionRef.current) {
+          return;
+        }
+
         const game = gameRef.current;
         const expectedMove = solutionMoves[startIndex];
         const move = trySanMove(game, expectedMove);
@@ -107,7 +115,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         }
       }, OPPONENT_MOVE_DELAY_MS);
     },
-    [syncBoardState],
+    [clearTimers, syncBoardState],
   );
 
   const clearHint = useCallback(() => {
@@ -117,6 +125,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
   const resetGame = useCallback(() => {
     clearTimers();
+    sessionRef.current += 1;
     const startingFen = puzzle.parsed.fen;
     gameRef.current = createGame(startingFen);
     setMoveIndex(0);
