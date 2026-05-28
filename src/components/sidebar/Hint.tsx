@@ -37,8 +37,13 @@ const ShowHintButton = styled.button`
   background-color: transparent;
   transition: background-color 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: ${({ theme }) => theme.accentMuted};
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   svg {
@@ -56,7 +61,8 @@ const EyeIcon = () => (
 
 const Hint = () => {
   const { puzzle, hasPuzzle } = usePuzzle();
-  const { fen, isHintRevealed, moveIndex, revealHint } = usePuzzleGame();
+  const { fen, isHintRevealed, moveIndex, revealHint, status } = usePuzzleGame();
+  const isSolved = status === 'solved';
 
   const revealedHint =
     hasPuzzle && isUserMoveIndex(moveIndex)
@@ -71,7 +77,7 @@ const Hint = () => {
         ) : isHintRevealed ? (
           <RevealedHint>{revealedHint}</RevealedHint>
         ) : (
-          <ShowHintButton type="button" onClick={revealHint}>
+          <ShowHintButton type="button" onClick={revealHint} disabled={isSolved}>
             <EyeIcon />
             Show Hint
           </ShowHintButton>
