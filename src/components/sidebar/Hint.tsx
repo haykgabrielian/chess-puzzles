@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import styled from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -7,9 +6,17 @@ import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
 import { formatHintSentence } from '@/helpers/chess';
 
+const HINT_BODY_HEIGHT = '76px';
+
+const HintBody = styled.div`
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+`;
+
 const RevealedHint = styled.p`
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: ${({ theme }) => theme.text.primary};
   line-height: 1.5;
 `;
@@ -20,7 +27,7 @@ const ShowHintButton = styled.button`
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border: 1px solid ${({ theme }) => theme.accent};
   border-radius: 8px;
   cursor: pointer;
@@ -48,34 +55,27 @@ const EyeIcon = () => (
 );
 
 const Hint = () => {
-  const { puzzle, hasPuzzle, selectedDate } = usePuzzle();
-  const { revealHint } = usePuzzleGame();
-  const [revealedDate, setRevealedDate] = useState<string | null>(null);
-
-  const dateKey = selectedDate.toISOString().slice(0, 10);
-  const isRevealed = revealedDate === dateKey;
+  const { puzzle, hasPuzzle } = usePuzzle();
+  const { isHintRevealed, revealHint } = usePuzzleGame();
 
   const revealedHint = hasPuzzle
     ? formatHintSentence(puzzle.parsed.fen, puzzle.parsed.moves[0])
     : null;
 
-  const handleRevealHint = () => {
-    setRevealedDate(dateKey);
-    revealHint();
-  };
-
   return (
-    <Card title="Hint" icon={<HintIcon />}>
-      {!hasPuzzle ? (
-        <RevealedHint>Check back later for today&apos;s puzzle.</RevealedHint>
-      ) : isRevealed ? (
-        <RevealedHint>{revealedHint}</RevealedHint>
-      ) : (
-        <ShowHintButton type="button" onClick={handleRevealHint}>
-          <EyeIcon />
-          Show Hint
-        </ShowHintButton>
-      )}
+    <Card title="Hint" icon={<HintIcon />} bodyHeight={HINT_BODY_HEIGHT}>
+      <HintBody>
+        {!hasPuzzle ? (
+          <RevealedHint>Check back later for today&apos;s puzzle.</RevealedHint>
+        ) : isHintRevealed ? (
+          <RevealedHint>{revealedHint}</RevealedHint>
+        ) : (
+          <ShowHintButton type="button" onClick={revealHint}>
+            <EyeIcon />
+            Show Hint
+          </ShowHintButton>
+        )}
+      </HintBody>
     </Card>
   );
 };

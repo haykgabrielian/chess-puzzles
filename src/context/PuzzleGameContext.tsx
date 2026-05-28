@@ -34,6 +34,7 @@ type PuzzleGameContextValue = {
   legalTargets: string[];
   lastMove: BoardMove | null;
   hintSquares: BoardMove | null;
+  isHintRevealed: boolean;
   wrongMoveSquares: BoardMove | null;
   status: PuzzleStatus;
   canInteract: boolean;
@@ -67,6 +68,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
   const [hintSquares, setHintSquares] = useState<BoardMove | null>(null);
+  const [isHintRevealed, setIsHintRevealed] = useState(false);
   const [wrongMoveSquares, setWrongMoveSquares] = useState<BoardMove | null>(null);
   const [status, setStatus] = useState<PuzzleStatus>(hasPuzzle ? 'playing' : 'idle');
 
@@ -107,16 +109,21 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     [syncBoardState],
   );
 
+  const clearHint = useCallback(() => {
+    setHintSquares(null);
+    setIsHintRevealed(false);
+  }, []);
+
   const resetGame = useCallback(() => {
     clearTimers();
     const startingFen = puzzle.parsed.fen;
     gameRef.current = createGame(startingFen);
     setMoveIndex(0);
-    setHintSquares(null);
+    clearHint();
     setWrongMoveSquares(null);
     setStatus(hasPuzzle ? 'playing' : 'idle');
     syncBoardState(gameRef.current, null);
-  }, [clearTimers, hasPuzzle, puzzle.parsed.fen, syncBoardState]);
+  }, [clearHint, clearTimers, hasPuzzle, puzzle.parsed.fen, syncBoardState]);
 
   const retryMove = useCallback(() => {
     if (status !== 'wrong') {
@@ -146,6 +153,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    setIsHintRevealed(true);
     setHintSquares(getMoveSquares(puzzle.parsed.fen, puzzle.parsed.moves[0]));
   }, [hasPuzzle, puzzle.parsed.fen, puzzle.parsed.moves]);
 
@@ -184,7 +192,6 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         const nextIndex = moveIndex + 1;
         setMoveIndex(nextIndex);
         syncBoardState(game, { from: move.from, to: move.to });
-        setHintSquares(null);
 
         if (nextIndex >= solutionMoves.length) {
           setStatus('solved');
@@ -234,6 +241,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       legalTargets,
       lastMove,
       hintSquares,
+      isHintRevealed,
       wrongMoveSquares,
       status,
       canInteract,
@@ -248,6 +256,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       hasProgress,
       fen,
       hintSquares,
+      isHintRevealed,
       lastMove,
       legalTargets,
       onSquareClick,

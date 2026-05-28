@@ -6,10 +6,29 @@ import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
 import { getSideLabel } from '@/helpers/fen';
 
+const PUZZLE_INFO_BODY_HEIGHT = '118px';
+
 const Content = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 100%;
+`;
+
+const PuzzleSummaryRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+`;
+
+const PuzzleSummary = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 `;
 
 const PuzzleTitle = styled.span`
@@ -37,19 +56,22 @@ const SolvedMessage = styled.span`
 `;
 
 const ResetButton = styled.button`
-  align-self: flex-start;
-  padding: 8px 14px;
-  border: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: 1px solid ${({ theme }) => theme.accent};
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: ${({ theme }) => theme.text.primary};
+  color: ${({ theme }) => theme.accent};
   background-color: transparent;
   transition: background-color 0.2s ease;
+  white-space: nowrap;
 
   &:hover {
-    background-color: ${({ theme }) => theme.button.hover};
+    background-color: ${({ theme }) => theme.accentMuted};
   }
 `;
 
@@ -59,24 +81,29 @@ const PuzzleInfo = () => {
   const sideToMove = `${getSideLabel(fen)} to move`;
 
   return (
-    <Card title="Puzzle Info" icon={<PuzzleInfoIcon />}>
+    <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} bodyHeight={PUZZLE_INFO_BODY_HEIGHT}>
       <Content>
-        <PuzzleTitle>
-          {hasPuzzle ? puzzle.title : "Today's puzzle isn't available yet"}
-        </PuzzleTitle>
-        {hasPuzzle && (
-          <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
-        )}
-        {status === 'solved' ? (
-          <SolvedMessage>Solved</SolvedMessage>
+        {hasPuzzle ? (
+          <PuzzleSummaryRow>
+            <PuzzleSummary>
+              <PuzzleTitle>{puzzle.title}</PuzzleTitle>
+              <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
+            </PuzzleSummary>
+            {hasProgress && (
+              <ResetButton type="button" onClick={resetGame}>
+                Reset puzzle
+              </ResetButton>
+            )}
+          </PuzzleSummaryRow>
         ) : (
-          hasPuzzle && <SideToMove>{sideToMove}</SideToMove>
+          <PuzzleTitle>Today&apos;s puzzle isn&apos;t available yet</PuzzleTitle>
         )}
-        {hasPuzzle && hasProgress && (
-          <ResetButton type="button" onClick={resetGame}>
-            Reset puzzle
-          </ResetButton>
-        )}
+        {hasPuzzle &&
+          (status === 'solved' ? (
+            <SolvedMessage>Solved</SolvedMessage>
+          ) : (
+            <SideToMove>{sideToMove}</SideToMove>
+          ))}
       </Content>
     </Card>
   );

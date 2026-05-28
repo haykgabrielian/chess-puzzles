@@ -31,7 +31,7 @@ const BoardWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: min(100%, 720px);
+  aspect-ratio: 1;
 `;
 
 const LABEL_SIZE = 24;

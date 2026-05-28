@@ -12,11 +12,12 @@ const CalendarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  min-height: 40px;
+  margin-bottom: 10px;
 `;
 
 const MonthLabel = styled.span`
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
 `;
@@ -31,8 +32,8 @@ const NavButton = styled.button<{ $isDisabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: none;
   border-radius: 6px;
@@ -47,18 +48,18 @@ const NavButton = styled.button<{ $isDisabled?: boolean }>`
   }
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 `;
 
 const TodayButton = styled.button`
-  height: 28px;
-  padding: 0 8px;
+  height: 34px;
+  padding: 0 11px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text.secondary};
   background: transparent;
@@ -81,7 +82,7 @@ const Weekday = styled.span`
   font-size: 0.7rem;
   font-weight: 500;
   color: ${({ theme }) => theme.text.muted};
-  padding: 4px 0;
+  padding: 2px 0;
 `;
 
 const DaysGrid = styled.div`
@@ -99,7 +100,7 @@ const DayButton = styled.button<{ $isSelected: boolean; $isMuted: boolean; $isDi
   border: none;
   border-radius: 50%;
   cursor: ${({ $isDisabled }) => ($isDisabled ? 'not-allowed' : 'pointer')};
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: ${({ $isSelected }) => ($isSelected ? 600 : 400)};
   color: ${({ $isSelected, $isMuted, $isDisabled, theme }) => {
     if ($isDisabled) return theme.text.muted;

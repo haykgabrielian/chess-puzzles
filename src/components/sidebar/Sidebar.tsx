@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import styled from 'styled-components';
 
 import Calendar from '@/components/sidebar/Calendar';
@@ -7,17 +8,19 @@ import PuzzleInfo from '@/components/sidebar/PuzzleInfo';
 const SidebarRoot = styled.aside`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   min-width: 0;
 `;
 
-const Sidebar = () => (
-  <SidebarRoot aria-label="Puzzle sidebar">
+const Sidebar = forwardRef<HTMLElement>((_, ref) => (
+  <SidebarRoot ref={ref} aria-label="Puzzle sidebar">
     <PuzzleInfo />
     <Calendar />
     <Hint />
   </SidebarRoot>
-);
+));
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

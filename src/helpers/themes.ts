@@ -1,6 +1,6 @@
 export const lightTheme = {
   background: {
-    primary: '#f5f5f5',
+    primary: '#F4F4F4',
     secondary: '#ffffff',
   },
   text: {
@@ -14,7 +14,7 @@ export const lightTheme = {
     hover: '#e0e0e0',
   },
   header: {
-    background: '#ffffff',
+    background: '#FDFDFD',
     text: '#222222',
   },
   card: {
@@ -59,7 +59,7 @@ export const darkTheme = {
     hover: '#525252',
   },
   header: {
-    background: '#424242',
+    background: '#40414F',
     text: '#e8eaed',
   },
   card: {

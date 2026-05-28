@@ -12,15 +12,28 @@ const CardHeader = styled.header`
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid ${({ theme }) => theme.border};
   font-size: 0.875rem;
   font-weight: 600;
   color: ${({ theme }) => theme.text.primary};
 `;
 
-const CardBody = styled.div`
-  padding: 16px;
+const CardBody = styled.div<{ $bodyHeight?: string }>`
+  padding: 14px;
+  box-sizing: border-box;
+
+  ${({ $bodyHeight }) =>
+    $bodyHeight
+      ? `
+    height: ${$bodyHeight};
+    overflow-y: auto;
+  `
+      : ''}
+
+  @media (max-width: 600px) {
+    padding: 14px;
+  }
 `;
 
 type CardProps = {
@@ -28,15 +41,16 @@ type CardProps = {
   icon?: ReactNode;
   children: ReactNode;
   className?: string;
+  bodyHeight?: string;
 };
 
-const Card = ({ title, icon, children, className }: CardProps) => (
+const Card = ({ title, icon, children, className, bodyHeight }: CardProps) => (
   <CardRoot className={className}>
     <CardHeader>
       {icon}
       {title}
     </CardHeader>
-    <CardBody>{children}</CardBody>
+    <CardBody $bodyHeight={bodyHeight}>{children}</CardBody>
   </CardRoot>
 );
 

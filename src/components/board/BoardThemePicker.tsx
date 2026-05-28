@@ -15,10 +15,18 @@ const Menu = styled.div`
   top: calc(100% + 12px);
   right: 0;
   width: 280px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
   padding: 16px;
   background-color: ${({ theme }) => theme.popover.background};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+
+  @media (max-width: 600px) {
+    width: min(280px, calc(100vw - 24px));
+  }
 `;
 
 const MenuTitle = styled.p`
@@ -154,6 +162,11 @@ const CoordinateGrid = styled.div`
   grid-template-columns: repeat(3, 72px);
   justify-content: start;
   gap: 6px 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
 `;
 
 const CoordinateOption = styled.button<{ $selected: boolean }>`
@@ -165,12 +178,23 @@ const CoordinateOption = styled.button<{ $selected: boolean }>`
   border: none;
   background: none;
   cursor: pointer;
+
+  @media (max-width: 600px) {
+    align-items: center;
+    width: 100%;
+  }
 `;
 
 const CoordinatePreview = styled.div<{ $selected: boolean; $light: string; $dark: string; $coordinate: string; $frame: string }>`
   position: relative;
   width: 72px;
   height: 72px;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    aspect-ratio: 1;
+    height: auto;
+  }
   border-radius: 5px;
   overflow: hidden;
   outline: ${({ $selected, theme }) =>
