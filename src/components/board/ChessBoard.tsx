@@ -262,12 +262,13 @@ const getSquareHighlight = (
 const getOverlayColor = (
   highlight: ReturnType<typeof getSquareHighlight>,
   boardHighlight: BoardHighlight,
+  hintColor: string,
 ): string | null => {
   switch (highlight) {
     case 'selected':
       return boardHighlight.selected;
     case 'hint':
-      return boardHighlight.hint;
+      return hintColor;
     case 'wrong':
       return boardHighlight.wrong;
     default:
@@ -387,7 +388,11 @@ const ChessBoard = ({
                 $isLight={isLight}
                 $light={boardTheme.light}
                 $dark={boardTheme.dark}
-                $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight)}
+                $overlayColor={getOverlayColor(
+                  squareHighlight,
+                  boardTheme.highlight,
+                  appTheme.boardHighlight.hint,
+                )}
                 $canInteract={canInteract}
                 role="gridcell"
                 aria-label={id}

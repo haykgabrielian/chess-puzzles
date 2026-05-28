@@ -35,6 +35,7 @@ type PuzzleGameContextValue = {
   lastMove: BoardMove | null;
   hintSquares: BoardMove | null;
   isHintRevealed: boolean;
+  moveIndex: number;
   wrongMoveSquares: BoardMove | null;
   status: PuzzleStatus;
   canInteract: boolean;
@@ -149,13 +150,14 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const revealHint = useCallback(() => {
-    if (!hasPuzzle || puzzle.parsed.moves.length === 0) {
+    if (!hasPuzzle || puzzle.parsed.moves.length === 0 || !isUserMoveIndex(moveIndex)) {
       return;
     }
 
+    const expectedMove = puzzle.parsed.moves[moveIndex];
     setIsHintRevealed(true);
-    setHintSquares(getMoveSquares(puzzle.parsed.fen, puzzle.parsed.moves[0]));
-  }, [hasPuzzle, puzzle.parsed.fen, puzzle.parsed.moves]);
+    setHintSquares(getMoveSquares(fen, expectedMove));
+  }, [fen, hasPuzzle, moveIndex, puzzle.parsed.moves]);
 
   const onSquareClick = useCallback(
     (square: string) => {
@@ -191,6 +193,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
         const nextIndex = moveIndex + 1;
         setMoveIndex(nextIndex);
+        clearHint();
         syncBoardState(game, { from: move.from, to: move.to });
 
         if (nextIndex >= solutionMoves.length) {
@@ -217,6 +220,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       setLegalTargets(getLegalTargetSquares(game, square as Square));
     },
     [
+      clearHint,
       hasPuzzle,
       legalTargets,
       moveIndex,
@@ -242,6 +246,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       lastMove,
       hintSquares,
       isHintRevealed,
+      moveIndex,
       wrongMoveSquares,
       status,
       canInteract,
@@ -258,6 +263,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       hintSquares,
       isHintRevealed,
       lastMove,
+      moveIndex,
       legalTargets,
       onSquareClick,
       orientation,

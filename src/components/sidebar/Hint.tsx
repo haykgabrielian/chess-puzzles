@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 import { HintIcon } from '@/components/ui/CardIcons';
 import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
-import { formatHintSentence } from '@/helpers/chess';
+import { formatHintSentence, isUserMoveIndex } from '@/helpers/chess';
 
 const HINT_BODY_HEIGHT = '76px';
 
@@ -56,11 +56,12 @@ const EyeIcon = () => (
 
 const Hint = () => {
   const { puzzle, hasPuzzle } = usePuzzle();
-  const { isHintRevealed, revealHint } = usePuzzleGame();
+  const { fen, isHintRevealed, moveIndex, revealHint } = usePuzzleGame();
 
-  const revealedHint = hasPuzzle
-    ? formatHintSentence(puzzle.parsed.fen, puzzle.parsed.moves[0])
-    : null;
+  const revealedHint =
+    hasPuzzle && isUserMoveIndex(moveIndex)
+      ? formatHintSentence(fen, puzzle.parsed.moves[moveIndex])
+      : null;
 
   return (
     <Card title="Hint" icon={<HintIcon />} bodyHeight={HINT_BODY_HEIGHT}>
