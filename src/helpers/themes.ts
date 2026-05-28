@@ -31,7 +31,7 @@ export const lightTheme = {
     lastMove: 'rgba(155, 199, 0, 0.41)',
     moveDot: 'rgba(20, 85, 30, 0.55)',
     captureRing: 'rgba(20, 85, 30, 0.65)',
-    hint: 'rgba(200, 214, 179, 0.75)',
+    hint: 'rgba(193, 210, 168, 0.85)',
     wrong: 'rgba(178, 95, 95, 0.55)',
     danger: '#b25f5f',
     dangerMuted: '#b25f5f18',
