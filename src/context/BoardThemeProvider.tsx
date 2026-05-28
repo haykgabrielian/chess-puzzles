@@ -6,11 +6,15 @@ import {
   boardCoordinateModes,
   defaultBoardCoordinateMode,
   defaultBoardThemeId,
+  defaultShowCaptureIndicator,
+  defaultShowMoveDots,
   getBoardThemeById,
 } from '@/helpers/boardThemes';
 
 const THEME_STORAGE_KEY = 'chess-board-theme';
 const COORDINATE_MODE_STORAGE_KEY = 'chess-board-coordinate-mode';
+const SHOW_MOVE_DOTS_STORAGE_KEY = 'chess-board-show-move-dots';
+const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = 'chess-board-show-capture-indicator';
 
 const getInitialBoardThemeId = () => {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
@@ -24,9 +28,25 @@ const getInitialCoordinateMode = (): BoardCoordinateMode => {
     : defaultBoardCoordinateMode;
 };
 
+const getInitialBooleanSetting = (key: string, defaultValue: boolean): boolean => {
+  const saved = localStorage.getItem(key);
+
+  if (saved === null) {
+    return defaultValue;
+  }
+
+  return saved === 'true';
+};
+
 const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
   const [boardThemeId, setBoardThemeIdState] = useState(getInitialBoardThemeId);
   const [coordinateMode, setCoordinateModeState] = useState(getInitialCoordinateMode);
+  const [showMoveDots, setShowMoveDotsState] = useState(() =>
+    getInitialBooleanSetting(SHOW_MOVE_DOTS_STORAGE_KEY, defaultShowMoveDots),
+  );
+  const [showCaptureIndicator, setShowCaptureIndicatorState] = useState(() =>
+    getInitialBooleanSetting(SHOW_CAPTURE_INDICATOR_STORAGE_KEY, defaultShowCaptureIndicator),
+  );
 
   const setBoardThemeId = (id: string) => {
     localStorage.setItem(THEME_STORAGE_KEY, id);
@@ -38,6 +58,16 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
     setCoordinateModeState(mode);
   };
 
+  const setShowMoveDots = (enabled: boolean) => {
+    localStorage.setItem(SHOW_MOVE_DOTS_STORAGE_KEY, String(enabled));
+    setShowMoveDotsState(enabled);
+  };
+
+  const setShowCaptureIndicator = (enabled: boolean) => {
+    localStorage.setItem(SHOW_CAPTURE_INDICATOR_STORAGE_KEY, String(enabled));
+    setShowCaptureIndicatorState(enabled);
+  };
+
   return (
     <BoardThemeContext.Provider
       value={{
@@ -45,6 +75,10 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
         setBoardThemeId,
         coordinateMode,
         setCoordinateMode,
+        showMoveDots,
+        setShowMoveDots,
+        showCaptureIndicator,
+        setShowCaptureIndicator,
       }}
     >
       {children}

@@ -130,11 +130,7 @@ function needsRecentMonthRefresh(monthDate, puzzles) {
   }
 
   if (isCurrentMonth) {
-    const yesterday = today.clone().subtract(1, "day");
-    if (yesterday.isBefore(month, "month")) {
-      return false;
-    }
-    return moment(latest).isBefore(yesterday, "day");
+    return moment(latest).isBefore(today, "day");
   }
 
   const lastDayOfMonth = month.clone().endOf("month").format("YYYY-MM-DD");

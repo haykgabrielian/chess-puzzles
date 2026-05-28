@@ -46,3 +46,10 @@ export const canNavigateToNextMonth = (viewDate: Date): boolean => {
     (nextMonth.getFullYear() === today.getFullYear() && nextMonth.getMonth() <= today.getMonth())
   );
 };
+
+export const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  return normalizeDate(result);
+};
+
+export const canNavigateToNextDay = (date: Date): boolean => !isFutureDate(addDays(date, 1));

@@ -26,6 +26,16 @@ export const lightTheme = {
   accent: '#2e7d32',
   accentMuted: '#2e7d3218',
   onAccent: '#ffffff',
+  boardHighlight: {
+    selected: 'rgba(200, 214, 179, 0.9)',
+    lastMove: 'rgba(155, 199, 0, 0.41)',
+    moveDot: 'rgba(20, 85, 30, 0.55)',
+    captureRing: 'rgba(20, 85, 30, 0.65)',
+    hint: 'rgba(200, 214, 179, 0.75)',
+    wrong: 'rgba(178, 95, 95, 0.55)',
+    danger: '#b25f5f',
+    dangerMuted: '#b25f5f18',
+  },
   board: {
     light: '#f0d9b5',
     dark: '#b58863',
@@ -61,6 +71,16 @@ export const darkTheme = {
   accent: '#629a72',
   accentMuted: '#629a7224',
   onAccent: '#ffffff',
+  boardHighlight: {
+    selected: 'rgba(200, 214, 179, 0.9)',
+    lastMove: 'rgba(155, 199, 0, 0.41)',
+    moveDot: 'rgba(20, 85, 30, 0.55)',
+    captureRing: 'rgba(20, 85, 30, 0.65)',
+    hint: 'rgba(200, 214, 179, 0.75)',
+    wrong: 'rgba(178, 95, 95, 0.55)',
+    danger: '#c97a7a',
+    dangerMuted: '#c97a7a24',
+  },
   board: {
     light: '#f0d9b5',
     dark: '#b58863',

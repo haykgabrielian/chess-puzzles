@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 
 import Card from '@/components/ui/Card';
 import { HintIcon } from '@/components/ui/CardIcons';
 import { usePuzzle } from '@/context/PuzzleContext';
+import { usePuzzleGame } from '@/context/PuzzleGameContext';
+import { formatHintSentence } from '@/helpers/chess';
 
 const RevealedHint = styled.p`
   margin: 0;
@@ -47,13 +49,20 @@ const EyeIcon = () => (
 
 const Hint = () => {
   const { puzzle, hasPuzzle, selectedDate } = usePuzzle();
-  const [isRevealed, setIsRevealed] = useState(false);
+  const { revealHint } = usePuzzleGame();
+  const [revealedDate, setRevealedDate] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsRevealed(false);
-  }, [selectedDate]);
+  const dateKey = selectedDate.toISOString().slice(0, 10);
+  const isRevealed = revealedDate === dateKey;
 
-  const revealedHint = hasPuzzle ? `Try ${puzzle.parsed.moves[0]}.` : null;
+  const revealedHint = hasPuzzle
+    ? formatHintSentence(puzzle.parsed.fen, puzzle.parsed.moves[0])
+    : null;
+
+  const handleRevealHint = () => {
+    setRevealedDate(dateKey);
+    revealHint();
+  };
 
   return (
     <Card title="Hint" icon={<HintIcon />}>
@@ -62,7 +71,7 @@ const Hint = () => {
       ) : isRevealed ? (
         <RevealedHint>{revealedHint}</RevealedHint>
       ) : (
-        <ShowHintButton type="button" onClick={() => setIsRevealed(true)}>
+        <ShowHintButton type="button" onClick={handleRevealHint}>
           <EyeIcon />
           Show Hint
         </ShowHintButton>

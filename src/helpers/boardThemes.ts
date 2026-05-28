@@ -1,4 +1,15 @@
-export type BoardCoordinateMode = 'aside' | 'inside';
+export type BoardCoordinateMode = 'aside' | 'inside' | 'none';
+
+export type BoardHighlight = {
+  selected: string;
+  lastMove: string;
+  hint: string;
+  wrong: string;
+  moveDotOnLight: string;
+  moveDotOnDark: string;
+  captureRingOnLight: string;
+  captureRingOnDark: string;
+};
 
 export type BoardTheme = {
   id: string;
@@ -7,16 +18,30 @@ export type BoardTheme = {
   dark: string;
   coordinate: string;
   frame: string;
+  highlight: BoardHighlight;
 };
 
-export const boardCoordinateModes: { id: BoardCoordinateMode; name: string }[] = [
-  { id: 'aside', name: 'Aside' },
-  { id: 'inside', name: 'Inside Board' },
-];
+const rgbaFromHex = (hex: string, alpha: number): string => {
+  const value = hex.replace('#', '');
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
 
-export const defaultBoardCoordinateMode: BoardCoordinateMode = 'aside';
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+};
 
-export const boardThemes: BoardTheme[] = [
+export const createBoardHighlight = (light: string, dark: string): BoardHighlight => ({
+  selected: rgbaFromHex(dark, 0.34),
+  lastMove: rgbaFromHex(dark, 0.24),
+  hint: rgbaFromHex(dark, 0.3),
+  wrong: 'rgba(178, 95, 95, 0.55)',
+  moveDotOnLight: rgbaFromHex(dark, 0.58),
+  moveDotOnDark: rgbaFromHex(light, 0.82),
+  captureRingOnLight: rgbaFromHex(dark, 0.72),
+  captureRingOnDark: rgbaFromHex(light, 0.88),
+});
+
+const baseBoardThemes = [
   {
     id: 'classic-wood',
     name: 'Classic Wood',
@@ -44,9 +69,9 @@ export const boardThemes: BoardTheme[] = [
   {
     id: 'midnight-navy',
     name: 'Marble Blue',
-    light: '#D9E4E8',
-    dark: '#7498AE',
-    coordinate: '#7498AE',
+    light: '#DEE3E6',
+    dark: '#8CA2AD',
+    coordinate: '#8CA2AD',
     frame: '#ffffff',
   },
   {
@@ -65,9 +90,25 @@ export const boardThemes: BoardTheme[] = [
     coordinate: '#5c6670',
     frame: '#ffffff',
   },
+] as const;
+
+export const boardCoordinateModes: { id: BoardCoordinateMode; name: string }[] = [
+  { id: 'aside', name: 'Aside' },
+  { id: 'inside', name: 'Inside Board' },
+  { id: 'none', name: 'None' },
 ];
 
-export const defaultBoardThemeId = boardThemes[0].id;
+export const defaultBoardCoordinateMode: BoardCoordinateMode = 'aside';
+
+export const boardThemes: BoardTheme[] = baseBoardThemes.map(theme => ({
+  ...theme,
+  highlight: createBoardHighlight(theme.light, theme.dark),
+}));
+
+export const defaultBoardThemeId = 'midnight-navy';
+
+export const defaultShowMoveDots = true;
+export const defaultShowCaptureIndicator = true;
 
 export const getBoardThemeById = (id: string): BoardTheme =>
   boardThemes.find(theme => theme.id === id) ?? boardThemes[0];

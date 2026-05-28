@@ -2,9 +2,11 @@ import styled from 'styled-components';
 
 import BoardThemePicker from '@/components/board/BoardThemePicker';
 import ChessBoard from '@/components/board/ChessBoard';
+import PuzzleBoardFooter from '@/components/board/PuzzleBoardFooter';
 import Header from '@/components/Header';
 import Sidebar from '@/components/sidebar/Sidebar';
-import PuzzleProvider, { usePuzzle } from '@/context/PuzzleContext';
+import PuzzleProvider from '@/context/PuzzleContext';
+import PuzzleGameProvider, { usePuzzleGame } from '@/context/PuzzleGameContext';
 
 const Page = styled.div`
   min-height: 100vh;
@@ -28,20 +30,53 @@ const Content = styled.main`
 
 const BoardSection = styled.section`
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   min-width: 0;
 `;
 
+const BoardColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: min(100%, 720px);
+`;
+
 const HomeContent = () => {
-  const { puzzle } = usePuzzle();
+  const {
+    fen,
+    orientation,
+    selectedSquare,
+    legalTargets,
+    lastMove,
+    hintSquares,
+    wrongMoveSquares,
+    canInteract,
+    onSquareClick,
+  } = usePuzzleGame();
 
   return (
     <Page>
       <Header />
       <Content>
         <BoardSection aria-label="Chess puzzle board">
-          <ChessBoard fen={puzzle.parsed.fen} />
+          <BoardColumn>
+            <ChessBoard
+              fen={fen}
+              orientation={orientation}
+              selectedSquare={selectedSquare}
+              legalTargets={legalTargets}
+              lastMove={lastMove}
+              hintSquares={hintSquares}
+              wrongMoveSquares={wrongMoveSquares}
+              canInteract={canInteract}
+              onSquareClick={onSquareClick}
+            />
+            <PuzzleBoardFooter />
+          </BoardColumn>
         </BoardSection>
         <Sidebar />
       </Content>
@@ -52,7 +87,9 @@ const HomeContent = () => {
 
 const Home = () => (
   <PuzzleProvider>
-    <HomeContent />
+    <PuzzleGameProvider>
+      <HomeContent />
+    </PuzzleGameProvider>
   </PuzzleProvider>
 );
 

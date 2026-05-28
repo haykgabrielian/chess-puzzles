@@ -107,9 +107,52 @@ const CoordinateSectionTitle = styled(MenuTitle)`
   margin-bottom: 8px;
 `;
 
+const SettingsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const SettingsRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const SettingsLabel = styled.span`
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.text.primary};
+`;
+
+const ToggleSwitch = styled.button<{ $on: boolean }>`
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background-color: ${({ $on, theme }) => ($on ? theme.accent : theme.button.background)};
+  transition: background-color 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: ${({ $on }) => ($on ? '20px' : '2px')};
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: ${({ $on, theme }) => ($on ? theme.onAccent : theme.card.background)};
+    transition: left 0.2s ease;
+  }
+`;
+
 const CoordinateGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 72px);
+  grid-template-columns: repeat(3, 72px);
   justify-content: start;
   gap: 6px 12px;
 `;
@@ -207,6 +250,34 @@ const AsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
+  border-radius: 2px;
+  overflow: hidden;
+
+  span:nth-child(1) {
+    background-color: ${({ $light }) => $light};
+  }
+
+  span:nth-child(2) {
+    background-color: ${({ $dark }) => $dark};
+  }
+
+  span:nth-child(3) {
+    background-color: ${({ $dark }) => $dark};
+  }
+
+  span:nth-child(4) {
+    background-color: ${({ $light }) => $light};
+  }
+`;
+
+const NonePreviewBoard = styled.div<{ $light: string; $dark: string }>`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  box-sizing: border-box;
   border-radius: 2px;
   overflow: hidden;
 
@@ -372,8 +443,16 @@ const ThemePreview = ({ light, dark }: { light: string; dark: string }) => {
 };
 
 const BoardThemePicker = () => {
-  const { boardTheme, setBoardThemeId, coordinateMode, setCoordinateMode } =
-    useContext(BoardThemeContext);
+  const {
+    boardTheme,
+    setBoardThemeId,
+    coordinateMode,
+    setCoordinateMode,
+    showMoveDots,
+    setShowMoveDots,
+    showCaptureIndicator,
+    setShowCaptureIndicator,
+  } = useContext(BoardThemeContext);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -466,7 +545,7 @@ const BoardThemePicker = () => {
                           8
                         </AsidePreviewSideLabel>
                       </AsidePreview>
-                    ) : (
+                    ) : mode.id === 'inside' ? (
                       <InsidePreviewBoard
                         $light={boardTheme.light}
                         $dark={boardTheme.dark}
@@ -476,6 +555,13 @@ const BoardThemePicker = () => {
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
                       </InsidePreviewBoard>
+                    ) : (
+                      <NonePreviewBoard $light={boardTheme.light} $dark={boardTheme.dark}>
+                        <span aria-hidden="true" />
+                        <span aria-hidden="true" />
+                        <span aria-hidden="true" />
+                        <span aria-hidden="true" />
+                      </NonePreviewBoard>
                     )}
                     {selected && (
                       <CoordinateCheckmark aria-hidden="true">
@@ -488,6 +574,32 @@ const BoardThemePicker = () => {
               );
             })}
           </CoordinateGrid>
+          <MenuDivider />
+          <CoordinateSectionTitle>Move Hints</CoordinateSectionTitle>
+          <SettingsList>
+            <SettingsRow>
+              <SettingsLabel id="show-move-dots-label">Move dots</SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="show-move-dots-label"
+                aria-checked={showMoveDots}
+                $on={showMoveDots}
+                onClick={() => setShowMoveDots(!showMoveDots)}
+              />
+            </SettingsRow>
+            <SettingsRow>
+              <SettingsLabel id="show-capture-indicator-label">Capture indicator</SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="show-capture-indicator-label"
+                aria-checked={showCaptureIndicator}
+                $on={showCaptureIndicator}
+                onClick={() => setShowCaptureIndicator(!showCaptureIndicator)}
+              />
+            </SettingsRow>
+          </SettingsList>
         </Menu>
       )}
       <TriggerWrapper>
