@@ -1,10 +1,14 @@
+import { type MouseEvent, memo, useCallback, useContext, useMemo } from 'react';
 import styled, { keyframes, useTheme } from 'styled-components';
-import { useContext, useMemo } from 'react';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
-import { type BoardCoordinateMode, type BoardHighlight } from '@/helpers/boardThemes';
+import {
+  type BoardCoordinateMode,
+  type BoardHighlight,
+  type BoardTheme,
+} from '@/helpers/boardThemes';
 import type { BoardMove } from '@/helpers/chess';
-import { parseFenBoard } from '@/helpers/fen';
+import { type Piece, parseFenBoard } from '@/helpers/fen';
 import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
 const MOBILE = '@media (max-width: 900px)';
@@ -12,7 +16,20 @@ const MOBILE = '@media (max-width: 900px)';
 const BOARD_SIZE = 8;
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1] as const;
+const BLACK_ORIENTED_FILES = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] as const;
 const BLACK_ORIENTED_RANKS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+
+type SquareHighlight = 'none' | 'selected' | 'target' | 'hint' | 'wrong';
+
+type BoardSquareLayout = {
+  id: string;
+  file: (typeof FILES)[number];
+  rank: (typeof RANKS)[number];
+  displayRankIndex: number;
+  displayFileIndex: number;
+  isLight: boolean;
+  piece: Piece | null;
+};
 
 type BoardOrientation = 'white' | 'black';
 
@@ -240,13 +257,13 @@ const PieceImage = styled.img`
   pointer-events: none;
 `;
 
-const getSquareHighlight = (
+const resolveSquareHighlight = (
   squareId: string,
   selectedSquare: string | null,
-  legalTargets: string[],
+  legalTargetSet: ReadonlySet<string>,
   hintSquares: BoardMove | null,
   wrongMoveSquares: BoardMove | null,
-): 'none' | 'selected' | 'target' | 'hint' | 'wrong' => {
+): SquareHighlight => {
   if (
     wrongMoveSquares &&
     (squareId === wrongMoveSquares.from || squareId === wrongMoveSquares.to)
@@ -262,7 +279,7 @@ const getSquareHighlight = (
     return 'selected';
   }
 
-  if (legalTargets.includes(squareId)) {
+  if (legalTargetSet.has(squareId)) {
     return 'target';
   }
 
@@ -270,7 +287,7 @@ const getSquareHighlight = (
 };
 
 const getOverlayColor = (
-  highlight: ReturnType<typeof getSquareHighlight>,
+  highlight: SquareHighlight,
   boardHighlight: BoardHighlight,
   hintColor: string,
 ): string | null => {
@@ -298,6 +315,137 @@ const getMoveIndicatorColor = (
   return isLight ? boardHighlight.captureRingOnLight : boardHighlight.captureRingOnDark;
 };
 
+type BoardSquareProps = {
+  layout: BoardSquareLayout;
+  squareHighlight: SquareHighlight;
+  isLegalTarget: boolean;
+  isSelected: boolean;
+  isLastMoveSquare: boolean;
+  showSolvedFlash: boolean;
+  solvedFlashKey: string | null;
+  canInteract: boolean;
+  showInsideLabels: boolean;
+  showMoveDots: boolean;
+  showCaptureIndicator: boolean;
+  boardTheme: BoardTheme;
+  hintColor: string;
+  lastMoveColor: string;
+  accentColor: string;
+};
+
+const BoardSquare = memo(function BoardSquare({
+  layout,
+  squareHighlight,
+  isLegalTarget,
+  isSelected,
+  isLastMoveSquare,
+  showSolvedFlash,
+  solvedFlashKey,
+  canInteract,
+  showInsideLabels,
+  showMoveDots,
+  showCaptureIndicator,
+  boardTheme,
+  hintColor,
+  lastMoveColor,
+  accentColor,
+}: BoardSquareProps) {
+  const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
+
+  return (
+    <Square
+      type="button"
+      data-square={id}
+      $isLight={isLight}
+      $light={boardTheme.light}
+      $dark={boardTheme.dark}
+      $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight, hintColor)}
+      $canInteract={canInteract}
+      role="gridcell"
+      aria-label={id}
+      aria-selected={isSelected}
+      disabled={!canInteract}
+    >
+      {isLastMoveSquare && (
+        <LastMoveOverlay aria-hidden="true" $color={lastMoveColor} />
+      )}
+      {showSolvedFlash && solvedFlashKey && (
+        <SolvedFlashOverlay
+          key={solvedFlashKey}
+          aria-hidden="true"
+          $color={accentColor}
+        />
+      )}
+      {showInsideLabels && displayFileIndex === 0 && (
+        <SquareCoordinate
+          $isLight={isLight}
+          $light={boardTheme.light}
+          $dark={boardTheme.dark}
+          $position="top-left"
+          aria-hidden="true"
+        >
+          {rank}
+        </SquareCoordinate>
+      )}
+      {showInsideLabels && displayRankIndex === 7 && (
+        <SquareCoordinate
+          $isLight={isLight}
+          $light={boardTheme.light}
+          $dark={boardTheme.dark}
+          $position="bottom-right"
+          aria-hidden="true"
+        >
+          {file}
+        </SquareCoordinate>
+      )}
+      {piece && (
+        <PieceImage src={PIECE_IMAGES[piece]} alt="" aria-hidden="true" draggable={false} />
+      )}
+      {showCaptureIndicator && isLegalTarget && piece && (
+        <CaptureFrame
+          aria-hidden="true"
+          $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'capture')}
+        />
+      )}
+      {showMoveDots && isLegalTarget && !piece && (
+        <TargetDot
+          $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'dot')}
+        />
+      )}
+    </Square>
+  );
+});
+
+const getDisplayAxes = (orientation: BoardOrientation) =>
+  orientation === 'white'
+    ? { displayFiles: FILES, displayRanks: RANKS }
+    : { displayFiles: BLACK_ORIENTED_FILES, displayRanks: BLACK_ORIENTED_RANKS };
+
+const buildSquareLayouts = (
+  board: (Piece | null)[][],
+  orientation: BoardOrientation,
+): BoardSquareLayout[] => {
+  const { displayFiles, displayRanks } = getDisplayAxes(orientation);
+
+  return displayRanks.flatMap((rank, displayRankIndex) =>
+    displayFiles.map((file, displayFileIndex) => {
+      const rankIndex = RANKS.indexOf(rank);
+      const fileIndex = FILES.indexOf(file);
+      const id = `${file}${rank}`;
+
+      return {
+        id,
+        file,
+        rank,
+        displayRankIndex,
+        displayFileIndex,
+        isLight: (rankIndex + fileIndex) % 2 === 0,
+        piece: board[rankIndex]?.[fileIndex] ?? null,
+      };
+    }),
+  );
+};
+
 const ChessBoard = ({
   fen,
   orientation = 'white',
@@ -314,37 +462,35 @@ const ChessBoard = ({
   const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator } =
     useContext(BoardThemeContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
+  const squareLayouts = useMemo(
+    () => buildSquareLayouts(board, orientation),
+    [board, orientation],
+  );
+  const legalTargetSet = useMemo(() => new Set(legalTargets), [legalTargets]);
+  const { displayFiles, displayRanks } = getDisplayAxes(orientation);
 
-  const displayFiles = orientation === 'white' ? FILES : [...FILES].reverse();
-  const displayRanks = orientation === 'white' ? RANKS : BLACK_ORIENTED_RANKS;
+  const handleGridClick = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
+      if (!canInteract || !onSquareClick) {
+        return;
+      }
 
-  const squares = useMemo(
-    () =>
-      displayRanks.flatMap((rank, displayRankIndex) =>
-        displayFiles.map((file, displayFileIndex) => {
-          const rankIndex = RANKS.indexOf(rank as (typeof RANKS)[number]);
-          const fileIndex = FILES.indexOf(file as (typeof FILES)[number]);
-          const id = `${file}${rank}`;
+      const squareId = (event.target as HTMLElement).closest<HTMLButtonElement>(
+        '[data-square]',
+      )?.dataset.square;
 
-          return {
-            id,
-            file,
-            rank,
-            fileIndex,
-            rankIndex,
-            displayRankIndex,
-            displayFileIndex,
-            isLight: (rankIndex + fileIndex) % 2 === 0,
-            piece: board[rankIndex]?.[fileIndex] ?? null,
-          };
-        }),
-      ),
-    [board, displayFiles, displayRanks],
+      if (squareId) {
+        onSquareClick(squareId);
+      }
+    },
+    [canInteract, onSquareClick],
   );
 
   const labelProps = { $color: boardTheme.coordinate, $bg: boardTheme.frame };
   const showAsideLabels = coordinateMode === 'aside';
   const showInsideLabels = coordinateMode === 'inside';
+  const solvedFlashKey =
+    isSolved && lastMove ? `${lastMove.from}-${lastMove.to}` : null;
 
   return (
     <BoardWrapper aria-label="Chess board">
@@ -368,106 +514,43 @@ const ChessBoard = ({
           aria-rowcount={BOARD_SIZE}
           aria-colcount={BOARD_SIZE}
           $coordinateMode={coordinateMode}
+          onClick={handleGridClick}
         >
-          {squares.map(
-            ({
+          {squareLayouts.map(layout => {
+            const { id } = layout;
+            const isLegalTarget = legalTargetSet.has(id);
+            const isSelected = selectedSquare === id;
+            const isLastMoveSquare =
+              lastMove !== null && (id === lastMove.from || id === lastMove.to);
+            const squareHighlight = resolveSquareHighlight(
               id,
-              file,
-              rank,
-              displayRankIndex,
-              displayFileIndex,
-              isLight,
-              piece,
-            }) => {
-              const isLegalTarget = legalTargets.includes(id);
-              const isSelected = selectedSquare === id;
-              const isLastMoveSquare =
-                lastMove !== null && (id === lastMove.from || id === lastMove.to);
-              const squareHighlight = getSquareHighlight(
-                id,
-                selectedSquare,
-                legalTargets,
-                hintSquares,
-                wrongMoveSquares,
-              );
+              selectedSquare,
+              legalTargetSet,
+              hintSquares,
+              wrongMoveSquares,
+            );
 
-              return (
-              <Square
+            return (
+              <BoardSquare
                 key={id}
-                type="button"
-                $isLight={isLight}
-                $light={boardTheme.light}
-                $dark={boardTheme.dark}
-                $overlayColor={getOverlayColor(
-                  squareHighlight,
-                  boardTheme.highlight,
-                  appTheme.boardHighlight.hint,
-                )}
-                $canInteract={canInteract}
-                role="gridcell"
-                aria-label={id}
-                aria-selected={isSelected}
-                disabled={!canInteract}
-                onClick={() => onSquareClick?.(id)}
-              >
-                {isLastMoveSquare && (
-                  <LastMoveOverlay
-                    aria-hidden="true"
-                    $color={appTheme.boardHighlight.lastMove}
-                  />
-                )}
-                {isLastMoveSquare && isSolved && (
-                  <SolvedFlashOverlay
-                    key={`${lastMove.from}-${lastMove.to}`}
-                    aria-hidden="true"
-                    $color={appTheme.accent}
-                  />
-                )}
-                {showInsideLabels && displayFileIndex === 0 && (
-                  <SquareCoordinate
-                    $isLight={isLight}
-                    $light={boardTheme.light}
-                    $dark={boardTheme.dark}
-                    $position="top-left"
-                    aria-hidden="true"
-                  >
-                    {rank}
-                  </SquareCoordinate>
-                )}
-                {showInsideLabels && displayRankIndex === 7 && (
-                  <SquareCoordinate
-                    $isLight={isLight}
-                    $light={boardTheme.light}
-                    $dark={boardTheme.dark}
-                    $position="bottom-right"
-                    aria-hidden="true"
-                  >
-                    {file}
-                  </SquareCoordinate>
-                )}
-                {piece && (
-                  <PieceImage
-                    src={PIECE_IMAGES[piece]}
-                    alt=""
-                    aria-hidden="true"
-                    draggable={false}
-                  />
-                )}
-                {showCaptureIndicator && isLegalTarget && piece && (
-                  <CaptureFrame
-                    aria-hidden="true"
-                    $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'capture')}
-                  />
-                )}
-                {showMoveDots && isLegalTarget && !piece && (
-                  <TargetDot
-                    $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'dot')}
-                  />
-                )}
-              </Square>
-              );
-            },
-          )}
+                layout={layout}
+                squareHighlight={squareHighlight}
+                isLegalTarget={isLegalTarget}
+                isSelected={isSelected}
+                isLastMoveSquare={isLastMoveSquare}
+                showSolvedFlash={isLastMoveSquare && isSolved}
+                solvedFlashKey={solvedFlashKey}
+                canInteract={canInteract}
+                showInsideLabels={showInsideLabels}
+                showMoveDots={showMoveDots}
+                showCaptureIndicator={showCaptureIndicator}
+                boardTheme={boardTheme}
+                hintColor={appTheme.boardHighlight.hint}
+                lastMoveColor={appTheme.boardHighlight.lastMove}
+                accentColor={appTheme.accent}
+              />
+            );
+          })}
         </Grid>
         {showAsideLabels && (
           <>
@@ -488,4 +571,4 @@ const ChessBoard = ({
   );
 };
 
-export default ChessBoard;
+export default memo(ChessBoard);
