@@ -81,7 +81,12 @@ const PuzzleInfo = () => {
   const sideToMove = `${getSideLabel(fen)} to move`;
 
   return (
-    <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} bodyHeight={PUZZLE_INFO_BODY_HEIGHT}>
+    <Card
+      title="Puzzle Info"
+      icon={<PuzzleInfoIcon />}
+      bodyHeight={PUZZLE_INFO_BODY_HEIGHT}
+      collapsibleOnMobile
+    >
       <Content>
         {hasPuzzle ? (
           <PuzzleSummaryRow>

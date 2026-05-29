@@ -196,7 +196,12 @@ const Calendar = () => {
   };
 
   return (
-    <Card title="Calendar" icon={<CalendarIcon />}>
+    <Card
+      title="Calendar"
+      icon={<CalendarIcon />}
+      collapsibleOnMobile
+      defaultMobileCollapsed={false}
+    >
       <CalendarHeader>
         <MonthLabel>{monthLabel}</MonthLabel>
         <NavButtons>

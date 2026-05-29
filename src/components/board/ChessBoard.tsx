@@ -7,6 +7,8 @@ import type { BoardMove } from '@/helpers/chess';
 import { parseFenBoard } from '@/helpers/fen';
 import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
+const MOBILE = '@media (max-width: 900px)';
+
 const BOARD_SIZE = 8;
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1] as const;
@@ -218,6 +220,14 @@ const SquareCoordinate = styled.span<{
   color: ${({ $isLight, $light, $dark }) => ($isLight ? $dark : $light)};
   pointer-events: none;
   user-select: none;
+
+  ${MOBILE} {
+    font-size: 0.6875rem;
+    top: ${({ $position }) => ($position === 'top-left' ? '2px' : 'auto')};
+    bottom: ${({ $position }) => ($position === 'bottom-right' ? '2px' : 'auto')};
+    left: ${({ $position }) => ($position === 'top-left' ? '3px' : 'auto')};
+    right: ${({ $position }) => ($position === 'bottom-right' ? '3px' : 'auto')};
+  }
 `;
 
 const PieceImage = styled.img`

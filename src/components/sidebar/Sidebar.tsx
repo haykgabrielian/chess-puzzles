@@ -5,6 +5,8 @@ import Calendar from '@/components/sidebar/Calendar';
 import Hint from '@/components/sidebar/Hint';
 import PuzzleInfo from '@/components/sidebar/PuzzleInfo';
 
+const MOBILE = '@media (max-width: 900px)';
+
 const SidebarRoot = styled.aside`
   display: flex;
   flex-direction: column;
@@ -13,11 +15,23 @@ const SidebarRoot = styled.aside`
   min-width: 0;
 `;
 
+const SidebarItem = styled.div<{ $mobileOrder: number }>`
+  ${MOBILE} {
+    order: ${({ $mobileOrder }) => $mobileOrder};
+  }
+`;
+
 const Sidebar = forwardRef<HTMLElement>((_, ref) => (
   <SidebarRoot ref={ref} aria-label="Puzzle sidebar">
-    <PuzzleInfo />
-    <Calendar />
-    <Hint />
+    <SidebarItem $mobileOrder={2}>
+      <PuzzleInfo />
+    </SidebarItem>
+    <SidebarItem $mobileOrder={3}>
+      <Calendar />
+    </SidebarItem>
+    <SidebarItem $mobileOrder={1}>
+      <Hint />
+    </SidebarItem>
   </SidebarRoot>
 ));
 
