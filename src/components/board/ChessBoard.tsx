@@ -425,7 +425,7 @@ const BoardSquare = memo(function BoardSquare({
       )}
       {promotionPicker && (
         <PromotionPicker
-          opensDown={displayRankIndex === 0}
+          opensDown={displayRankIndex === 0 || displayRankIndex === 7}
           color={promotionPicker.color}
           onSelect={promotionPicker.onSelect}
         />
