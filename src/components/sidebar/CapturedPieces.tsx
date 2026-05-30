@@ -58,34 +58,14 @@ const CapturedPiece = styled.img`
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
 `;
 
-const Advantage = styled.span`
-  flex-shrink: 0;
-  padding-top: 5px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.accent};
-`;
-
 type CapturedPiecesProps = {
   captured: CapturedPieces;
 };
 
 type CapturedPieceType = CapturedPieces['byWhite'][number];
 
-const PIECE_VALUE: Record<CapturedPieceType, number> = {
-  q: 9,
-  r: 5,
-  b: 3,
-  n: 3,
-  p: 1,
-  k: 0,
-};
-
 const toPieceImage = (piece: CapturedPieceType, capturedBy: 'w' | 'b'): Piece =>
   capturedBy === 'w' ? (piece as Piece) : (piece.toUpperCase() as Piece);
-
-const materialValue = (pieces: CapturedPieceType[]): number =>
-  pieces.reduce((total, piece) => total + PIECE_VALUE[piece], 0);
 
 export const hasCapturedPieces = (captured: CapturedPieces): boolean =>
   captured.byWhite.length > 0 || captured.byBlack.length > 0;
@@ -95,16 +75,9 @@ type CapturedRowProps = {
   tone: 'light' | 'dark';
   pieces: CapturedPieceType[];
   capturedBy: 'w' | 'b';
-  advantage: number | null;
 };
 
-const CapturedMaterialRow = ({
-  label,
-  tone,
-  pieces,
-  capturedBy,
-  advantage,
-}: CapturedRowProps) => (
+const CapturedSideRow = ({ label, tone, pieces, capturedBy }: CapturedRowProps) => (
   <CapturedRow aria-label={`Pieces captured by ${label}`}>
     <SideLabel $tone={tone}>{label}</SideLabel>
     <PieceStrip>
@@ -117,7 +90,6 @@ const CapturedMaterialRow = ({
         />
       ))}
     </PieceStrip>
-    {advantage != null && advantage > 0 && <Advantage>+{advantage}</Advantage>}
   </CapturedRow>
 );
 
@@ -126,30 +98,23 @@ const CapturedPiecesDisplay = ({ captured }: CapturedPiecesProps) => {
     return null;
   }
 
-  const whiteMaterial = materialValue(captured.byWhite);
-  const blackMaterial = materialValue(captured.byBlack);
-  const whiteAdvantage = whiteMaterial - blackMaterial;
-  const blackAdvantage = blackMaterial - whiteMaterial;
-
   return (
     <CapturedSection aria-label="Captured pieces">
       <CapturedHeading>Captured</CapturedHeading>
       {captured.byBlack.length > 0 && (
-        <CapturedMaterialRow
+        <CapturedSideRow
           label="Black"
           tone="dark"
           pieces={captured.byBlack}
           capturedBy="b"
-          advantage={blackAdvantage > 0 ? blackAdvantage : null}
         />
       )}
       {captured.byWhite.length > 0 && (
-        <CapturedMaterialRow
+        <CapturedSideRow
           label="White"
           tone="light"
           pieces={captured.byWhite}
           capturedBy="w"
-          advantage={whiteAdvantage > 0 ? whiteAdvantage : null}
         />
       )}
     </CapturedSection>
