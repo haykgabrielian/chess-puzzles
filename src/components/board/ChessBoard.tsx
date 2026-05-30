@@ -7,9 +7,10 @@ import {
   type BoardHighlight,
   type BoardTheme,
 } from '@/helpers/boardThemes';
-import type { BoardMove } from '@/helpers/chess';
+import type { BoardMove, PromotionPiece } from '@/helpers/chess';
 import { type Piece, parseFenBoard } from '@/helpers/fen';
 import { PIECE_IMAGES } from '@/helpers/pieceImages';
+import PromotionPicker from '@/components/board/PromotionPicker';
 
 const MOBILE = '@media (max-width: 900px)';
 
@@ -33,6 +34,12 @@ type BoardSquareLayout = {
 
 type BoardOrientation = 'white' | 'black';
 
+type PromotionPickerState = {
+  square: string;
+  color: 'w' | 'b';
+  onSelect: (piece: PromotionPiece) => void;
+};
+
 type ChessBoardProps = {
   fen: string;
   orientation?: BoardOrientation;
@@ -43,6 +50,7 @@ type ChessBoardProps = {
   wrongMoveSquares?: BoardMove | null;
   canInteract?: boolean;
   isSolved?: boolean;
+  promotionPicker?: PromotionPickerState | null;
   onSquareClick?: (square: string) => void;
 };
 
@@ -145,9 +153,10 @@ const FileLabelsBottom = styled(FileLabels)`
   grid-row: 3;
 `;
 
-const Grid = styled.div<{ $coordinateMode: BoardCoordinateMode }>`
+const Grid = styled.div<{ $coordinateMode: BoardCoordinateMode; $allowOverflow?: boolean }>`
   grid-column: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
   grid-row: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
+  position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
@@ -156,7 +165,7 @@ const Grid = styled.div<{ $coordinateMode: BoardCoordinateMode }>`
   border: ${({ $coordinateMode, theme }) =>
     $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
   border-radius: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '4px' : '0')};
-  overflow: hidden;
+  overflow: ${({ $allowOverflow }) => ($allowOverflow ? 'visible' : 'hidden')};
 `;
 
 const Square = styled.button<{
@@ -331,6 +340,7 @@ type BoardSquareProps = {
   hintColor: string;
   lastMoveColor: string;
   accentColor: string;
+  promotionPicker: Pick<PromotionPickerState, 'color' | 'onSelect'> | null;
 };
 
 const BoardSquare = memo(function BoardSquare({
@@ -349,6 +359,7 @@ const BoardSquare = memo(function BoardSquare({
   hintColor,
   lastMoveColor,
   accentColor,
+  promotionPicker,
 }: BoardSquareProps) {
   const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
 
@@ -412,6 +423,13 @@ const BoardSquare = memo(function BoardSquare({
           $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'dot')}
         />
       )}
+      {promotionPicker && (
+        <PromotionPicker
+          opensDown={displayRankIndex === 0}
+          color={promotionPicker.color}
+          onSelect={promotionPicker.onSelect}
+        />
+      )}
     </Square>
   );
 });
@@ -456,6 +474,7 @@ const ChessBoard = ({
   wrongMoveSquares = null,
   canInteract = false,
   isSolved = false,
+  promotionPicker = null,
   onSquareClick,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
@@ -514,6 +533,7 @@ const ChessBoard = ({
           aria-rowcount={BOARD_SIZE}
           aria-colcount={BOARD_SIZE}
           $coordinateMode={coordinateMode}
+          $allowOverflow={Boolean(promotionPicker)}
           onClick={handleGridClick}
         >
           {squareLayouts.map(layout => {
@@ -548,6 +568,9 @@ const ChessBoard = ({
                 hintColor={appTheme.boardHighlight.hint}
                 lastMoveColor={appTheme.boardHighlight.lastMove}
                 accentColor={appTheme.accent}
+                promotionPicker={
+                  promotionPicker?.square === id ? promotionPicker : null
+                }
               />
             );
           })}

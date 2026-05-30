@@ -8,6 +8,7 @@ import Sidebar from '@/components/sidebar/Sidebar';
 import PuzzleProvider, { usePuzzle } from '@/context/PuzzleContext';
 import PuzzleGameProvider, { usePuzzleGame } from '@/context/PuzzleGameContext';
 import { formatDateForUrl } from '@/helpers/date';
+import { getSideToMove } from '@/helpers/fen';
 import { useBoardSizeFromSidebar } from '@/hooks/useBoardSizeFromSidebar';
 
 const MOBILE = '@media (max-width: 900px)';
@@ -103,6 +104,8 @@ const HomeContent = () => {
     wrongMoveSquares,
     canInteract,
     onSquareClick,
+    onPromotionSelect,
+    pendingPromotion,
     isHintRevealed,
     status,
   } = usePuzzleGame();
@@ -127,6 +130,15 @@ const HomeContent = () => {
                   wrongMoveSquares={wrongMoveSquares}
                   canInteract={canInteract}
                   isSolved={status === 'solved'}
+                  promotionPicker={
+                    pendingPromotion
+                      ? {
+                          square: pendingPromotion.to,
+                          color: getSideToMove(fen),
+                          onSelect: onPromotionSelect,
+                        }
+                      : null
+                  }
                   onSquareClick={onSquareClick}
                 />
                 <SolveConfetti isSolved={status === 'solved'} lastMoveTo={lastMove?.to ?? null} />
