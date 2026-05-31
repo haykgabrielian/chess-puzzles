@@ -1,5 +1,7 @@
 import { Chess, type Move, type Square } from 'chess.js';
 
+import { STARTING_FEN } from '@/helpers/fen';
+
 export type BoardMove = {
   from: string;
   to: string;
@@ -197,4 +199,82 @@ export function formatHintSentence(fen: string, san: string): string {
 
 export function isUserMoveIndex(moveIndex: number): boolean {
   return moveIndex % 2 === 0;
+}
+
+export type MoveHistoryRow = {
+  number: number;
+  white: string | null;
+  black: string | null;
+  whitePly: number | null;
+  blackPly: number | null;
+  isActive: boolean;
+  pendingWhite: boolean;
+  pendingBlack: boolean;
+  isWhiteViewing: boolean;
+  isBlackViewing: boolean;
+};
+
+const isRowActive = (
+  positionIndex: number,
+  whitePly: number | null,
+  blackPly: number | null,
+): boolean => positionIndex === whitePly || positionIndex === blackPly;
+
+export function replayGame(moves: string[], ply: number): Chess {
+  const game = createGame(STARTING_FEN);
+  const clampedPly = Math.max(0, Math.min(ply, moves.length));
+
+  for (let index = 0; index < clampedPly; index += 1) {
+    game.move(moves[index]!);
+  }
+
+  return game;
+}
+
+export function getMoveHistoryRows(
+  moves: string[],
+  positionIndex: number,
+  isLiveGameOver: boolean,
+): MoveHistoryRow[] {
+  const rows: MoveHistoryRow[] = [];
+  const completedPairs = Math.floor(moves.length / 2);
+  const isAtLiveEnd = positionIndex === moves.length;
+
+  for (let index = 0; index < completedPairs; index += 1) {
+    const rowNumber = index + 1;
+    const whitePly = index * 2 + 1;
+    const blackPly = index * 2 + 2;
+
+    rows.push({
+      number: rowNumber,
+      white: moves[index * 2] ?? null,
+      black: moves[index * 2 + 1] ?? null,
+      whitePly,
+      blackPly,
+      isActive: isRowActive(positionIndex, whitePly, blackPly),
+      pendingWhite: false,
+      pendingBlack: false,
+      isWhiteViewing: positionIndex === whitePly,
+      isBlackViewing: positionIndex === blackPly,
+    });
+  }
+
+  if (moves.length % 2 === 1) {
+    const rowNumber = completedPairs + 1;
+
+    rows.push({
+      number: rowNumber,
+      white: moves[moves.length - 1] ?? null,
+      black: null,
+      whitePly: moves.length,
+      blackPly: null,
+      isActive: positionIndex === moves.length,
+      pendingWhite: false,
+      pendingBlack: isAtLiveEnd && !isLiveGameOver,
+      isWhiteViewing: positionIndex === moves.length,
+      isBlackViewing: false,
+    });
+  }
+
+  return rows;
 }

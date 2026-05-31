@@ -6,13 +6,16 @@ import ChessBoard from '@/components/board/ChessBoard';
 import SolveConfetti from '@/components/board/SolveConfetti';
 import Header from '@/components/Header';
 import FreeroamInfo from '@/components/sidebar/FreeroamInfo';
+import MoveHistory from '@/components/sidebar/MoveHistory';
 import {
   type BoardMove,
   createGame,
   getCapturedPieces,
   getLegalTargetSquares,
+  getMoveHistoryRows,
   isPromotionMove,
   type PromotionPiece,
+  replayGame,
   tryMove,
 } from '@/helpers/chess';
 import { getSideToMove, STARTING_FEN } from '@/helpers/fen';
@@ -74,6 +77,10 @@ const getCheckmateWinner = (game: ReturnType<typeof createGame>): 'White' | 'Bla
 
 const Freeroam = () => {
   const gameRef = useRef(createGame(STARTING_FEN));
+  const [moves, setMoves] = useState<string[]>([]);
+  const [fenByPly, setFenByPly] = useState<string[]>([STARTING_FEN]);
+  const [lastMoveByPly, setLastMoveByPly] = useState<(BoardMove | null)[]>([null]);
+  const [positionIndex, setPositionIndex] = useState(0);
   const [fen, setFen] = useState(STARTING_FEN);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
@@ -82,8 +89,43 @@ const Freeroam = () => {
   const [isCheckmate, setIsCheckmate] = useState(false);
   const [checkmateWinner, setCheckmateWinner] = useState<'White' | 'Black' | null>(null);
 
+  const isAtLivePosition = positionIndex === moves.length;
+
+  const syncCheckmateState = useCallback((game: ReturnType<typeof createGame>, atLiveEnd: boolean) => {
+    if (atLiveEnd && game.isCheckmate()) {
+      setIsCheckmate(true);
+      setCheckmateWinner(getCheckmateWinner(game));
+      return;
+    }
+
+    setIsCheckmate(false);
+    setCheckmateWinner(null);
+  }, []);
+
+  const goToPly = useCallback(
+    (ply: number) => {
+      const nextFen = fenByPly[ply] ?? STARTING_FEN;
+      const nextLastMove = lastMoveByPly[ply] ?? null;
+      const game = createGame(nextFen);
+
+      gameRef.current = game;
+      setPositionIndex(ply);
+      setFen(nextFen);
+      setLastMove(nextLastMove);
+      setSelectedSquare(null);
+      setLegalTargets([]);
+      setPendingPromotion(null);
+      syncCheckmateState(game, ply === moves.length);
+    },
+    [fenByPly, lastMoveByPly, moves.length, syncCheckmateState],
+  );
+
   const resetGame = useCallback(() => {
     gameRef.current = createGame(STARTING_FEN);
+    setMoves([]);
+    setFenByPly([STARTING_FEN]);
+    setLastMoveByPly([null]);
+    setPositionIndex(0);
     setFen(STARTING_FEN);
     setSelectedSquare(null);
     setLegalTargets([]);
@@ -95,7 +137,7 @@ const Freeroam = () => {
 
   const applyMove = useCallback(
     (from: string, to: string, promotion?: PromotionPiece) => {
-      const game = gameRef.current;
+      const game = createGame(fenByPly[positionIndex] ?? STARTING_FEN);
       const move = tryMove(game, from as Square, to as Square, promotion);
 
       if (!move) {
@@ -104,18 +146,24 @@ const Freeroam = () => {
         return;
       }
 
-      setFen(game.fen());
-      setLastMove({ from: move.from, to: move.to });
+      const nextFen = game.fen();
+      const nextLastMove: BoardMove = { from: move.from, to: move.to };
+      const nextMoves = [...moves.slice(0, positionIndex), move.san];
+      const nextPly = positionIndex + 1;
+
+      gameRef.current = game;
+      setMoves(nextMoves);
+      setFenByPly(previous => [...previous.slice(0, positionIndex + 1), nextFen]);
+      setLastMoveByPly(previous => [...previous.slice(0, positionIndex + 1), nextLastMove]);
+      setPositionIndex(nextPly);
+      setFen(nextFen);
+      setLastMove(nextLastMove);
       setSelectedSquare(null);
       setLegalTargets([]);
       setPendingPromotion(null);
-
-      if (game.isCheckmate()) {
-        setIsCheckmate(true);
-        setCheckmateWinner(getCheckmateWinner(game));
-      }
+      syncCheckmateState(game, true);
     },
-    [],
+    [fenByPly, moves, positionIndex, syncCheckmateState],
   );
 
   const onPromotionSelect = useCallback(
@@ -133,7 +181,7 @@ const Freeroam = () => {
 
   const onSquareClick = useCallback(
     (square: string) => {
-      if (isCheckmate) {
+      if (!isAtLivePosition || isCheckmate) {
         return;
       }
 
@@ -174,22 +222,33 @@ const Freeroam = () => {
       setSelectedSquare(square);
       setLegalTargets(getLegalTargetSquares(game, square as Square));
     },
-    [applyMove, isCheckmate, legalTargets, pendingPromotion, selectedSquare],
+    [applyMove, isAtLivePosition, isCheckmate, legalTargets, pendingPromotion, selectedSquare],
   );
 
   const promotionPicker = useMemo(
     () =>
-      pendingPromotion
+      pendingPromotion && isAtLivePosition
         ? {
             square: pendingPromotion.to,
             color: getSideToMove(fen),
             onSelect: onPromotionSelect,
           }
         : null,
-    [fen, onPromotionSelect, pendingPromotion],
+    [fen, isAtLivePosition, onPromotionSelect, pendingPromotion],
   );
 
-  const capturedPieces = useMemo(() => getCapturedPieces(gameRef.current), [fen]);
+  const liveGame = useMemo(() => replayGame(moves, moves.length), [moves]);
+  const isLiveGameOver = liveGame.isGameOver();
+
+  const capturedPieces = useMemo(
+    () => getCapturedPieces(replayGame(moves, positionIndex)),
+    [moves, positionIndex],
+  );
+
+  const moveHistoryRows = useMemo(
+    () => getMoveHistoryRows(moves, positionIndex, isLiveGameOver),
+    [isLiveGameOver, moves, positionIndex],
+  );
 
   return (
     <Page>
@@ -202,21 +261,30 @@ const Freeroam = () => {
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={lastMove}
-              canInteract={!isCheckmate}
-              isSolved={isCheckmate}
+              canInteract={isAtLivePosition && !isCheckmate}
+              isSolved={isCheckmate && isAtLivePosition}
               promotionPicker={promotionPicker}
               onSquareClick={onSquareClick}
             />
-            <SolveConfetti isSolved={isCheckmate} lastMoveTo={lastMove?.to ?? null} />
+            <SolveConfetti
+              isSolved={isCheckmate && isAtLivePosition}
+              lastMoveTo={lastMove?.to ?? null}
+            />
           </BoardSizer>
         </BoardSection>
         <SidebarRoot aria-label="Freeroam sidebar">
           <FreeroamInfo
             fen={fen}
             captured={capturedPieces}
-            isCheckmate={isCheckmate}
+            isCheckmate={isCheckmate && isAtLivePosition}
             checkmateWinner={checkmateWinner}
             onReset={resetGame}
+          />
+          <MoveHistory
+            rows={moveHistoryRows}
+            positionIndex={positionIndex}
+            liveMoveCount={moves.length}
+            onSelectPly={goToPly}
           />
         </SidebarRoot>
       </Content>

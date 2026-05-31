@@ -6,6 +6,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 
+import About from '@/pages/About';
 import Freeroam from '@/pages/Freeroam';
 import Home from '@/pages/Home';
 import { formatDateForUrl, getToday, isFutureDate, parseDateFromUrl } from '@/helpers/date';
@@ -51,7 +52,13 @@ const freeroamRoute = createRoute({
   component: Freeroam,
 });
 
-const routeTree = rootRoute.addChildren([IndexRoute, dateRoute, freeroamRoute]);
+const aboutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/about',
+  component: About,
+});
+
+const routeTree = rootRoute.addChildren([IndexRoute, dateRoute, freeroamRoute, aboutRoute]);
 
 const router = createRouter({ routeTree });
 
