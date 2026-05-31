@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import styled, { keyframes, useTheme } from 'styled-components';
+import styled, { css, keyframes, useTheme } from 'styled-components';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
 import {
@@ -22,6 +22,26 @@ import PromotionPicker from '@/components/board/PromotionPicker';
 
 const MOBILE = '@media (max-width: 900px)';
 const DRAG_THRESHOLD_PX = 8;
+
+const insideCoordinateTypography = css`
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+
+  ${MOBILE} {
+    font-size: 0.6875rem;
+  }
+`;
+
+const asideCoordinateTypography = css`
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+
+  ${MOBILE} {
+    font-size: 0.625rem;
+  }
+`;
 
 const BOARD_SIZE = 8;
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
@@ -97,7 +117,9 @@ const BoardWrapper = styled.div`
   aspect-ratio: 1;
 `;
 
-const LABEL_SIZE = 24;
+const LABEL_SIZE = 22;
+const BOARD_FRAME_BORDER_RADIUS = '8px';
+const BOARD_GRID_BORDER_RADIUS = '4px';
 
 const BoardFrame = styled.div<{
   $frame: string;
@@ -116,7 +138,8 @@ const BoardFrame = styled.div<{
     $coordinateMode === 'aside' ? $frame : 'transparent'};
   border: ${({ $coordinateMode, theme }) =>
     $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
-  border-radius: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '8px' : '0')};
+  border-radius: ${({ $coordinateMode }) =>
+    $coordinateMode === 'aside' ? BOARD_FRAME_BORDER_RADIUS : '0'};
   box-sizing: border-box;
 `;
 
@@ -125,8 +148,7 @@ const RankLabels = styled.div<{ $color: string; $bg: string }>`
   grid-template-rows: repeat(8, 1fr);
   align-items: center;
   justify-items: center;
-  font-size: 0.75rem;
-  font-weight: 500;
+  ${asideCoordinateTypography}
   color: ${({ $color }) => $color};
   background-color: ${({ $bg }) => $bg};
 `;
@@ -146,8 +168,7 @@ const FileLabels = styled.div<{ $color: string; $bg: string }>`
   grid-template-columns: repeat(8, 1fr);
   align-items: center;
   justify-items: center;
-  font-size: 0.75rem;
-  font-weight: 500;
+  ${asideCoordinateTypography}
   color: ${({ $color }) => $color};
   background-color: ${({ $bg }) => $bg};
 `;
@@ -177,7 +198,7 @@ const Grid = styled.div<{
   aspect-ratio: ${({ $coordinateMode }) => ($coordinateMode !== 'aside' ? '1' : 'auto')};
   border: ${({ $coordinateMode, theme }) =>
     $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
-  border-radius: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '4px' : '0')};
+  border-radius: ${BOARD_GRID_BORDER_RADIUS};
   overflow: ${({ $allowOverflow }) => ($allowOverflow ? 'visible' : 'hidden')};
   touch-action: ${({ $isDragging }) => ($isDragging ? 'none' : 'manipulation')};
 `;
@@ -254,15 +275,12 @@ const SquareCoordinate = styled.span<{
   bottom: ${({ $position }) => ($position === 'bottom-right' ? '3px' : 'auto')};
   left: ${({ $position }) => ($position === 'top-left' ? '4px' : 'auto')};
   right: ${({ $position }) => ($position === 'bottom-right' ? '4px' : 'auto')};
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1;
+  ${insideCoordinateTypography}
   color: ${({ $isLight, $light, $dark }) => ($isLight ? $dark : $light)};
   pointer-events: none;
   user-select: none;
 
   ${MOBILE} {
-    font-size: 0.6875rem;
     top: ${({ $position }) => ($position === 'top-left' ? '2px' : 'auto')};
     bottom: ${({ $position }) => ($position === 'bottom-right' ? '2px' : 'auto')};
     left: ${({ $position }) => ($position === 'top-left' ? '3px' : 'auto')};
@@ -674,7 +692,7 @@ const ChessBoard = ({
     setDragGhost(null);
   }, []);
 
-  const labelProps = { $color: boardTheme.coordinate, $bg: boardTheme.frame };
+  const labelProps = { $color: appTheme.text.secondary, $bg: boardTheme.frame };
   const showAsideLabels = coordinateMode === 'aside';
   const showInsideLabels = coordinateMode === 'inside';
   const solvedFlashKey =
