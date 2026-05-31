@@ -1,4 +1,12 @@
-import { type MouseEvent, memo, useCallback, useContext, useMemo } from 'react';
+import {
+  type PointerEvent,
+  memo,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import styled, { keyframes, useTheme } from 'styled-components';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
@@ -8,11 +16,12 @@ import {
   type BoardTheme,
 } from '@/helpers/boardThemes';
 import type { BoardMove, PromotionPiece } from '@/helpers/chess';
-import { type Piece, parseFenBoard } from '@/helpers/fen';
+import { type Piece, getSideToMove, parseFenBoard } from '@/helpers/fen';
 import { PIECE_IMAGES } from '@/helpers/pieceImages';
 import PromotionPicker from '@/components/board/PromotionPicker';
 
 const MOBILE = '@media (max-width: 900px)';
+const DRAG_THRESHOLD_PX = 8;
 
 const BOARD_SIZE = 8;
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
@@ -153,7 +162,11 @@ const FileLabelsBottom = styled(FileLabels)`
   grid-row: 3;
 `;
 
-const Grid = styled.div<{ $coordinateMode: BoardCoordinateMode; $allowOverflow?: boolean }>`
+const Grid = styled.div<{
+  $coordinateMode: BoardCoordinateMode;
+  $allowOverflow?: boolean;
+  $isDragging?: boolean;
+}>`
   grid-column: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
   grid-row: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
   position: relative;
@@ -166,6 +179,7 @@ const Grid = styled.div<{ $coordinateMode: BoardCoordinateMode; $allowOverflow?:
     $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
   border-radius: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '4px' : '0')};
   overflow: ${({ $allowOverflow }) => ($allowOverflow ? 'visible' : 'hidden')};
+  touch-action: ${({ $isDragging }) => ($isDragging ? 'none' : 'manipulation')};
 `;
 
 const Square = styled.button<{
@@ -256,7 +270,7 @@ const SquareCoordinate = styled.span<{
   }
 `;
 
-const PieceImage = styled.img`
+const PieceImage = styled.img<{ $isDragSource?: boolean }>`
   position: relative;
   z-index: 3;
   width: 88%;
@@ -264,7 +278,39 @@ const PieceImage = styled.img`
   object-fit: contain;
   user-select: none;
   pointer-events: none;
+  opacity: ${({ $isDragSource }) => ($isDragSource ? 0.35 : 1)};
+  transition: opacity 0.1s ease;
 `;
+
+const DragGhost = styled.img`
+  position: fixed;
+  z-index: 1000;
+  width: min(12vw, 72px);
+  height: min(12vw, 72px);
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+`;
+
+const isPieceOfSideToMove = (piece: Piece, fen: string): boolean => {
+  const sideToMove = getSideToMove(fen);
+  const isWhitePiece = /[KQRBNP]/.test(piece);
+  return (sideToMove === 'w' && isWhitePiece) || (sideToMove === 'b' && !isWhitePiece);
+};
+
+const getSquareFromPoint = (clientX: number, clientY: number): string | null => {
+  const element = document.elementFromPoint(clientX, clientY);
+  return element?.closest<HTMLElement>('[data-square]')?.dataset.square ?? null;
+};
+
+type PendingPointer = {
+  square: string;
+  piece: Piece | null;
+  startX: number;
+  startY: number;
+};
 
 const resolveSquareHighlight = (
   squareId: string,
@@ -341,6 +387,7 @@ type BoardSquareProps = {
   lastMoveColor: string;
   accentColor: string;
   promotionPicker: Pick<PromotionPickerState, 'color' | 'onSelect'> | null;
+  isDragSource: boolean;
 };
 
 const BoardSquare = memo(function BoardSquare({
@@ -360,6 +407,7 @@ const BoardSquare = memo(function BoardSquare({
   lastMoveColor,
   accentColor,
   promotionPicker,
+  isDragSource,
 }: BoardSquareProps) {
   const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
 
@@ -410,7 +458,13 @@ const BoardSquare = memo(function BoardSquare({
         </SquareCoordinate>
       )}
       {piece && (
-        <PieceImage src={PIECE_IMAGES[piece]} alt="" aria-hidden="true" draggable={false} />
+        <PieceImage
+          src={PIECE_IMAGES[piece]}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          $isDragSource={isDragSource}
+        />
       )}
       {showCaptureIndicator && isLegalTarget && piece && (
         <CaptureFrame
@@ -487,23 +541,138 @@ const ChessBoard = ({
   );
   const legalTargetSet = useMemo(() => new Set(legalTargets), [legalTargets]);
   const { displayFiles, displayRanks } = getDisplayAxes(orientation);
+  const pendingPointerRef = useRef<PendingPointer | null>(null);
+  const dragActiveRef = useRef(false);
+  const [dragGhost, setDragGhost] = useState<{
+    from: string;
+    piece: Piece;
+    x: number;
+    y: number;
+  } | null>(null);
 
-  const handleGridClick = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      if (!canInteract || !onSquareClick) {
+  const getSquareFromEvent = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const squareId = (event.target as HTMLElement).closest<HTMLElement>(
+      '[data-square]',
+    )?.dataset.square;
+
+    return squareId ?? null;
+  }, []);
+
+  const handleGridPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (!canInteract || !onSquareClick || promotionPicker) {
         return;
       }
 
-      const squareId = (event.target as HTMLElement).closest<HTMLButtonElement>(
-        '[data-square]',
-      )?.dataset.square;
-
-      if (squareId) {
-        onSquareClick(squareId);
+      if (event.button !== 0) {
+        return;
       }
+
+      const squareId = getSquareFromEvent(event);
+
+      if (!squareId) {
+        return;
+      }
+
+      const layout = squareLayouts.find(square => square.id === squareId);
+
+      dragActiveRef.current = false;
+      pendingPointerRef.current = {
+        square: squareId,
+        piece: layout?.piece ?? null,
+        startX: event.clientX,
+        startY: event.clientY,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [canInteract, getSquareFromEvent, onSquareClick, promotionPicker, squareLayouts],
+  );
+
+  const handleGridPointerMove = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const pending = pendingPointerRef.current;
+
+      if (!pending || !canInteract || !onSquareClick) {
+        return;
+      }
+
+      const distance = Math.hypot(
+        event.clientX - pending.startX,
+        event.clientY - pending.startY,
+      );
+
+      if (!dragActiveRef.current) {
+        if (distance < DRAG_THRESHOLD_PX) {
+          return;
+        }
+
+        if (
+          !pending.piece ||
+          !isPieceOfSideToMove(pending.piece, fen) ||
+          promotionPicker
+        ) {
+          return;
+        }
+
+        dragActiveRef.current = true;
+        onSquareClick(pending.square);
+        setDragGhost({
+          from: pending.square,
+          piece: pending.piece,
+          x: event.clientX,
+          y: event.clientY,
+        });
+        return;
+      }
+
+      setDragGhost(previous =>
+        previous
+          ? { ...previous, x: event.clientX, y: event.clientY }
+          : null,
+      );
+    },
+    [canInteract, fen, onSquareClick, promotionPicker],
+  );
+
+  const handleGridPointerUp = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const pending = pendingPointerRef.current;
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      const wasDragging = dragActiveRef.current;
+      pendingPointerRef.current = null;
+      dragActiveRef.current = false;
+
+      if (!pending || !canInteract || !onSquareClick) {
+        setDragGhost(null);
+        return;
+      }
+
+      if (wasDragging) {
+        const targetSquare = getSquareFromPoint(event.clientX, event.clientY);
+
+        if (targetSquare && targetSquare !== pending.square) {
+          onSquareClick(targetSquare);
+        }
+
+        setDragGhost(null);
+        return;
+      }
+
+      onSquareClick(pending.square);
     },
     [canInteract, onSquareClick],
   );
+
+  const handleGridPointerCancel = useCallback(() => {
+    pendingPointerRef.current = null;
+    dragActiveRef.current = false;
+    setDragGhost(null);
+  }, []);
 
   const labelProps = { $color: boardTheme.coordinate, $bg: boardTheme.frame };
   const showAsideLabels = coordinateMode === 'aside';
@@ -534,7 +703,11 @@ const ChessBoard = ({
           aria-colcount={BOARD_SIZE}
           $coordinateMode={coordinateMode}
           $allowOverflow={Boolean(promotionPicker)}
-          onClick={handleGridClick}
+          $isDragging={Boolean(dragGhost)}
+          onPointerDown={handleGridPointerDown}
+          onPointerMove={handleGridPointerMove}
+          onPointerUp={handleGridPointerUp}
+          onPointerCancel={handleGridPointerCancel}
         >
           {squareLayouts.map(layout => {
             const { id } = layout;
@@ -571,10 +744,19 @@ const ChessBoard = ({
                 promotionPicker={
                   promotionPicker?.square === id ? promotionPicker : null
                 }
+                isDragSource={dragGhost?.from === id}
               />
             );
           })}
         </Grid>
+        {dragGhost && (
+          <DragGhost
+            src={PIECE_IMAGES[dragGhost.piece]}
+            alt=""
+            aria-hidden="true"
+            style={{ left: dragGhost.x, top: dragGhost.y }}
+          />
+        )}
         {showAsideLabels && (
           <>
             <RankLabelsRight aria-hidden="true" {...labelProps}>
