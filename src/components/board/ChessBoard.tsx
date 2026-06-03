@@ -634,7 +634,9 @@ const ChessBoard = ({
         }
 
         dragActiveRef.current = true;
-        onSquareClick(pending.square);
+        if (selectedSquare !== pending.square) {
+          onSquareClick(pending.square);
+        }
         setDragGhost({
           from: pending.square,
           piece: pending.piece,
@@ -650,7 +652,7 @@ const ChessBoard = ({
           : null,
       );
     },
-    [canInteract, fen, onSquareClick, promotionPicker],
+    [canInteract, fen, onSquareClick, promotionPicker, selectedSquare],
   );
 
   const handleGridPointerUp = useCallback(
