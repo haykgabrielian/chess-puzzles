@@ -1,11 +1,11 @@
-import { memo } from 'react';
+import { memo, useContext } from 'react';
 import styled, { css, keyframes } from 'styled-components';
 
 import PromotionPicker from '@/components/board/PromotionPicker';
+import { PieceSetContext } from '@/context/PieceSetContext';
 import { type BoardHighlight, type BoardTheme } from '@/helpers/boardThemes';
 import type { PromotionPiece } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
-import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
 const MOBILE = '@media (max-width: 900px)';
 
@@ -225,6 +225,7 @@ const BoardSquare = memo(function BoardSquare({
   promotionPicker,
   isDragSource,
 }: BoardSquareProps) {
+  const { pieceSet } = useContext(PieceSetContext);
   const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
 
   return (
@@ -275,7 +276,7 @@ const BoardSquare = memo(function BoardSquare({
       )}
       {piece && (
         <PieceImage
-          src={PIECE_IMAGES[piece]}
+          src={pieceSet.images[piece]}
           alt=""
           aria-hidden="true"
           draggable={false}

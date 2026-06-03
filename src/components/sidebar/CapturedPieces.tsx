@@ -1,8 +1,9 @@
+import { useContext } from 'react';
 import styled from 'styled-components';
 
+import { PieceSetContext } from '@/context/PieceSetContext';
 import type { CapturedPieces } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
-import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
 const CapturedSection = styled.div`
   display: flex;
@@ -77,21 +78,25 @@ type CapturedRowProps = {
   capturedBy: 'w' | 'b';
 };
 
-const CapturedSideRow = ({ label, tone, pieces, capturedBy }: CapturedRowProps) => (
-  <CapturedRow aria-label={`Pieces captured by ${label}`}>
-    <SideLabel $tone={tone}>{label}</SideLabel>
-    <PieceStrip>
-      {pieces.map((piece, index) => (
-        <CapturedPiece
-          key={`${capturedBy}-${piece}-${index}`}
-          src={PIECE_IMAGES[toPieceImage(piece, capturedBy)]}
-          alt=""
-          draggable={false}
-        />
-      ))}
-    </PieceStrip>
-  </CapturedRow>
-);
+const CapturedSideRow = ({ label, tone, pieces, capturedBy }: CapturedRowProps) => {
+  const { pieceSet } = useContext(PieceSetContext);
+
+  return (
+    <CapturedRow aria-label={`Pieces captured by ${label}`}>
+      <SideLabel $tone={tone}>{label}</SideLabel>
+      <PieceStrip>
+        {pieces.map((piece, index) => (
+          <CapturedPiece
+            key={`${capturedBy}-${piece}-${index}`}
+            src={pieceSet.images[toPieceImage(piece, capturedBy)]}
+            alt=""
+            draggable={false}
+          />
+        ))}
+      </PieceStrip>
+    </CapturedRow>
+  );
+};
 
 const CapturedPiecesDisplay = ({ captured }: CapturedPiecesProps) => {
   if (!hasCapturedPieces(captured)) {

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 
 import BoardThemeProvider from '@/context/BoardThemeProvider';
+import PieceSetProvider from '@/context/PieceSetProvider';
 import QueryProvider from '@/context/QueryProvider';
 import ThemeProvider from '@/context/ThemeProvider';
 import router from '@/router';
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <QueryProvider>
         <BoardThemeProvider>
-          <RouterProvider router={router} />
+          <PieceSetProvider>
+            <RouterProvider router={router} />
+          </PieceSetProvider>
         </BoardThemeProvider>
       </QueryProvider>
     </ThemeProvider>

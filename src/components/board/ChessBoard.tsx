@@ -14,10 +14,10 @@ import BoardSquare, {
   type SquareHighlight,
 } from '@/components/board/BoardSquare';
 import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { PieceSetContext } from '@/context/PieceSetContext';
 import { type BoardCoordinateMode } from '@/helpers/boardThemes';
 import type { BoardMove, PromotionPiece } from '@/helpers/chess';
 import { type Piece, getSideToMove, parseFenBoard } from '@/helpers/fen';
-import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
 const MOBILE = '@media (max-width: 900px)';
 const DRAG_THRESHOLD_PX = 8;
@@ -259,6 +259,7 @@ const ChessBoard = ({
   const appTheme = useTheme();
   const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator } =
     useContext(BoardThemeContext);
+  const { pieceSet } = useContext(PieceSetContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
   const squareLayouts = useMemo(
     () => buildSquareLayouts(board, orientation),
@@ -478,7 +479,7 @@ const ChessBoard = ({
         </Grid>
         {dragGhost && (
           <DragGhost
-            src={PIECE_IMAGES[dragGhost.piece]}
+            src={pieceSet.images[dragGhost.piece]}
             alt=""
             aria-hidden="true"
             style={{ left: dragGhost.x, top: dragGhost.y }}

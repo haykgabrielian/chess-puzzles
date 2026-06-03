@@ -1,9 +1,9 @@
-import { memo } from 'react';
+import { memo, useContext } from 'react';
 import styled from 'styled-components';
 
+import { PieceSetContext } from '@/context/PieceSetContext';
 import { PROMOTION_PIECES, type PromotionPiece } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
-import { PIECE_IMAGES } from '@/helpers/pieceImages';
 
 type PromotionPickerProps = {
   opensDown: boolean;
@@ -76,32 +76,36 @@ const PopupPieceImage = styled.img`
   pointer-events: none;
 `;
 
-const PromotionPicker = ({ opensDown, color, onSelect }: PromotionPickerProps) => (
-  <PopupRoot
-    $opensDown={opensDown}
-    role="dialog"
-    aria-label="Choose promotion piece"
-  >
-    <PopupMenu>
-      {PROMOTION_PIECES.map(piece => (
-        <PopupOption
-          key={piece}
-          type="button"
-          aria-label={PIECE_LABELS[piece]}
-          onClick={event => {
-            event.stopPropagation();
-            onSelect(piece);
-          }}
-        >
-          <PopupPieceImage
-            src={PIECE_IMAGES[PIECE_BY_COLOR[color][piece]]}
-            alt=""
-            draggable={false}
-          />
-        </PopupOption>
-      ))}
-    </PopupMenu>
-  </PopupRoot>
-);
+const PromotionPicker = ({ opensDown, color, onSelect }: PromotionPickerProps) => {
+  const { pieceSet } = useContext(PieceSetContext);
+
+  return (
+    <PopupRoot
+      $opensDown={opensDown}
+      role="dialog"
+      aria-label="Choose promotion piece"
+    >
+      <PopupMenu>
+        {PROMOTION_PIECES.map(piece => (
+          <PopupOption
+            key={piece}
+            type="button"
+            aria-label={PIECE_LABELS[piece]}
+            onClick={event => {
+              event.stopPropagation();
+              onSelect(piece);
+            }}
+          >
+            <PopupPieceImage
+              src={pieceSet.images[PIECE_BY_COLOR[color][piece]]}
+              alt=""
+              draggable={false}
+            />
+          </PopupOption>
+        ))}
+      </PopupMenu>
+    </PopupRoot>
+  );
+};
 
 export default memo(PromotionPicker);

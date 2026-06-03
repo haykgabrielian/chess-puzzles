@@ -2,8 +2,10 @@ import styled from 'styled-components';
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { PieceSetContext } from '@/context/PieceSetContext';
 import { ThemeToggleContext } from '@/context/ThemeContext';
 import { boardCoordinateModes, boardThemes } from '@/helpers/boardThemes';
+import { pieceSets } from '@/helpers/pieceSets';
 
 const Wrapper = styled.div`
   position: relative;
@@ -100,6 +102,71 @@ const Checkmark = styled.span`
 
 const ThemeLabel = styled.span`
   font-size: 0.75rem;
+  color: ${({ theme }) => theme.text.secondary};
+  text-align: center;
+`;
+
+const PieceSetGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+`;
+
+const PieceSetOption = styled.button<{ $selected: boolean }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+`;
+
+const PieceSetPreviewWrapper = styled.div<{ $selected: boolean }>`
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  outline: ${({ $selected, theme }) =>
+    $selected ? `2px solid ${theme.accent}` : '2px solid transparent'};
+  outline-offset: 1px;
+`;
+
+const PiecePreviewSquare = styled.div<{ $color: string }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: ${({ $color }) => $color};
+`;
+
+const PiecePreviewImage = styled.img`
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+`;
+
+const PieceSetCheckmark = styled(Checkmark)`
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+
+  svg {
+    width: 8px;
+    height: 8px;
+  }
+`;
+
+const PieceSetLabel = styled.span`
+  font-size: 0.6875rem;
   color: ${({ theme }) => theme.text.secondary};
   text-align: center;
 `;
@@ -465,6 +532,18 @@ const ThemePreview = ({ light, dark }: { light: string; dark: string }) => {
   );
 };
 
+const PieceSetPreview = ({
+  bishopSrc,
+  squareColor,
+}: {
+  bishopSrc: string;
+  squareColor: string;
+}) => (
+  <PiecePreviewSquare $color={squareColor} aria-hidden="true">
+    <PiecePreviewImage src={bishopSrc} alt="" />
+  </PiecePreviewSquare>
+);
+
 const BoardThemePicker = () => {
   const {
     boardTheme,
@@ -476,6 +555,7 @@ const BoardThemePicker = () => {
     showCaptureIndicator,
     setShowCaptureIndicator,
   } = useContext(BoardThemeContext);
+  const { pieceSet, setPieceSetId } = useContext(PieceSetContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -537,6 +617,35 @@ const BoardThemePicker = () => {
               );
             })}
           </ThemeGrid>
+          <MenuDivider />
+          <CoordinateSectionTitle>Piece style</CoordinateSectionTitle>
+          <PieceSetGrid>
+            {pieceSets.map(set => {
+              const selected = pieceSet.id === set.id;
+              return (
+                <PieceSetOption
+                  key={set.id}
+                  type="button"
+                  $selected={selected}
+                  aria-pressed={selected}
+                  onClick={() => setPieceSetId(set.id)}
+                >
+                  <PieceSetPreviewWrapper $selected={selected}>
+                    <PieceSetPreview
+                      bishopSrc={set.images.b}
+                      squareColor={boardTheme.light}
+                    />
+                    {selected && (
+                      <PieceSetCheckmark aria-hidden="true">
+                        <CheckIcon />
+                      </PieceSetCheckmark>
+                    )}
+                  </PieceSetPreviewWrapper>
+                  <PieceSetLabel>{set.name}</PieceSetLabel>
+                </PieceSetOption>
+              );
+            })}
+          </PieceSetGrid>
           <MenuDivider />
           <CoordinateSectionTitle>Coordinates</CoordinateSectionTitle>
           <CoordinateGrid>
