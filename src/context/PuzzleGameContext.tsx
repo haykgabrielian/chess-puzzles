@@ -14,13 +14,13 @@ import { usePuzzle } from '@/context/PuzzleContext';
 import { getSideToMove } from '@/helpers/fen';
 import {
   type BoardMove,
+  type PromotionPiece,
   createGame,
   getLegalTargetSquares,
   getMoveSquares,
   isPromotionMove,
   isUserMoveIndex,
   movesMatch,
-  type PromotionPiece,
   tryMove,
   trySanMove,
 } from '@/helpers/chess';

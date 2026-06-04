@@ -22,6 +22,18 @@ import classicQueenBlack from '@/assets/classic/queen_black.svg';
 import classicQueenWhite from '@/assets/classic/queen_white.svg';
 import classicRookBlack from '@/assets/classic/rook_black.svg';
 import classicRookWhite from '@/assets/classic/rook_white.svg';
+import eightBitBishopBlack from '@/assets/8bit/bb.png';
+import eightBitKingBlack from '@/assets/8bit/bk.png';
+import eightBitKnightBlack from '@/assets/8bit/bn.png';
+import eightBitPawnBlack from '@/assets/8bit/bp.png';
+import eightBitQueenBlack from '@/assets/8bit/bq.png';
+import eightBitRookBlack from '@/assets/8bit/br.png';
+import eightBitBishopWhite from '@/assets/8bit/wb.png';
+import eightBitKingWhite from '@/assets/8bit/wk.png';
+import eightBitKnightWhite from '@/assets/8bit/wn.png';
+import eightBitPawnWhite from '@/assets/8bit/wp.png';
+import eightBitQueenWhite from '@/assets/8bit/wq.png';
+import eightBitRookWhite from '@/assets/8bit/wr.png';
 import gothicBishopBlack from '@/assets/gotic/bb.png';
 import gothicKingBlack from '@/assets/gotic/bk.png';
 import gothicKnightBlack from '@/assets/gotic/bn.png';
@@ -34,6 +46,18 @@ import gothicKnightWhite from '@/assets/gotic/wn.png';
 import gothicPawnWhite from '@/assets/gotic/wp.png';
 import gothicQueenWhite from '@/assets/gotic/wq.png';
 import gothicRookWhite from '@/assets/gotic/wr.png';
+import newspaperBishopBlack from '@/assets/newspaper/bb.png';
+import newspaperKingBlack from '@/assets/newspaper/bk.png';
+import newspaperKnightBlack from '@/assets/newspaper/bn.png';
+import newspaperPawnBlack from '@/assets/newspaper/bp.png';
+import newspaperQueenBlack from '@/assets/newspaper/bq.png';
+import newspaperRookBlack from '@/assets/newspaper/br.png';
+import newspaperBishopWhite from '@/assets/newspaper/wb.png';
+import newspaperKingWhite from '@/assets/newspaper/wk.png';
+import newspaperKnightWhite from '@/assets/newspaper/wn.png';
+import newspaperPawnWhite from '@/assets/newspaper/wp.png';
+import newspaperQueenWhite from '@/assets/newspaper/wq.png';
+import newspaperRookWhite from '@/assets/newspaper/wr.png';
 import modernBishopBlack from '@/assets/modern/bishop_black.svg';
 import modernBishopWhite from '@/assets/modern/bishop_white.svg';
 import modernKingBlack from '@/assets/modern/king_black.svg';
@@ -114,11 +138,43 @@ const gothicImages: Record<Piece, string> = {
   p: gothicPawnBlack,
 };
 
+const eightBitImages: Record<Piece, string> = {
+  K: eightBitKingWhite,
+  Q: eightBitQueenWhite,
+  R: eightBitRookWhite,
+  B: eightBitBishopWhite,
+  N: eightBitKnightWhite,
+  P: eightBitPawnWhite,
+  k: eightBitKingBlack,
+  q: eightBitQueenBlack,
+  r: eightBitRookBlack,
+  b: eightBitBishopBlack,
+  n: eightBitKnightBlack,
+  p: eightBitPawnBlack,
+};
+
+const newspaperImages: Record<Piece, string> = {
+  K: newspaperKingWhite,
+  Q: newspaperQueenWhite,
+  R: newspaperRookWhite,
+  B: newspaperBishopWhite,
+  N: newspaperKnightWhite,
+  P: newspaperPawnWhite,
+  k: newspaperKingBlack,
+  q: newspaperQueenBlack,
+  r: newspaperRookBlack,
+  b: newspaperBishopBlack,
+  n: newspaperKnightBlack,
+  p: newspaperPawnBlack,
+};
+
 export const pieceSets: PieceSet[] = [
   { id: 'classic', name: 'Classic', images: classicImages },
   { id: 'modern', name: 'Modern', images: modernImages },
   { id: '3d', name: '3D', images: threeDImages },
   { id: 'gotic', name: 'Gothic', images: gothicImages },
+  { id: '8bit', name: '8-Bit', images: eightBitImages },
+  { id: 'newspaper', name: 'Newspaper', images: newspaperImages },
 ];
 
 export const defaultPieceSetId = 'classic';

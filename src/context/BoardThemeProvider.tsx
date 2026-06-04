@@ -9,6 +9,7 @@ import {
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
   getBoardThemeById,
+  resolveBoardThemeId,
 } from '@/helpers/boardThemes';
 
 const THEME_STORAGE_KEY = 'chess-board-theme';
@@ -18,7 +19,13 @@ const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = 'chess-board-show-capture-indicator';
 
 const getInitialBoardThemeId = () => {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
-  return saved ?? defaultBoardThemeId;
+  const id = resolveBoardThemeId(saved ?? defaultBoardThemeId);
+
+  if (saved !== null && saved !== id) {
+    localStorage.setItem(THEME_STORAGE_KEY, id);
+  }
+
+  return id;
 };
 
 const getInitialCoordinateMode = (): BoardCoordinateMode => {

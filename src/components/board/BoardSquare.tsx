@@ -3,7 +3,11 @@ import styled, { css, keyframes } from 'styled-components';
 
 import PromotionPicker from '@/components/board/PromotionPicker';
 import { PieceSetContext } from '@/context/PieceSetContext';
-import { type BoardHighlight, type BoardTheme } from '@/helpers/boardThemes';
+import {
+  type BoardHighlight,
+  type BoardTheme,
+  getSquareBackground,
+} from '@/helpers/boardThemes';
 import type { PromotionPiece } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
 
@@ -46,9 +50,7 @@ const SolvedFlashOverlay = styled.span<{ $color: string }>`
 `;
 
 const Square = styled.button<{
-  $isLight: boolean;
-  $light: string;
-  $dark: string;
+  $squareBackground: string;
   $overlayColor: string | null;
   $canInteract: boolean;
 }>`
@@ -60,7 +62,7 @@ const Square = styled.button<{
   border: none;
   aspect-ratio: 1;
   cursor: ${({ $canInteract }) => ($canInteract ? 'pointer' : 'default')};
-  background-color: ${({ $isLight, $light, $dark }) => ($isLight ? $light : $dark)};
+  background: ${({ $squareBackground }) => $squareBackground};
 
   &::after {
     content: '';
@@ -232,9 +234,7 @@ const BoardSquare = memo(function BoardSquare({
     <Square
       type="button"
       data-square={id}
-      $isLight={isLight}
-      $light={boardTheme.light}
-      $dark={boardTheme.dark}
+      $squareBackground={getSquareBackground(boardTheme, isLight)}
       $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight, hintColor)}
       $canInteract={canInteract}
       role="gridcell"

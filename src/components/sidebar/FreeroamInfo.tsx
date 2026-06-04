@@ -4,7 +4,7 @@ import CapturedPiecesDisplay from '@/components/sidebar/CapturedPieces';
 import Card from '@/components/ui/Card';
 import { FreeroamIcon } from '@/components/ui/CardIcons';
 import type { CapturedPieces } from '@/helpers/chess';
-import { getSideLabel, STARTING_FEN } from '@/helpers/fen';
+import { STARTING_FEN, getSideLabel } from '@/helpers/fen';
 
 const Content = styled.div`
   display: flex;

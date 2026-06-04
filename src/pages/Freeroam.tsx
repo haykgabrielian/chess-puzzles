@@ -9,16 +9,16 @@ import FreeroamInfo from '@/components/sidebar/FreeroamInfo';
 import MoveHistory from '@/components/sidebar/MoveHistory';
 import {
   type BoardMove,
+  type PromotionPiece,
   createGame,
   getCapturedPieces,
   getLegalTargetSquares,
   getMoveHistoryRows,
   isPromotionMove,
-  type PromotionPiece,
   replayGame,
   tryMove,
 } from '@/helpers/chess';
-import { getSideToMove, STARTING_FEN } from '@/helpers/fen';
+import { STARTING_FEN, getSideToMove } from '@/helpers/fen';
 
 const MOBILE = '@media (max-width: 900px)';
 

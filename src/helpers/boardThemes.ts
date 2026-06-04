@@ -18,7 +18,18 @@ export type BoardTheme = {
   dark: string;
   coordinate: string;
   frame: string;
+  /** Optional CSS layer drawn on top of `light` (texture only, not the fill color). */
+  lightTexture?: string;
+  /** Optional CSS layer drawn on top of `dark` (texture only, not the fill color). */
+  darkTexture?: string;
   highlight: BoardHighlight;
+};
+
+export const getSquareBackground = (theme: BoardTheme, isLight: boolean): string => {
+  const texture = isLight ? theme.lightTexture : theme.darkTexture;
+  const color = isLight ? theme.light : theme.dark;
+
+  return texture ? `${texture}, ${color}` : color;
 };
 
 const rgbaFromHex = (hex: string, alpha: number): string => {
@@ -75,11 +86,11 @@ const baseBoardThemes = [
     frame: '#ffffff',
   },
   {
-    id: 'slate',
-    name: 'Slate',
-    light: '#e3e6ea',
-    dark: '#5c6670',
-    coordinate: '#5c6670',
+    id: 'vintage-blue',
+    name: 'Vintage Blue',
+    light: '#EAE9D2',
+    dark: '#4B7399',
+    coordinate: '#4B7399',
     frame: '#ffffff',
   },
   {
@@ -89,6 +100,32 @@ const baseBoardThemes = [
     dark: '#8CA2AD',
     coordinate: '#8CA2AD',
     frame: '#ffffff',
+  },
+  {
+    id: 'amethyst',
+    name: 'Amethyst',
+    light: '#F0EEF0',
+    dark: '#8977B7',
+    coordinate: '#8977B7',
+    frame: '#ffffff',
+  },
+  {
+    id: 'sakura',
+    name: 'Sakura',
+    light: '#FFFFFF',
+    dark: '#FCD8DD',
+    coordinate: '#FCD8DD',
+    frame: '#ffffff',
+  },
+  {
+    id: 'newspaper',
+    name: 'Newspaper',
+    light: '#FFFFFF',
+    dark: '#CFCFCF',
+    coordinate: '#7A7A7A',
+    frame: '#ffffff',
+    darkTexture:
+      'repeating-linear-gradient(-45deg, #4A4A4A 0, #4A4A4A 1px, transparent 1px, transparent 5px)',
   },
 ] as const;
 
@@ -110,5 +147,12 @@ export const defaultBoardThemeId = 'midnight-navy';
 export const defaultShowMoveDots = true;
 export const defaultShowCaptureIndicator = true;
 
+const legacyBoardThemeIds: Record<string, string> = {
+  slate: 'vintage-blue',
+  'soft-violet': 'sakura',
+};
+
+export const resolveBoardThemeId = (id: string): string => legacyBoardThemeIds[id] ?? id;
+
 export const getBoardThemeById = (id: string): BoardTheme =>
-  boardThemes.find(theme => theme.id === id) ?? boardThemes[0];
+  boardThemes.find(theme => theme.id === resolveBoardThemeId(id)) ?? boardThemes[0];

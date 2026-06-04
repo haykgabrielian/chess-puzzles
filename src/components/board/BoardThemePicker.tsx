@@ -4,7 +4,12 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { BoardThemeContext } from '@/context/BoardThemeContext';
 import { PieceSetContext } from '@/context/PieceSetContext';
 import { ThemeToggleContext } from '@/context/ThemeContext';
-import { boardCoordinateModes, boardThemes } from '@/helpers/boardThemes';
+import {
+  type BoardTheme,
+  boardCoordinateModes,
+  boardThemes,
+  getSquareBackground,
+} from '@/helpers/boardThemes';
 import { pieceSets } from '@/helpers/pieceSets';
 
 const Wrapper = styled.div`
@@ -76,8 +81,8 @@ const PreviewGrid = styled.div`
   height: 100%;
 `;
 
-const PreviewSquare = styled.div<{ $color: string }>`
-  background-color: ${({ $color }) => $color};
+const PreviewSquare = styled.div<{ $background: string }>`
+  background: ${({ $background }) => $background};
 `;
 
 const Checkmark = styled.span`
@@ -104,6 +109,13 @@ const ThemeLabel = styled.span`
   font-size: 0.75rem;
   color: ${({ theme }) => theme.text.secondary};
   text-align: center;
+`;
+
+const PieceSetRows = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 `;
 
 const PieceSetGrid = styled.div`
@@ -334,7 +346,7 @@ const AsidePreviewSideLabel = styled.span<{ $coordinate: string; $position: 'lef
   color: ${({ $coordinate }) => $coordinate};
 `;
 
-const AsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
+const AsidePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground: string }>`
   grid-column: 2;
   grid-row: 2;
   display: grid;
@@ -344,23 +356,23 @@ const AsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   overflow: hidden;
 
   span:nth-child(1) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
   }
 
   span:nth-child(2) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
   }
 
   span:nth-child(3) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
   }
 
   span:nth-child(4) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
   }
 `;
 
-const NonePreviewBoard = styled.div<{ $light: string; $dark: string }>`
+const NonePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground: string }>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -372,23 +384,23 @@ const NonePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   overflow: hidden;
 
   span:nth-child(1) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
   }
 
   span:nth-child(2) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
   }
 
   span:nth-child(3) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
   }
 
   span:nth-child(4) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
   }
 `;
 
-const InsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
+const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBackground: string; $darkBackground: string }>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -404,7 +416,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   }
 
   span:nth-child(1) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
 
     &::before {
       content: '8';
@@ -419,11 +431,11 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   }
 
   span:nth-child(2) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
   }
 
   span:nth-child(3) {
-    background-color: ${({ $dark }) => $dark};
+    background: ${({ $darkBackground }) => $darkBackground};
 
     &::before {
       content: '1';
@@ -449,7 +461,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string }>`
   }
 
   span:nth-child(4) {
-    background-color: ${({ $light }) => $light};
+    background: ${({ $lightBackground }) => $lightBackground};
 
     &::after {
       content: 'b';
@@ -517,17 +529,23 @@ const CheckIcon = () => (
   </svg>
 );
 
-const ThemePreview = ({ light, dark }: { light: string; dark: string }) => {
+const squarePreviewBackgrounds = (theme: BoardTheme) => ({
+  $lightBackground: getSquareBackground(theme, true),
+  $darkBackground: getSquareBackground(theme, false),
+});
+
+const ThemePreview = ({ theme }: { theme: BoardTheme }) => {
   const squares = [...Array(16)];
 
   return (
     <PreviewGrid aria-hidden="true">
-      {squares.map((_, i) => (
-        <PreviewSquare
-          key={i}
-          $color={(Math.floor(i / 4) + i) % 2 === 0 ? light : dark}
-        />
-      ))}
+      {squares.map((_, i) => {
+        const isLight = (Math.floor(i / 4) + i) % 2 === 0;
+
+        return (
+          <PreviewSquare key={i} $background={getSquareBackground(theme, isLight)} />
+        );
+      })}
     </PreviewGrid>
   );
 };
@@ -605,7 +623,7 @@ const BoardThemePicker = () => {
                   onClick={() => setBoardThemeId(theme.id)}
                 >
                   <PreviewWrapper $selected={selected}>
-                    <ThemePreview light={theme.light} dark={theme.dark} />
+                    <ThemePreview theme={theme} />
                     {selected && (
                       <Checkmark aria-hidden="true">
                         <CheckIcon />
@@ -619,33 +637,62 @@ const BoardThemePicker = () => {
           </ThemeGrid>
           <MenuDivider />
           <CoordinateSectionTitle>Piece style</CoordinateSectionTitle>
-          <PieceSetGrid>
-            {pieceSets.map(set => {
-              const selected = pieceSet.id === set.id;
-              return (
-                <PieceSetOption
-                  key={set.id}
-                  type="button"
-                  $selected={selected}
-                  aria-pressed={selected}
-                  onClick={() => setPieceSetId(set.id)}
-                >
-                  <PieceSetPreviewWrapper $selected={selected}>
-                    <PieceSetPreview
-                      bishopSrc={set.images.b}
-                      squareColor={boardTheme.light}
-                    />
-                    {selected && (
-                      <PieceSetCheckmark aria-hidden="true">
-                        <CheckIcon />
-                      </PieceSetCheckmark>
-                    )}
-                  </PieceSetPreviewWrapper>
-                  <PieceSetLabel>{set.name}</PieceSetLabel>
-                </PieceSetOption>
-              );
-            })}
-          </PieceSetGrid>
+          <PieceSetRows>
+            <PieceSetGrid>
+              {pieceSets.slice(0, 4).map(set => {
+                const selected = pieceSet.id === set.id;
+                return (
+                  <PieceSetOption
+                    key={set.id}
+                    type="button"
+                    $selected={selected}
+                    aria-pressed={selected}
+                    onClick={() => setPieceSetId(set.id)}
+                  >
+                    <PieceSetPreviewWrapper $selected={selected}>
+                      <PieceSetPreview
+                        bishopSrc={set.images.b}
+                        squareColor={boardTheme.light}
+                      />
+                      {selected && (
+                        <PieceSetCheckmark aria-hidden="true">
+                          <CheckIcon />
+                        </PieceSetCheckmark>
+                      )}
+                    </PieceSetPreviewWrapper>
+                    <PieceSetLabel>{set.name}</PieceSetLabel>
+                  </PieceSetOption>
+                );
+              })}
+            </PieceSetGrid>
+            <PieceSetGrid>
+              {pieceSets.slice(4).map(set => {
+                const selected = pieceSet.id === set.id;
+                return (
+                  <PieceSetOption
+                    key={set.id}
+                    type="button"
+                    $selected={selected}
+                    aria-pressed={selected}
+                    onClick={() => setPieceSetId(set.id)}
+                  >
+                    <PieceSetPreviewWrapper $selected={selected}>
+                      <PieceSetPreview
+                        bishopSrc={set.images.b}
+                        squareColor={boardTheme.light}
+                      />
+                      {selected && (
+                        <PieceSetCheckmark aria-hidden="true">
+                          <CheckIcon />
+                        </PieceSetCheckmark>
+                      )}
+                    </PieceSetPreviewWrapper>
+                    <PieceSetLabel>{set.name}</PieceSetLabel>
+                  </PieceSetOption>
+                );
+              })}
+            </PieceSetGrid>
+          </PieceSetRows>
           <MenuDivider />
           <CoordinateSectionTitle>Coordinates</CoordinateSectionTitle>
           <CoordinateGrid>
@@ -679,7 +726,7 @@ const BoardThemePicker = () => {
                         >
                           8
                         </AsidePreviewSideLabel>
-                        <AsidePreviewBoard $light={boardTheme.light} $dark={boardTheme.dark}>
+                        <AsidePreviewBoard {...squarePreviewBackgrounds(boardTheme)}>
                           <span aria-hidden="true" />
                           <span aria-hidden="true" />
                           <span aria-hidden="true" />
@@ -697,6 +744,7 @@ const BoardThemePicker = () => {
                       <InsidePreviewBoard
                         $light={boardTheme.light}
                         $dark={boardTheme.dark}
+                        {...squarePreviewBackgrounds(boardTheme)}
                       >
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
@@ -704,7 +752,7 @@ const BoardThemePicker = () => {
                         <span aria-hidden="true" />
                       </InsidePreviewBoard>
                     ) : (
-                      <NonePreviewBoard $light={boardTheme.light} $dark={boardTheme.dark}>
+                      <NonePreviewBoard {...squarePreviewBackgrounds(boardTheme)}>
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
