@@ -92,6 +92,11 @@ const BoardFrame = styled.div<{
   border-radius: ${({ $coordinateMode }) =>
     $coordinateMode === 'aside' ? BOARD_FRAME_BORDER_RADIUS : '0'};
   box-sizing: border-box;
+
+  ${MOBILE} {
+    border-left: none;
+    border-right: none;
+  }
 `;
 
 const RankLabels = styled.div<{ $color: string; $bg: string }>`

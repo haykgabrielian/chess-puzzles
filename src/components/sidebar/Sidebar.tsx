@@ -13,6 +13,11 @@ const SidebarRoot = styled.aside`
   gap: 12px;
   width: 100%;
   min-width: 0;
+
+  ${MOBILE} {
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
 `;
 
 const SidebarItem = styled.div<{ $mobileOrder: number }>`

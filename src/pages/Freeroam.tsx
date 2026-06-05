@@ -44,7 +44,7 @@ const Content = styled.main`
     grid-template-columns: 1fr;
     align-items: start;
     gap: 16px;
-    padding: 12px;
+    padding: 12px 0;
     min-height: auto;
   }
 `;
@@ -55,6 +55,10 @@ const BoardSection = styled.section`
   align-items: flex-start;
   min-width: 0;
   width: 100%;
+
+  ${MOBILE} {
+    justify-content: stretch;
+  }
 `;
 
 const BoardSizer = styled.div`
@@ -62,6 +66,10 @@ const BoardSizer = styled.div`
   width: min(80vh, 100%);
   aspect-ratio: 1;
   flex-shrink: 0;
+
+  ${MOBILE} {
+    width: 100%;
+  }
 `;
 
 const SidebarRoot = styled.aside`
@@ -70,6 +78,11 @@ const SidebarRoot = styled.aside`
   gap: 12px;
   width: 100%;
   min-width: 0;
+
+  ${MOBILE} {
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
 `;
 
 const getCheckmateWinner = (game: ReturnType<typeof createGame>): 'White' | 'Black' =>

@@ -33,7 +33,7 @@ const Content = styled.main`
     grid-template-columns: 1fr;
     align-items: start;
     gap: 16px;
-    padding: 12px;
+    padding: 12px 0;
   }
 `;
 
@@ -62,6 +62,10 @@ const BoardSlot = styled.div`
   align-items: flex-start;
   justify-content: center;
   width: 100%;
+
+  ${MOBILE} {
+    justify-content: stretch;
+  }
 `;
 
 const BoardStack = styled.div<{ $side: number | null }>`
@@ -89,6 +93,8 @@ const BoardFooterSlot = styled.div`
     margin-top: 12px;
     justify-content: stretch;
     width: 100%;
+    padding: 0 12px;
+    box-sizing: border-box;
   }
 `;
 
