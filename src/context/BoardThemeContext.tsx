@@ -5,6 +5,7 @@ import {
   type BoardTheme,
   defaultBoardCoordinateMode,
   defaultBoardThemeId,
+  defaultAnimateMoves,
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
   getBoardThemeById,
@@ -19,6 +20,8 @@ export const BoardThemeContext = React.createContext<{
   setShowMoveDots: (enabled: boolean) => void;
   showCaptureIndicator: boolean;
   setShowCaptureIndicator: (enabled: boolean) => void;
+  animateMoves: boolean;
+  setAnimateMoves: (enabled: boolean) => void;
 }>({
   boardTheme: getBoardThemeById(defaultBoardThemeId),
   setBoardThemeId: () => {},
@@ -28,4 +31,6 @@ export const BoardThemeContext = React.createContext<{
   setShowMoveDots: () => {},
   showCaptureIndicator: defaultShowCaptureIndicator,
   setShowCaptureIndicator: () => {},
+  animateMoves: defaultAnimateMoves,
+  setAnimateMoves: () => {},
 });

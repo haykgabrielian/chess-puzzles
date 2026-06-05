@@ -572,6 +572,8 @@ const BoardThemePicker = () => {
     setShowMoveDots,
     showCaptureIndicator,
     setShowCaptureIndicator,
+    animateMoves,
+    setAnimateMoves,
   } = useContext(BoardThemeContext);
   const { pieceSet, setPieceSetId } = useContext(PieceSetContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
@@ -770,6 +772,21 @@ const BoardThemePicker = () => {
               );
             })}
           </CoordinateGrid>
+          <MenuDivider />
+          <CoordinateSectionTitle>Board</CoordinateSectionTitle>
+          <SettingsList>
+            <SettingsRow>
+              <SettingsLabel id="animate-moves-label">Move animation</SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="animate-moves-label"
+                aria-checked={animateMoves}
+                $on={animateMoves}
+                onClick={() => setAnimateMoves(!animateMoves)}
+              />
+            </SettingsRow>
+          </SettingsList>
           <MenuDivider />
           <CoordinateSectionTitle>Move Hints</CoordinateSectionTitle>
           <SettingsList>

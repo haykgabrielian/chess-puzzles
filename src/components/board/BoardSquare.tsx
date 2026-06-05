@@ -132,7 +132,7 @@ const SquareCoordinate = styled.span<{
   }
 `;
 
-const PieceImage = styled.img<{ $isDragSource?: boolean }>`
+const PieceImage = styled.img<{ $isDragSource?: boolean; $hidden?: boolean }>`
   position: relative;
   z-index: 3;
   width: 88%;
@@ -140,8 +140,13 @@ const PieceImage = styled.img<{ $isDragSource?: boolean }>`
   object-fit: contain;
   user-select: none;
   pointer-events: none;
-  opacity: ${({ $isDragSource }) => ($isDragSource ? 0.35 : 1)};
-  transition: opacity 0.1s ease;
+  opacity: ${({ $isDragSource, $hidden }) => {
+    if ($hidden) {
+      return 0;
+    }
+
+    return $isDragSource ? 0.35 : 1;
+  }};
 `;
 
 export type SquareHighlight = 'none' | 'selected' | 'target' | 'hint' | 'wrong';
@@ -177,6 +182,7 @@ type BoardSquareProps = {
     onSelect: (piece: PromotionPiece) => void;
   } | null;
   isDragSource: boolean;
+  hidePiece?: boolean;
 };
 
 const getOverlayColor = (
@@ -226,6 +232,7 @@ const BoardSquare = memo(function BoardSquare({
   accentColor,
   promotionPicker,
   isDragSource,
+  hidePiece = false,
 }: BoardSquareProps) {
   const { pieceSet } = useContext(PieceSetContext);
   const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
@@ -281,6 +288,7 @@ const BoardSquare = memo(function BoardSquare({
           aria-hidden="true"
           draggable={false}
           $isDragSource={isDragSource}
+          $hidden={hidePiece}
         />
       )}
       {showCaptureIndicator && isLegalTarget && piece && (
