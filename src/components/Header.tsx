@@ -1,10 +1,10 @@
 import styled from 'styled-components';
-import { useContext } from 'react';
+import { useContext, useLayoutEffect, useRef } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 
 import logo from '@/assets/logo.png';
 import logoDarkMode from '@/assets/logo_dark_mode.png';
-import BoardThemePicker from '@/components/board/BoardThemePicker';
+import BoardSettings from '@/components/board/BoardSettings';
 import { ThemeToggleContext } from '@/context/ThemeContext';
 import { formatDateForUrl, getToday } from '@/helpers/date';
 
@@ -135,6 +135,7 @@ const NavLinkItem = ({ to, params, active, children }: NavLinkItemProps) => (
 );
 
 const Header = () => {
+  const headerRef = useRef<HTMLElement>(null);
   const { isDarkMode } = useContext(ThemeToggleContext);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const todayDate = formatDateForUrl(getToday());
@@ -142,8 +143,25 @@ const Header = () => {
   const isSandboxActive = pathname === '/freeroam';
   const isAboutActive = pathname === '/about';
 
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const syncHeight = () => {
+      document.documentElement.style.setProperty(
+        '--header-height',
+        `${header.offsetHeight}px`,
+      );
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <HeaderBar>
+    <HeaderBar ref={headerRef}>
       <Start>
         <LogoLinkWrap>
           <Link to="/$date" params={{ date: todayDate }}>
@@ -167,7 +185,7 @@ const Header = () => {
         </Nav>
       </Start>
       <HeaderActions>
-        <BoardThemePicker />
+        <BoardSettings />
       </HeaderActions>
     </HeaderBar>
   );

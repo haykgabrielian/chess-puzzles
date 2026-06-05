@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import styled from 'styled-components';
 
 import Calendar from '@/components/sidebar/Calendar';
@@ -26,8 +25,8 @@ const SidebarItem = styled.div<{ $mobileOrder: number }>`
   }
 `;
 
-const Sidebar = forwardRef<HTMLElement>((_, ref) => (
-  <SidebarRoot ref={ref} aria-label="Puzzle sidebar">
+const Sidebar = () => (
+  <SidebarRoot aria-label="Puzzle sidebar">
     <SidebarItem $mobileOrder={2}>
       <PuzzleInfo />
     </SidebarItem>
@@ -38,8 +37,6 @@ const Sidebar = forwardRef<HTMLElement>((_, ref) => (
       <Hint />
     </SidebarItem>
   </SidebarRoot>
-));
-
-Sidebar.displayName = 'Sidebar';
+);
 
 export default Sidebar;

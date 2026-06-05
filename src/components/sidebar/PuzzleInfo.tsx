@@ -4,9 +4,8 @@ import Card from '@/components/ui/Card';
 import { PuzzleInfoIcon } from '@/components/ui/CardIcons';
 import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
+import { addDays, canNavigateToNextDay } from '@/helpers/date';
 import { getSideLabel } from '@/helpers/fen';
-
-const PUZZLE_INFO_BODY_HEIGHT = '118px';
 
 const Content = styled.div`
   display: flex;
@@ -49,44 +48,77 @@ const SideToMove = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
-const SolvedMessage = styled.span`
+const StatusBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+const SuccessMessage = styled.span`
   font-size: 0.9375rem;
   font-weight: 600;
+  color: ${({ theme }) => theme.accent};
+`;
+
+const Suggestion = styled.span`
+  font-size: 0.8125rem;
   color: ${({ theme }) => theme.text.secondary};
 `;
 
-const ResetButton = styled.button`
+const WrongMessage = styled.p`
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.boardHighlight.danger};
+`;
+
+const Actions = styled.div`
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const ActionButton = styled.button<{ $variant?: 'danger' | 'accent' }>`
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
-  border: 1px solid ${({ theme }) => theme.accent};
+  padding: 8px 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid
+    ${({ $variant, theme }) =>
+      $variant === 'danger' ? theme.boardHighlight.danger : theme.accent};
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: ${({ theme }) => theme.accent};
+  color: ${({ $variant, theme }) =>
+    $variant === 'danger' ? theme.boardHighlight.danger : theme.accent};
   background-color: transparent;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
 
-  &:hover {
-    background-color: ${({ theme }) => theme.accentMuted};
+  &:hover:not(:disabled) {
+    background-color: ${({ $variant, theme }) =>
+      $variant === 'danger' ? theme.boardHighlight.dangerMuted : theme.accentMuted};
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 `;
 
 const PuzzleInfo = () => {
-  const { puzzle, hasPuzzle } = usePuzzle();
-  const { fen, status, hasProgress, resetGame } = usePuzzleGame();
+  const { puzzle, hasPuzzle, selectedDate, setSelectedDate } = usePuzzle();
+  const { fen, status, hasProgress, resetGame, retryMove } = usePuzzleGame();
   const sideToMove = `${getSideLabel(fen)} to move`;
+  const previousDay = addDays(selectedDate, -1);
+  const nextDay = addDays(selectedDate, 1);
+  const canGoNext = canNavigateToNextDay(selectedDate);
 
   return (
-    <Card
-      title="Puzzle Info"
-      icon={<PuzzleInfoIcon />}
-      bodyHeight={PUZZLE_INFO_BODY_HEIGHT}
-      collapsibleOnMobile
-    >
+    <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
       <Content>
         {hasPuzzle ? (
           <PuzzleSummaryRow>
@@ -94,21 +126,50 @@ const PuzzleInfo = () => {
               <PuzzleTitle>{puzzle.title}</PuzzleTitle>
               <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
             </PuzzleSummary>
-            {hasProgress && (
-              <ResetButton type="button" onClick={resetGame}>
+            {hasProgress && status === 'playing' && (
+              <ActionButton type="button" onClick={resetGame}>
                 Reset puzzle
-              </ResetButton>
+              </ActionButton>
             )}
           </PuzzleSummaryRow>
         ) : (
           <PuzzleTitle>Today&apos;s puzzle isn&apos;t available yet</PuzzleTitle>
         )}
-        {hasPuzzle &&
-          (status === 'solved' ? (
-            <SolvedMessage>Solved</SolvedMessage>
-          ) : (
-            <SideToMove>{sideToMove}</SideToMove>
-          ))}
+
+        {hasPuzzle && status === 'playing' && <SideToMove>{sideToMove}</SideToMove>}
+
+        {hasPuzzle && status === 'wrong' && (
+          <StatusBlock>
+            <WrongMessage>Wrong move. Try again.</WrongMessage>
+            <Actions>
+              <ActionButton type="button" $variant="danger" onClick={retryMove}>
+                Retry
+              </ActionButton>
+            </Actions>
+          </StatusBlock>
+        )}
+
+        {hasPuzzle && status === 'solved' && (
+          <StatusBlock>
+            <SuccessMessage>Puzzle solved!</SuccessMessage>
+            <Suggestion>Try another puzzle:</Suggestion>
+            <Actions>
+              <ActionButton type="button" onClick={resetGame}>
+                Reset puzzle
+              </ActionButton>
+              <ActionButton type="button" onClick={() => setSelectedDate(previousDay)}>
+                ← Previous day
+              </ActionButton>
+              <ActionButton
+                type="button"
+                disabled={!canGoNext}
+                onClick={() => setSelectedDate(nextDay)}
+              >
+                Next day →
+              </ActionButton>
+            </Actions>
+          </StatusBlock>
+        )}
       </Content>
     </Card>
   );

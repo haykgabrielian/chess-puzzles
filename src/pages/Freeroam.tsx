@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import type { Square } from 'chess.js';
 
+import BoardSizer from '@/components/board/BoardSizer';
 import ChessBoard from '@/components/board/ChessBoard';
 import SolveConfetti from '@/components/board/SolveConfetti';
 import Header from '@/components/Header';
@@ -23,29 +24,32 @@ import { STARTING_FEN, getSideToMove } from '@/helpers/fen';
 const MOBILE = '@media (max-width: 900px)';
 
 const Page = styled.div`
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background.primary};
   color: ${({ theme }) => theme.text.primary};
   overflow-x: clip;
 `;
 
 const Content = styled.main`
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr min(440px, 40%);
   gap: 24px;
-  padding: 24px;
+  padding: 24px 24px 0;
   max-width: 1400px;
   margin: 0 auto;
-  align-items: start;
-  min-height: calc(100vh - 66px);
+  width: 100%;
   box-sizing: border-box;
+  align-items: start;
 
   ${MOBILE} {
     grid-template-columns: 1fr;
     align-items: start;
     gap: 16px;
-    padding: 12px 0;
-    min-height: auto;
+    padding: 24px 0 0;
   }
 `;
 
@@ -58,17 +62,6 @@ const BoardSection = styled.section`
 
   ${MOBILE} {
     justify-content: stretch;
-  }
-`;
-
-const BoardSizer = styled.div`
-  position: relative;
-  width: min(80vh, 100%);
-  aspect-ratio: 1;
-  flex-shrink: 0;
-
-  ${MOBILE} {
-    width: 100%;
   }
 `;
 

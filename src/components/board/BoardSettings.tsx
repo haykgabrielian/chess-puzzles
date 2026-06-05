@@ -21,7 +21,7 @@ const Menu = styled.div`
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: 280px;
+  width: 400px;
   max-width: calc(100vw - 24px);
   max-height: calc(100dvh - 88px);
   overflow-y: auto;
@@ -32,7 +32,7 @@ const Menu = styled.div`
   -webkit-overflow-scrolling: touch;
 
   @media (max-width: 600px) {
-    width: min(280px, calc(100vw - 24px));
+    width: min(400px, calc(100vw - 24px));
   }
 `;
 
@@ -47,15 +47,15 @@ const MenuTitle = styled.p`
 
 const ThemeGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px 16px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px 10px;
 `;
 
 const ThemeOption = styled.button<{ $selected: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 0;
   border: none;
   background: none;
@@ -66,7 +66,7 @@ const PreviewWrapper = styled.div<{ $selected: boolean }>`
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
   outline: ${({ $selected, theme }) =>
     $selected ? `2px solid ${theme.accent}` : '2px solid transparent'};
@@ -105,10 +105,23 @@ const Checkmark = styled.span`
   }
 `;
 
+const ThemeCheckmark = styled(Checkmark)`
+  top: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+
+  svg {
+    width: 8px;
+    height: 8px;
+  }
+`;
+
 const ThemeLabel = styled.span`
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: ${({ theme }) => theme.text.secondary};
   text-align: center;
+  line-height: 1.2;
 `;
 
 const PieceSetRows = styled.div`
@@ -562,7 +575,7 @@ const PieceSetPreview = ({
   </PiecePreviewSquare>
 );
 
-const BoardThemePicker = () => {
+const BoardSettings = () => {
   const {
     boardTheme,
     setBoardThemeId,
@@ -627,9 +640,9 @@ const BoardThemePicker = () => {
                   <PreviewWrapper $selected={selected}>
                     <ThemePreview theme={theme} />
                     {selected && (
-                      <Checkmark aria-hidden="true">
+                      <ThemeCheckmark aria-hidden="true">
                         <CheckIcon />
-                      </Checkmark>
+                      </ThemeCheckmark>
                     )}
                   </PreviewWrapper>
                   <ThemeLabel>{theme.name}</ThemeLabel>
@@ -830,4 +843,4 @@ const BoardThemePicker = () => {
   );
 };
 
-export default BoardThemePicker;
+export default BoardSettings;
