@@ -5,6 +5,7 @@ import {
   type BoardCoordinateMode,
   boardCoordinateModes,
   defaultBoardCoordinateMode,
+  defaultAnimateMoves,
   defaultBoardThemeId,
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
@@ -16,6 +17,7 @@ const THEME_STORAGE_KEY = 'chess-board-theme';
 const COORDINATE_MODE_STORAGE_KEY = 'chess-board-coordinate-mode';
 const SHOW_MOVE_DOTS_STORAGE_KEY = 'chess-board-show-move-dots';
 const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = 'chess-board-show-capture-indicator';
+const ANIMATE_MOVES_STORAGE_KEY = 'chess-board-animate-moves';
 
 const getInitialBoardThemeId = () => {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
@@ -54,6 +56,9 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
   const [showCaptureIndicator, setShowCaptureIndicatorState] = useState(() =>
     getInitialBooleanSetting(SHOW_CAPTURE_INDICATOR_STORAGE_KEY, defaultShowCaptureIndicator),
   );
+  const [animateMoves, setAnimateMovesState] = useState(() =>
+    getInitialBooleanSetting(ANIMATE_MOVES_STORAGE_KEY, defaultAnimateMoves),
+  );
 
   const setBoardThemeId = (id: string) => {
     localStorage.setItem(THEME_STORAGE_KEY, id);
@@ -75,6 +80,11 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
     setShowCaptureIndicatorState(enabled);
   };
 
+  const setAnimateMoves = (enabled: boolean) => {
+    localStorage.setItem(ANIMATE_MOVES_STORAGE_KEY, String(enabled));
+    setAnimateMovesState(enabled);
+  };
+
   return (
     <BoardThemeContext.Provider
       value={{
@@ -86,6 +96,8 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
         setShowMoveDots,
         showCaptureIndicator,
         setShowCaptureIndicator,
+        animateMoves,
+        setAnimateMoves,
       }}
     >
       {children}

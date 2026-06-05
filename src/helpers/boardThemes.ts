@@ -146,6 +146,7 @@ export const defaultBoardThemeId = 'midnight-navy';
 
 export const defaultShowMoveDots = true;
 export const defaultShowCaptureIndicator = true;
+export const defaultAnimateMoves = true;
 
 const legacyBoardThemeIds: Record<string, string> = {
   slate: 'vintage-blue',

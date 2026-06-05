@@ -18,9 +18,12 @@ import { PieceSetContext } from '@/context/PieceSetContext';
 import { type BoardCoordinateMode } from '@/helpers/boardThemes';
 import type { BoardMove, PromotionPiece } from '@/helpers/chess';
 import { type Piece, getSideToMove, parseFenBoard } from '@/helpers/fen';
+import { MOVE_ANIMATION_MS } from '@/helpers/moveAnimation';
+import { useMoveAnimation } from '@/hooks/useMoveAnimation';
 
 const MOBILE = '@media (max-width: 900px)';
 const DRAG_THRESHOLD_PX = 8;
+const PIECE_SIZE_RATIO = 0.88;
 
 const asideCoordinateTypography = css`
   font-size: 0.8125rem;
@@ -159,16 +162,53 @@ const Grid = styled.div<{
   touch-action: ${({ $isDragging }) => ($isDragging ? 'none' : 'manipulation')};
 `;
 
-const DragGhost = styled.img`
+const DragGhost = styled.img<{ $size: number }>`
   position: fixed;
   z-index: 1000;
-  width: min(12vw, 72px);
-  height: min(12vw, 72px);
+  width: ${({ $size }) => $size}px;
+  height: ${({ $size }) => $size}px;
   object-fit: contain;
   pointer-events: none;
   user-select: none;
   transform: translate(-50%, -50%);
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+`;
+
+const FlyingPieceLayer = styled.div<{
+  $fileIndex: number;
+  $rankIndex: number;
+  $deltaFile: number;
+  $deltaRank: number;
+  $active: boolean;
+}>`
+  position: absolute;
+  left: ${({ $fileIndex }) => $fileIndex * 12.5}%;
+  top: ${({ $rankIndex }) => $rankIndex * 12.5}%;
+  width: 12.5%;
+  height: 12.5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 6;
+  transform: translate(
+    ${({ $active, $deltaFile }) => ($active ? $deltaFile * 100 : 0)}%,
+    ${({ $active, $deltaRank }) => ($active ? $deltaRank * 100 : 0)}%
+  );
+  transition: ${({ $active }) =>
+    $active ? `transform ${MOVE_ANIMATION_MS}ms ease-out` : 'none'};
+  will-change: transform;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`;
+
+const FlyingPieceImage = styled.img`
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  user-select: none;
 `;
 
 const isPieceOfSideToMove = (piece: Piece, fen: string): boolean => {
@@ -262,7 +302,7 @@ const ChessBoard = ({
   onSquareClick,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
-  const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator } =
+  const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator, animateMoves } =
     useContext(BoardThemeContext);
   const { pieceSet } = useContext(PieceSetContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
@@ -279,7 +319,22 @@ const ChessBoard = ({
     piece: Piece;
     x: number;
     y: number;
+    size: number;
   } | null>(null);
+
+  const {
+    pieces: animatingPieces,
+    isActive: isMoveAnimationActive,
+    hiddenSquares,
+    onPieceTransitionEnd,
+    skipAnimation,
+  } = useMoveAnimation({
+    lastMove: lastMove ?? null,
+    fen,
+    board,
+    orientation,
+    animateMoves,
+  });
 
   const getSquareFromEvent = useCallback((event: PointerEvent<HTMLDivElement>) => {
     const squareId = (event.target as HTMLElement).closest<HTMLElement>(
@@ -350,11 +405,19 @@ const ChessBoard = ({
         if (selectedSquare !== pending.square) {
           onSquareClick(pending.square);
         }
+
+        const squareElement = event.currentTarget.querySelector<HTMLElement>(
+          `[data-square="${pending.square}"]`,
+        );
+        const squareSize = squareElement?.getBoundingClientRect().width ?? 0;
+        const pieceSize = squareSize > 0 ? squareSize * PIECE_SIZE_RATIO : 0;
+
         setDragGhost({
           from: pending.square,
           piece: pending.piece,
           x: event.clientX,
           y: event.clientY,
+          size: pieceSize,
         });
         return;
       }
@@ -389,6 +452,7 @@ const ChessBoard = ({
         const targetSquare = getSquareFromPoint(event.clientX, event.clientY);
 
         if (targetSquare && targetSquare !== pending.square) {
+          skipAnimation();
           onSquareClick(targetSquare);
         }
 
@@ -398,7 +462,7 @@ const ChessBoard = ({
 
       onSquareClick(pending.square);
     },
-    [canInteract, onSquareClick],
+    [canInteract, onSquareClick, skipAnimation],
   );
 
   const handleGridPointerCancel = useCallback(() => {
@@ -478,15 +542,35 @@ const ChessBoard = ({
                   promotionPicker?.square === id ? promotionPicker : null
                 }
                 isDragSource={dragGhost?.from === id}
+                hidePiece={hiddenSquares.has(id)}
               />
             );
           })}
+          {animatingPieces?.map(piece => (
+            <FlyingPieceLayer
+              key={piece.id}
+              aria-hidden="true"
+              $fileIndex={piece.fromFileIndex}
+              $rankIndex={piece.fromRankIndex}
+              $deltaFile={piece.deltaFile}
+              $deltaRank={piece.deltaRank}
+              $active={isMoveAnimationActive}
+              onTransitionEnd={onPieceTransitionEnd}
+            >
+              <FlyingPieceImage
+                src={pieceSet.images[piece.piece]}
+                alt=""
+                draggable={false}
+              />
+            </FlyingPieceLayer>
+          ))}
         </Grid>
-        {dragGhost && (
+        {dragGhost && dragGhost.size > 0 && (
           <DragGhost
             src={pieceSet.images[dragGhost.piece]}
             alt=""
             aria-hidden="true"
+            $size={dragGhost.size}
             style={{ left: dragGhost.x, top: dragGhost.y }}
           />
         )}
