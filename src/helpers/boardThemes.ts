@@ -125,7 +125,7 @@ const baseBoardThemes = [
     coordinate: '#7A7A7A',
     frame: '#ffffff',
     darkTexture:
-      'repeating-linear-gradient(-45deg, #4A4A4A 0, #4A4A4A 1px, transparent 1px, transparent 5px)',
+      'repeating-linear-gradient(-45deg, #9A9A9A 0, #9A9A9A 2px, transparent 2px, transparent 5px)',
   },
 ] as const;
 
