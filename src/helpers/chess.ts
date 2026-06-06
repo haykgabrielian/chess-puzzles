@@ -11,8 +11,26 @@ export type PromotionPiece = 'q' | 'r' | 'b' | 'n';
 
 export const PROMOTION_PIECES: PromotionPiece[] = ['q', 'r', 'b', 'n'];
 
+export type GameOutcome = 'playing' | 'checkmate' | 'stalemate';
+
 export function createGame(fen: string): Chess {
   return new Chess(fen);
+}
+
+export function getGameOutcome(game: Chess): GameOutcome {
+  if (game.isCheckmate()) {
+    return 'checkmate';
+  }
+
+  if (game.isStalemate()) {
+    return 'stalemate';
+  }
+
+  return 'playing';
+}
+
+export function getCheckmateWinner(game: Chess): 'White' | 'Black' {
+  return game.turn() === 'w' ? 'Black' : 'White';
 }
 
 export function getLegalTargetSquares(game: Chess, from: Square): Square[] {

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 
-import BoardThemeProvider from '@/context/BoardThemeProvider';
+import BoardSettingsProvider from '@/context/BoardSettingsProvider';
 import PieceSetProvider from '@/context/PieceSetProvider';
 import QueryProvider from '@/context/QueryProvider';
 import ThemeProvider from '@/context/ThemeProvider';
@@ -14,11 +14,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider>
       <QueryProvider>
-        <BoardThemeProvider>
+        <BoardSettingsProvider>
           <PieceSetProvider>
             <RouterProvider router={router} />
           </PieceSetProvider>
-        </BoardThemeProvider>
+        </BoardSettingsProvider>
       </QueryProvider>
     </ThemeProvider>
   </React.StrictMode>

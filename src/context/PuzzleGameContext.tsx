@@ -16,6 +16,8 @@ import {
   type BoardMove,
   type PromotionPiece,
   createGame,
+  type GameOutcome,
+  getGameOutcome,
   getLegalTargetSquares,
   getMoveSquares,
   isPromotionMove,
@@ -40,6 +42,7 @@ type PuzzleGameContextValue = {
   moveIndex: number;
   wrongMoveSquares: BoardMove | null;
   status: PuzzleStatus;
+  gameOutcome: GameOutcome;
   canInteract: boolean;
   hasProgress: boolean;
   pendingPromotion: BoardMove | null;
@@ -282,6 +285,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
   const orientation: 'white' | 'black' =
     getSideToMove(puzzle.parsed.fen) === 'b' ? 'black' : 'white';
+  const gameOutcome = useMemo(() => getGameOutcome(gameRef.current), [fen]);
   const canInteract = hasPuzzle && status === 'playing' && isUserMoveIndex(moveIndex);
   const hasProgress = moveIndex > 0 || fen !== puzzle.parsed.fen;
 
@@ -297,6 +301,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       moveIndex,
       wrongMoveSquares,
       status,
+      gameOutcome,
       canInteract,
       hasProgress,
       pendingPromotion,
@@ -308,6 +313,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     }),
     [
       canInteract,
+      gameOutcome,
       hasProgress,
       fen,
       hintSquares,

@@ -13,7 +13,7 @@ import BoardSquare, {
   type BoardSquareLayout,
   type SquareHighlight,
 } from '@/components/board/BoardSquare';
-import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { BoardSettingsContext } from '@/context/BoardSettingsContext';
 import { PieceSetContext } from '@/context/PieceSetContext';
 import { type BoardCoordinateMode } from '@/helpers/boardThemes';
 import type { BoardMove, PromotionPiece } from '@/helpers/chess';
@@ -303,7 +303,7 @@ const ChessBoard = ({
 }: ChessBoardProps) => {
   const appTheme = useTheme();
   const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator, animateMoves } =
-    useContext(BoardThemeContext);
+    useContext(BoardSettingsContext);
   const { pieceSet } = useContext(PieceSetContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
   const squareLayouts = useMemo(

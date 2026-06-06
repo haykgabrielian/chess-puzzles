@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import CapturedPiecesDisplay from '@/components/sidebar/CapturedPieces';
 import Card from '@/components/ui/Card';
 import { FreeroamIcon } from '@/components/ui/CardIcons';
-import type { CapturedPieces } from '@/helpers/chess';
+import type { CapturedPieces, GameOutcome } from '@/helpers/chess';
+import { createGame, getCheckmateWinner } from '@/helpers/chess';
 import { STARTING_FEN, getSideLabel } from '@/helpers/fen';
 
 const Content = styled.div`
@@ -45,7 +46,7 @@ const SideToMove = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
-const CheckmateMessage = styled.span`
+const GameOverMessage = styled.span`
   font-size: 0.9375rem;
   font-weight: 600;
   color: ${({ theme }) => theme.accent};
@@ -74,9 +75,20 @@ const ResetButton = styled.button`
 type FreeroamInfoProps = {
   fen: string;
   captured: CapturedPieces;
-  isCheckmate: boolean;
-  checkmateWinner: 'White' | 'Black' | null;
+  gameOutcome: GameOutcome;
   onReset: () => void;
+};
+
+const getGameOverMessage = (gameOutcome: GameOutcome, fen: string): string | null => {
+  if (gameOutcome === 'checkmate') {
+    return `Checkmate! ${getCheckmateWinner(createGame(fen))} wins.`;
+  }
+
+  if (gameOutcome === 'stalemate') {
+    return 'Stalemate — draw.';
+  }
+
+  return null;
 };
 
 const getFullMoveNumber = (fen: string): number => {
@@ -88,13 +100,13 @@ const getFullMoveNumber = (fen: string): number => {
 const FreeroamInfo = ({
   fen,
   captured,
-  isCheckmate,
-  checkmateWinner,
+  gameOutcome,
   onReset,
 }: FreeroamInfoProps) => {
   const hasProgress = fen !== STARTING_FEN;
   const fullMoveNumber = getFullMoveNumber(fen);
   const sideToMove = `${getSideLabel(fen)} to move`;
+  const gameOverMessage = getGameOverMessage(gameOutcome, fen);
 
   return (
     <Card title="Game Info" icon={<FreeroamIcon />} collapsibleOnMobile>
@@ -114,8 +126,8 @@ const FreeroamInfo = ({
             </ResetButton>
           )}
         </GameSummaryRow>
-        {isCheckmate && checkmateWinner ? (
-          <CheckmateMessage>Checkmate! {checkmateWinner} wins.</CheckmateMessage>
+        {gameOverMessage ? (
+          <GameOverMessage>{gameOverMessage}</GameOverMessage>
         ) : (
           <SideToMove>{sideToMove}</SideToMove>
         )}

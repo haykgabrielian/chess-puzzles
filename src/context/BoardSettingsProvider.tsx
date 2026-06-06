@@ -1,6 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 
-import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { BoardSettingsContext } from '@/context/BoardSettingsContext';
 import {
   type BoardCoordinateMode,
   boardCoordinateModes,
@@ -47,7 +47,7 @@ const getInitialBooleanSetting = (key: string, defaultValue: boolean): boolean =
   return saved === 'true';
 };
 
-const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
+const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [boardThemeId, setBoardThemeIdState] = useState(getInitialBoardThemeId);
   const [coordinateMode, setCoordinateModeState] = useState(getInitialCoordinateMode);
   const [showMoveDots, setShowMoveDotsState] = useState(() =>
@@ -86,7 +86,7 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <BoardThemeContext.Provider
+    <BoardSettingsContext.Provider
       value={{
         boardTheme: getBoardThemeById(boardThemeId),
         setBoardThemeId,
@@ -101,8 +101,8 @@ const BoardThemeProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
-    </BoardThemeContext.Provider>
+    </BoardSettingsContext.Provider>
   );
 };
 
-export default BoardThemeProvider;
+export default BoardSettingsProvider;

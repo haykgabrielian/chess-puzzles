@@ -11,7 +11,7 @@ import {
   getBoardThemeById,
 } from '@/helpers/boardThemes';
 
-export const BoardThemeContext = React.createContext<{
+export const BoardSettingsContext = React.createContext<{
   boardTheme: BoardTheme;
   setBoardThemeId: (id: string) => void;
   coordinateMode: BoardCoordinateMode;

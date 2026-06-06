@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { useContext, useEffect, useRef, useState } from 'react';
 
-import { BoardThemeContext } from '@/context/BoardThemeContext';
+import { BoardSettingsContext } from '@/context/BoardSettingsContext';
 import { PieceSetContext } from '@/context/PieceSetContext';
 import { ThemeToggleContext } from '@/context/ThemeContext';
 import {
@@ -587,7 +587,7 @@ const BoardSettings = () => {
     setShowCaptureIndicator,
     animateMoves,
     setAnimateMoves,
-  } = useContext(BoardThemeContext);
+  } = useContext(BoardSettingsContext);
   const { pieceSet, setPieceSetId } = useContext(PieceSetContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
   const [isOpen, setIsOpen] = useState(false);

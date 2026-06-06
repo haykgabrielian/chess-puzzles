@@ -5,6 +5,7 @@ import { PuzzleInfoIcon } from '@/components/ui/CardIcons';
 import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
 import { addDays, canNavigateToNextDay } from '@/helpers/date';
+import { createGame, getCheckmateWinner, type GameOutcome } from '@/helpers/chess';
 import { getSideLabel } from '@/helpers/fen';
 
 const Content = styled.div`
@@ -60,10 +61,37 @@ const SuccessMessage = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
+const DrawMessage = styled.span`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
 const Suggestion = styled.span`
   font-size: 0.8125rem;
   color: ${({ theme }) => theme.text.secondary};
 `;
+
+const getSolvedMessage = (
+  gameOutcome: GameOutcome,
+  fen: string,
+): { title: string; detail: string | null } => {
+  if (gameOutcome === 'checkmate') {
+    return {
+      title: 'Puzzle solved!',
+      detail: `Checkmate — ${getCheckmateWinner(createGame(fen))} wins.`,
+    };
+  }
+
+  if (gameOutcome === 'stalemate') {
+    return {
+      title: 'Puzzle solved!',
+      detail: 'Stalemate — draw.',
+    };
+  }
+
+  return { title: 'Puzzle solved!', detail: null };
+};
 
 const WrongMessage = styled.p`
   margin: 0;
@@ -111,8 +139,9 @@ const ActionButton = styled.button<{ $variant?: 'danger' | 'accent' }>`
 
 const PuzzleInfo = () => {
   const { puzzle, hasPuzzle, selectedDate, setSelectedDate } = usePuzzle();
-  const { fen, status, hasProgress, resetGame, retryMove } = usePuzzleGame();
+  const { fen, status, gameOutcome, hasProgress, resetGame, retryMove } = usePuzzleGame();
   const sideToMove = `${getSideLabel(fen)} to move`;
+  const solvedMessage = getSolvedMessage(gameOutcome, fen);
   const previousDay = addDays(selectedDate, -1);
   const nextDay = addDays(selectedDate, 1);
   const canGoNext = canNavigateToNextDay(selectedDate);
@@ -151,7 +180,8 @@ const PuzzleInfo = () => {
 
         {hasPuzzle && status === 'solved' && (
           <StatusBlock>
-            <SuccessMessage>Puzzle solved!</SuccessMessage>
+            <SuccessMessage>{solvedMessage.title}</SuccessMessage>
+            {solvedMessage.detail && <DrawMessage>{solvedMessage.detail}</DrawMessage>}
             <Suggestion>Try another puzzle:</Suggestion>
             <Actions>
               <ActionButton type="button" onClick={resetGame}>
