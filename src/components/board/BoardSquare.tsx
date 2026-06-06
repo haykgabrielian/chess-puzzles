@@ -189,10 +189,11 @@ const getOverlayColor = (
   highlight: SquareHighlight,
   boardHighlight: BoardHighlight,
   hintColor: string,
+  isLight: boolean,
 ): string | null => {
   switch (highlight) {
     case 'selected':
-      return boardHighlight.selected;
+      return isLight ? boardHighlight.selectedOnLight : boardHighlight.selectedOnDark;
     case 'hint':
       return hintColor;
     case 'wrong':
@@ -242,7 +243,7 @@ const BoardSquare = memo(function BoardSquare({
       type="button"
       data-square={id}
       $squareBackground={getSquareBackground(boardTheme, isLight)}
-      $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight, hintColor)}
+      $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight, hintColor, isLight)}
       $canInteract={canInteract}
       role="gridcell"
       aria-label={id}

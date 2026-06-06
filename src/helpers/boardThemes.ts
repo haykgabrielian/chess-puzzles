@@ -1,7 +1,8 @@
 export type BoardCoordinateMode = 'aside' | 'inside' | 'none';
 
 export type BoardHighlight = {
-  selected: string;
+  selectedOnLight: string;
+  selectedOnDark: string;
   lastMove: string;
   hint: string;
   wrong: string;
@@ -42,7 +43,8 @@ const rgbaFromHex = (hex: string, alpha: number): string => {
 };
 
 export const createBoardHighlight = (light: string, dark: string): BoardHighlight => ({
-  selected: rgbaFromHex(dark, 0.34),
+  selectedOnLight: rgbaFromHex(dark, 0.15),
+  selectedOnDark: rgbaFromHex('#000000', 0.13),
   lastMove: rgbaFromHex(dark, 0.24),
   hint: rgbaFromHex(dark, 0.3),
   wrong: 'rgba(178, 95, 95, 0.55)',
