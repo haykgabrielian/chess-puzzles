@@ -9,11 +9,15 @@ import {
 import type { BoardMove } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
 import {
+  DEFAULT_MOVE_ANIMATION_POLICY,
   MOVE_ANIMATION_MS,
   type BoardOrientation,
+  type MoveAnimationPolicy,
   type MoveAnimationSpec,
+  type MoveUpdateIntent,
   buildMoveAnimation,
   getMoveAnimationKey,
+  shouldAnimateMoveUpdate,
 } from '@/helpers/moveAnimation';
 
 const REDUCED_MOTION_MEDIA = '(prefers-reduced-motion: reduce)';
@@ -32,6 +36,8 @@ type UseMoveAnimationParams = {
   board: (Piece | null)[][];
   orientation: BoardOrientation;
   animateMoves: boolean;
+  moveUpdateIntent?: MoveUpdateIntent;
+  moveAnimationPolicy?: MoveAnimationPolicy;
 };
 
 const prefersReducedMotion = () =>
@@ -43,6 +49,8 @@ export const useMoveAnimation = ({
   board,
   orientation,
   animateMoves,
+  moveUpdateIntent = 'forward',
+  moveAnimationPolicy = DEFAULT_MOVE_ANIMATION_POLICY,
 }: UseMoveAnimationParams) => {
   const skipNextRef = useRef(false);
   const processedMoveKeyRef = useRef<string | null>(null);
@@ -106,7 +114,11 @@ export const useMoveAnimation = ({
       return;
     }
 
-    if (!animateMoves || prefersReducedMotion()) {
+    if (
+      !animateMoves ||
+      prefersReducedMotion() ||
+      !shouldAnimateMoveUpdate(moveUpdateIntent, moveAnimationPolicy)
+    ) {
       finishAnimation(moveKey);
       return;
     }
@@ -121,7 +133,16 @@ export const useMoveAnimation = ({
     pendingTransitionsRef.current = spec.pieces.length;
     animatingKeyRef.current = moveKey;
     setAnimatingMove({ key: moveKey, spec, active: false });
-  }, [animateMoves, board, finishAnimation, lastMove, moveKey, orientation]);
+  }, [
+    animateMoves,
+    board,
+    finishAnimation,
+    lastMove,
+    moveAnimationPolicy,
+    moveKey,
+    moveUpdateIntent,
+    orientation,
+  ]);
 
   useLayoutEffect(() => {
     if (!animatingMove || animatingMove.active) {

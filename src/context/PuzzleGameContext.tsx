@@ -26,6 +26,7 @@ import {
   tryMove,
   trySanMove,
 } from '@/helpers/chess';
+import type { MoveUpdateIntent } from '@/helpers/moveAnimation';
 
 const OPPONENT_MOVE_DELAY_MS = 350;
 
@@ -37,6 +38,7 @@ type PuzzleGameContextValue = {
   selectedSquare: string | null;
   legalTargets: string[];
   lastMove: BoardMove | null;
+  moveUpdateIntent: MoveUpdateIntent;
   hintSquares: BoardMove | null;
   isHintRevealed: boolean;
   moveIndex: number;
@@ -76,6 +78,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
+  const [moveUpdateIntent, setMoveUpdateIntent] = useState<MoveUpdateIntent>('reset');
   const [hintSquares, setHintSquares] = useState<BoardMove | null>(null);
   const [isHintRevealed, setIsHintRevealed] = useState(false);
   const [wrongMoveSquares, setWrongMoveSquares] = useState<BoardMove | null>(null);
@@ -89,13 +92,17 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const syncBoardState = useCallback((game: Chess, move: BoardMove | null) => {
-    setFen(game.fen());
-    setLastMove(move);
-    setSelectedSquare(null);
-    setLegalTargets([]);
-    setPendingPromotion(null);
-  }, []);
+  const syncBoardState = useCallback(
+    (game: Chess, move: BoardMove | null, intent: MoveUpdateIntent = 'forward') => {
+      setMoveUpdateIntent(intent);
+      setFen(game.fen());
+      setLastMove(move);
+      setSelectedSquare(null);
+      setLegalTargets([]);
+      setPendingPromotion(null);
+    },
+    [],
+  );
 
   const playOpponentMove = useCallback(
     (startIndex: number, solutionMoves: string[]) => {
@@ -142,7 +149,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     setWrongMoveSquares(null);
     setPendingPromotion(null);
     setStatus(hasPuzzle ? 'playing' : 'idle');
-    syncBoardState(gameRef.current, null);
+    syncBoardState(gameRef.current, null, 'reset');
   }, [clearHint, clearTimers, hasPuzzle, puzzle.parsed.fen, syncBoardState]);
 
   const retryMove = useCallback(() => {
@@ -155,6 +162,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     setWrongMoveSquares(null);
     setPendingPromotion(null);
     setStatus('playing');
+    setMoveUpdateIntent('retry');
     setFen(game.fen());
     setSelectedSquare(null);
     setLegalTargets([]);
@@ -296,6 +304,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       selectedSquare,
       legalTargets,
       lastMove,
+      moveUpdateIntent,
       hintSquares,
       isHintRevealed,
       moveIndex,
@@ -319,6 +328,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       hintSquares,
       isHintRevealed,
       lastMove,
+      moveUpdateIntent,
       moveIndex,
       legalTargets,
       onSquareClick,

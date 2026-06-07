@@ -25,6 +25,26 @@ export type MoveAnimationSpec = {
 
 export const MOVE_ANIMATION_MS = 200;
 
+export type MoveUpdateIntent =
+  | 'forward'
+  | 'retry'
+  | 'historyJump'
+  | 'reset';
+
+export type MoveAnimationPolicy = Record<MoveUpdateIntent, boolean>;
+
+export const DEFAULT_MOVE_ANIMATION_POLICY: MoveAnimationPolicy = {
+  forward: true,
+  retry: false,
+  historyJump: true,
+  reset: false,
+};
+
+export const shouldAnimateMoveUpdate = (
+  intent: MoveUpdateIntent,
+  policy: MoveAnimationPolicy = DEFAULT_MOVE_ANIMATION_POLICY,
+): boolean => policy[intent];
+
 export const getMoveAnimationKey = (fen: string, lastMove: BoardMove): string =>
   `${fen}|${lastMove.from}|${lastMove.to}`;
 

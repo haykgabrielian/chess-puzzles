@@ -74,6 +74,7 @@ const HomeContent = () => {
     onPromotionSelect,
     pendingPromotion,
     status,
+    moveUpdateIntent,
   } = usePuzzleGame();
 
   return (
@@ -102,6 +103,7 @@ const HomeContent = () => {
                       }
                     : null
                 }
+                moveUpdateIntent={moveUpdateIntent}
                 onSquareClick={onSquareClick}
               />
               <SolveConfetti isSolved={status === 'solved'} lastMoveTo={lastMove?.to ?? null} />

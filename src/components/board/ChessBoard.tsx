@@ -18,7 +18,7 @@ import { PieceSetContext } from '@/context/PieceSetContext';
 import { type BoardCoordinateMode } from '@/helpers/boardThemes';
 import type { BoardMove, PromotionPiece } from '@/helpers/chess';
 import { type Piece, getSideToMove, parseFenBoard } from '@/helpers/fen';
-import { MOVE_ANIMATION_MS } from '@/helpers/moveAnimation';
+import { MOVE_ANIMATION_MS, type MoveUpdateIntent } from '@/helpers/moveAnimation';
 import { useMoveAnimation } from '@/hooks/useMoveAnimation';
 
 const MOBILE = '@media (max-width: 900px)';
@@ -60,6 +60,7 @@ type ChessBoardProps = {
   canInteract?: boolean;
   isSolved?: boolean;
   promotionPicker?: PromotionPickerState | null;
+  moveUpdateIntent?: MoveUpdateIntent;
   onSquareClick?: (square: string) => void;
 };
 
@@ -299,6 +300,7 @@ const ChessBoard = ({
   canInteract = false,
   isSolved = false,
   promotionPicker = null,
+  moveUpdateIntent = 'forward',
   onSquareClick,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
@@ -334,6 +336,7 @@ const ChessBoard = ({
     board,
     orientation,
     animateMoves,
+    moveUpdateIntent,
   });
 
   const getSquareFromEvent = useCallback((event: PointerEvent<HTMLDivElement>) => {

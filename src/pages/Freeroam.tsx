@@ -22,6 +22,7 @@ import {
   type GameOutcome,
 } from '@/helpers/chess';
 import { STARTING_FEN, getSideToMove } from '@/helpers/fen';
+import type { MoveUpdateIntent } from '@/helpers/moveAnimation';
 
 const MOBILE = '@media (max-width: 900px)';
 
@@ -90,6 +91,7 @@ const Freeroam = () => {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
+  const [moveUpdateIntent, setMoveUpdateIntent] = useState<MoveUpdateIntent>('reset');
   const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(null);
   const [gameOutcome, setGameOutcome] = useState<GameOutcome>('playing');
 
@@ -104,22 +106,28 @@ const Freeroam = () => {
     setGameOutcome(getGameOutcome(game));
   }, []);
 
-  const goToPly = useCallback(
-    (ply: number) => {
+  const applyPly = useCallback(
+    (ply: number, intent: MoveUpdateIntent, liveMoveCount = moves.length) => {
       const nextFen = fenByPly[ply] ?? STARTING_FEN;
       const nextLastMove = lastMoveByPly[ply] ?? null;
       const game = createGame(nextFen);
 
       gameRef.current = game;
       setPositionIndex(ply);
+      setMoveUpdateIntent(intent);
       setFen(nextFen);
       setLastMove(nextLastMove);
       setSelectedSquare(null);
       setLegalTargets([]);
       setPendingPromotion(null);
-      syncGameOutcome(game, ply === moves.length);
+      syncGameOutcome(game, ply === liveMoveCount);
     },
     [fenByPly, lastMoveByPly, moves.length, syncGameOutcome],
+  );
+
+  const goToPly = useCallback(
+    (ply: number) => applyPly(ply, 'historyJump'),
+    [applyPly],
   );
 
   const resetGame = useCallback(() => {
@@ -128,6 +136,7 @@ const Freeroam = () => {
     setFenByPly([STARTING_FEN]);
     setLastMoveByPly([null]);
     setPositionIndex(0);
+    setMoveUpdateIntent('reset');
     setFen(STARTING_FEN);
     setSelectedSquare(null);
     setLegalTargets([]);
@@ -157,6 +166,7 @@ const Freeroam = () => {
       setFenByPly(previous => [...previous.slice(0, positionIndex + 1), nextFen]);
       setLastMoveByPly(previous => [...previous.slice(0, positionIndex + 1), nextLastMove]);
       setPositionIndex(nextPly);
+      setMoveUpdateIntent('forward');
       setFen(nextFen);
       setLastMove(nextLastMove);
       setSelectedSquare(null);
@@ -268,6 +278,7 @@ const Freeroam = () => {
               canInteract={isAtLivePosition && liveGameOutcome === 'playing'}
               isSolved={isCheckmate}
               promotionPicker={promotionPicker}
+              moveUpdateIntent={moveUpdateIntent}
               onSquareClick={onSquareClick}
             />
             <SolveConfetti
