@@ -98,11 +98,11 @@ const TargetDot = styled.span<{ $color: string }>`
   z-index: 2;
 `;
 
-const CaptureFrame = styled.span<{ $color: string }>`
+const CaptureFrame = styled.span<{ $color: string; $borderRadius: string }>`
   position: absolute;
-  inset: 10%;
+  inset: 2%;
   border: 3px solid ${({ $color }) => $color};
-  border-radius: 18%;
+  border-radius: ${({ $borderRadius }) => $borderRadius};
   pointer-events: none;
   z-index: 4;
   box-sizing: border-box;
@@ -215,6 +215,9 @@ const getMoveIndicatorColor = (
   return isLight ? boardHighlight.captureRingOnLight : boardHighlight.captureRingOnDark;
 };
 
+const getCaptureFrameBorderRadius = (pieceSetId: string): string =>
+  ['gotic', 'newspaper'].includes(pieceSetId) ? '30%' : '50%';
+
 const BoardSquare = memo(function BoardSquare({
   layout,
   squareHighlight,
@@ -296,6 +299,7 @@ const BoardSquare = memo(function BoardSquare({
         <CaptureFrame
           aria-hidden="true"
           $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'capture')}
+          $borderRadius={getCaptureFrameBorderRadius(pieceSet.id)}
         />
       )}
       {showMoveDots && isLegalTarget && !piece && (
