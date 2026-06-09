@@ -1,17 +1,22 @@
-import { memo, useContext } from 'react';
-import styled, { css, keyframes } from 'styled-components';
+import { memo, useContext } from "react";
+import styled, { css, keyframes } from "styled-components";
 
-import PromotionPicker from '@/components/board/PromotionPicker';
-import { PieceSetContext } from '@/context/PieceSetContext';
+import PromotionPicker from "@/components/board/PromotionPicker";
+import {
+  HintBadgeIcon,
+  SolvedBadgeIcon,
+  WrongBadgeIcon,
+} from "@/components/board/SquareBadgeIcons";
+import { PieceSetContext } from "@/context/PieceSetContext";
 import {
   type BoardHighlight,
   type BoardTheme,
   getSquareBackground,
-} from '@/helpers/boardThemes';
-import type { PromotionPiece } from '@/helpers/chess';
-import type { Piece } from '@/helpers/fen';
+} from "@/helpers/boardThemes";
+import type { PromotionPiece } from "@/helpers/chess";
+import type { Piece } from "@/helpers/fen";
 
-const MOBILE = '@media (max-width: 900px)';
+const MOBILE = "@media (max-width: 900px)";
 
 const insideCoordinateTypography = css`
   font-size: 1rem;
@@ -51,7 +56,6 @@ const SolvedFlashOverlay = styled.span<{ $color: string }>`
 
 const Square = styled.button<{
   $squareBackground: string;
-  $overlayColor: string | null;
   $canInteract: boolean;
 }>`
   position: relative;
@@ -61,18 +65,8 @@ const Square = styled.button<{
   padding: 0;
   border: none;
   aspect-ratio: 1;
-  cursor: ${({ $canInteract }) => ($canInteract ? 'pointer' : 'default')};
+  cursor: ${({ $canInteract }) => ($canInteract ? "pointer" : "default")};
   background: ${({ $squareBackground }) => $squareBackground};
-
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background-color: ${({ $overlayColor }) => $overlayColor ?? 'transparent'};
-    opacity: ${({ $overlayColor }) => ($overlayColor ? 1 : 0)};
-  }
 
   &:focus-visible {
     outline: 2px solid ${({ theme }) => theme.accent};
@@ -81,6 +75,14 @@ const Square = styled.button<{
 `;
 
 const LastMoveOverlay = styled.span<{ $color: string }>`
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-color: ${({ $color }) => $color};
+`;
+
+const HighlightOverlay = styled.span<{ $color: string }>`
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -112,23 +114,25 @@ const SquareCoordinate = styled.span<{
   $isLight: boolean;
   $light: string;
   $dark: string;
-  $position: 'top-left' | 'bottom-right';
+  $position: "top-left" | "bottom-right";
 }>`
   position: absolute;
-  top: ${({ $position }) => ($position === 'top-left' ? '3px' : 'auto')};
-  bottom: ${({ $position }) => ($position === 'bottom-right' ? '3px' : 'auto')};
-  left: ${({ $position }) => ($position === 'top-left' ? '4px' : 'auto')};
-  right: ${({ $position }) => ($position === 'bottom-right' ? '4px' : 'auto')};
+  top: ${({ $position }) => ($position === "top-left" ? "3px" : "auto")};
+  bottom: ${({ $position }) => ($position === "bottom-right" ? "3px" : "auto")};
+  left: ${({ $position }) => ($position === "top-left" ? "4px" : "auto")};
+  right: ${({ $position }) => ($position === "bottom-right" ? "4px" : "auto")};
   ${insideCoordinateTypography}
   color: ${({ $isLight, $light, $dark }) => ($isLight ? $dark : $light)};
   pointer-events: none;
   user-select: none;
 
   ${MOBILE} {
-    top: ${({ $position }) => ($position === 'top-left' ? '2px' : 'auto')};
-    bottom: ${({ $position }) => ($position === 'bottom-right' ? '2px' : 'auto')};
-    left: ${({ $position }) => ($position === 'top-left' ? '3px' : 'auto')};
-    right: ${({ $position }) => ($position === 'bottom-right' ? '3px' : 'auto')};
+    top: ${({ $position }) => ($position === "top-left" ? "2px" : "auto")};
+    bottom: ${({ $position }) =>
+      $position === "bottom-right" ? "2px" : "auto"};
+    left: ${({ $position }) => ($position === "top-left" ? "3px" : "auto")};
+    right: ${({ $position }) =>
+      $position === "bottom-right" ? "3px" : "auto"};
   }
 `;
 
@@ -149,7 +153,57 @@ const PieceImage = styled.img<{ $isDragSource?: boolean; $hidden?: boolean }>`
   }};
 `;
 
-export type SquareHighlight = 'none' | 'selected' | 'target' | 'hint' | 'wrong';
+export type SquareBadgeType = "hint" | "wrong" | "solved";
+
+const SquareBadge = styled.span<{
+  $type: SquareBadgeType;
+  $accentColor: string;
+}>`
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.94);
+  color: ${({ $type, $accentColor }) => {
+    switch ($type) {
+      case "hint":
+        return "#c9a227";
+      case "wrong":
+        return "#b25f5f";
+      case "solved":
+        return $accentColor;
+    }
+  }};
+
+  svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+    flex-shrink: 0;
+  }
+
+  ${MOBILE} {
+    top: 2px;
+    right: 2px;
+    width: 15px;
+    height: 15px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+`;
+
+export type SquareHighlight = "none" | "selected" | "target" | "hint" | "wrong";
 
 export type BoardSquareLayout = {
   id: string;
@@ -173,12 +227,13 @@ type BoardSquareProps = {
   showInsideLabels: boolean;
   showMoveDots: boolean;
   showCaptureIndicator: boolean;
+  squareBadgeType: SquareBadgeType | null;
   boardTheme: BoardTheme;
   hintColor: string;
   lastMoveColor: string;
   accentColor: string;
   promotionPicker: {
-    color: 'w' | 'b';
+    color: "w" | "b";
     onSelect: (piece: PromotionPiece) => void;
   } | null;
   isDragSource: boolean;
@@ -192,11 +247,13 @@ const getOverlayColor = (
   isLight: boolean,
 ): string | null => {
   switch (highlight) {
-    case 'selected':
-      return isLight ? boardHighlight.selectedOnLight : boardHighlight.selectedOnDark;
-    case 'hint':
+    case "selected":
+      return isLight
+        ? boardHighlight.selectedOnLight
+        : boardHighlight.selectedOnDark;
+    case "hint":
       return hintColor;
-    case 'wrong':
+    case "wrong":
       return boardHighlight.wrong;
     default:
       return null;
@@ -206,17 +263,32 @@ const getOverlayColor = (
 const getMoveIndicatorColor = (
   isLight: boolean,
   boardHighlight: BoardHighlight,
-  type: 'dot' | 'capture',
+  type: "dot" | "capture",
 ): string => {
-  if (type === 'dot') {
-    return isLight ? boardHighlight.moveDotOnLight : boardHighlight.moveDotOnDark;
+  if (type === "dot") {
+    return isLight
+      ? boardHighlight.moveDotOnLight
+      : boardHighlight.moveDotOnDark;
   }
 
-  return isLight ? boardHighlight.captureRingOnLight : boardHighlight.captureRingOnDark;
+  return isLight
+    ? boardHighlight.captureRingOnLight
+    : boardHighlight.captureRingOnDark;
 };
 
 const getCaptureFrameBorderRadius = (pieceSetId: string): string =>
-  ['gotic', 'newspaper'].includes(pieceSetId) ? '30%' : '50%';
+  ["gotic", "newspaper"].includes(pieceSetId) ? "30%" : "50%";
+
+const renderSquareBadgeIcon = (type: SquareBadgeType) => {
+  switch (type) {
+    case "hint":
+      return <HintBadgeIcon />;
+    case "wrong":
+      return <WrongBadgeIcon />;
+    case "solved":
+      return <SolvedBadgeIcon />;
+  }
+};
 
 const BoardSquare = memo(function BoardSquare({
   layout,
@@ -230,6 +302,7 @@ const BoardSquare = memo(function BoardSquare({
   showInsideLabels,
   showMoveDots,
   showCaptureIndicator,
+  squareBadgeType,
   boardTheme,
   hintColor,
   lastMoveColor,
@@ -239,22 +312,31 @@ const BoardSquare = memo(function BoardSquare({
   hidePiece = false,
 }: BoardSquareProps) {
   const { pieceSet } = useContext(PieceSetContext);
-  const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } = layout;
+  const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } =
+    layout;
+  const highlightColor = getOverlayColor(
+    squareHighlight,
+    boardTheme.highlight,
+    hintColor,
+    isLight,
+  );
 
   return (
     <Square
       type="button"
       data-square={id}
       $squareBackground={getSquareBackground(boardTheme, isLight)}
-      $overlayColor={getOverlayColor(squareHighlight, boardTheme.highlight, hintColor, isLight)}
       $canInteract={canInteract}
       role="gridcell"
       aria-label={id}
       aria-selected={isSelected}
       disabled={!canInteract}
     >
-      {isLastMoveSquare && (
+      {isLastMoveSquare && squareHighlight !== "wrong" && (
         <LastMoveOverlay aria-hidden="true" $color={lastMoveColor} />
+      )}
+      {highlightColor && (
+        <HighlightOverlay aria-hidden="true" $color={highlightColor} />
       )}
       {showSolvedFlash && solvedFlashKey && (
         <SolvedFlashOverlay
@@ -298,14 +380,27 @@ const BoardSquare = memo(function BoardSquare({
       {showCaptureIndicator && isLegalTarget && piece && (
         <CaptureFrame
           aria-hidden="true"
-          $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'capture')}
+          $color={getMoveIndicatorColor(
+            isLight,
+            boardTheme.highlight,
+            "capture",
+          )}
           $borderRadius={getCaptureFrameBorderRadius(pieceSet.id)}
         />
       )}
       {showMoveDots && isLegalTarget && !piece && (
         <TargetDot
-          $color={getMoveIndicatorColor(isLight, boardTheme.highlight, 'dot')}
+          $color={getMoveIndicatorColor(isLight, boardTheme.highlight, "dot")}
         />
+      )}
+      {squareBadgeType && (
+        <SquareBadge
+          aria-hidden="true"
+          $type={squareBadgeType}
+          $accentColor={accentColor}
+        >
+          {renderSquareBadgeIcon(squareBadgeType)}
+        </SquareBadge>
       )}
       {promotionPicker && (
         <PromotionPicker

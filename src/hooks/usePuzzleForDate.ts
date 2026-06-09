@@ -1,11 +1,16 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
-import { fetchMonthPuzzles, findPuzzleByDate, getMonthKey } from '@/api/puzzles';
-import type { Puzzle } from '@/types/puzzle';
+import {
+  fetchMonthPuzzles,
+  findPuzzleByDate,
+  getMonthKey,
+} from "@/api/puzzles";
+import type { Puzzle } from "@/types/puzzle";
 
 export const puzzleQueryKeys = {
-  month: (dateString: string) => ['puzzles', 'month', getMonthKey(dateString)] as const,
+  month: (dateString: string) =>
+    ["puzzles", "month", getMonthKey(dateString)] as const,
 };
 
 export const usePuzzleForDate = (dateString: string) => {

@@ -4,23 +4,23 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-} from 'react';
+} from "react";
 
-import type { BoardMove } from '@/helpers/chess';
-import type { Piece } from '@/helpers/fen';
+import type { BoardMove } from "@/helpers/chess";
+import type { Piece } from "@/helpers/fen";
 import {
-  DEFAULT_MOVE_ANIMATION_POLICY,
-  MOVE_ANIMATION_MS,
   type BoardOrientation,
+  buildMoveAnimation,
+  DEFAULT_MOVE_ANIMATION_POLICY,
+  getMoveAnimationKey,
+  MOVE_ANIMATION_MS,
   type MoveAnimationPolicy,
   type MoveAnimationSpec,
   type MoveUpdateIntent,
-  buildMoveAnimation,
-  getMoveAnimationKey,
   shouldAnimateMoveUpdate,
-} from '@/helpers/moveAnimation';
+} from "@/helpers/moveAnimation";
 
-const REDUCED_MOTION_MEDIA = '(prefers-reduced-motion: reduce)';
+const REDUCED_MOTION_MEDIA = "(prefers-reduced-motion: reduce)";
 const EMPTY_HIDDEN_SQUARES: ReadonlySet<string> = new Set();
 const ANIMATION_FALLBACK_MS = MOVE_ANIMATION_MS + 100;
 
@@ -43,13 +43,17 @@ type UseMoveAnimationParams = {
 const prefersReducedMotion = () =>
   window.matchMedia(REDUCED_MOTION_MEDIA).matches;
 
+const scheduleStateUpdate = (update: () => void) => {
+  queueMicrotask(update);
+};
+
 export const useMoveAnimation = ({
   lastMove,
   fen,
   board,
   orientation,
   animateMoves,
-  moveUpdateIntent = 'forward',
+  moveUpdateIntent = "forward",
   moveAnimationPolicy = DEFAULT_MOVE_ANIMATION_POLICY,
 }: UseMoveAnimationParams) => {
   const skipNextRef = useRef(false);
@@ -59,7 +63,9 @@ export const useMoveAnimation = ({
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startFrameRef = useRef<number | null>(null);
 
-  const [animatingMove, setAnimatingMove] = useState<AnimatingMove | null>(null);
+  const [animatingMove, setAnimatingMove] = useState<AnimatingMove | null>(
+    null,
+  );
 
   const clearFallbackTimer = useCallback(() => {
     if (fallbackTimerRef.current !== null) {
@@ -87,17 +93,29 @@ export const useMoveAnimation = ({
     [clearFallbackTimer, clearStartFrame],
   );
 
+  const markMoveProcessed = useCallback(
+    (key: string) => {
+      clearFallbackTimer();
+      clearStartFrame();
+      pendingTransitionsRef.current = 0;
+      processedMoveKeyRef.current = key;
+      animatingKeyRef.current = null;
+    },
+    [clearFallbackTimer, clearStartFrame],
+  );
+
   const skipAnimation = useCallback(() => {
     skipNextRef.current = true;
   }, []);
 
   const moveKey = lastMove ? getMoveAnimationKey(fen, lastMove) : null;
+  const visibleAnimatingMove =
+    moveKey && animatingMove?.key === moveKey ? animatingMove : null;
 
   useLayoutEffect(() => {
     if (!lastMove || !moveKey) {
       processedMoveKeyRef.current = null;
       animatingKeyRef.current = null;
-      setAnimatingMove(null);
       return;
     }
 
@@ -110,7 +128,7 @@ export const useMoveAnimation = ({
 
     if (skipNextRef.current) {
       skipNextRef.current = false;
-      finishAnimation(moveKey);
+      markMoveProcessed(moveKey);
       return;
     }
 
@@ -119,25 +137,27 @@ export const useMoveAnimation = ({
       prefersReducedMotion() ||
       !shouldAnimateMoveUpdate(moveUpdateIntent, moveAnimationPolicy)
     ) {
-      finishAnimation(moveKey);
+      markMoveProcessed(moveKey);
       return;
     }
 
     const spec = buildMoveAnimation(lastMove, board, orientation);
 
     if (!spec) {
-      finishAnimation(moveKey);
+      markMoveProcessed(moveKey);
       return;
     }
 
     pendingTransitionsRef.current = spec.pieces.length;
     animatingKeyRef.current = moveKey;
-    setAnimatingMove({ key: moveKey, spec, active: false });
+    scheduleStateUpdate(() =>
+      setAnimatingMove({ key: moveKey, spec, active: false }),
+    );
   }, [
     animateMoves,
     board,
-    finishAnimation,
     lastMove,
+    markMoveProcessed,
     moveAnimationPolicy,
     moveKey,
     moveUpdateIntent,
@@ -145,13 +165,13 @@ export const useMoveAnimation = ({
   ]);
 
   useLayoutEffect(() => {
-    if (!animatingMove || animatingMove.active) {
+    if (!visibleAnimatingMove || visibleAnimatingMove.active) {
       return;
     }
 
     const firstFrame = requestAnimationFrame(() => {
       startFrameRef.current = requestAnimationFrame(() => {
-        setAnimatingMove(current =>
+        setAnimatingMove((current) =>
           current ? { ...current, active: true } : null,
         );
       });
@@ -160,39 +180,40 @@ export const useMoveAnimation = ({
     startFrameRef.current = firstFrame;
 
     return clearStartFrame;
-  }, [animatingMove, clearStartFrame]);
+  }, [visibleAnimatingMove, clearStartFrame]);
 
   useLayoutEffect(() => {
-    if (!animatingMove?.active) {
+    if (!visibleAnimatingMove?.active) {
       return;
     }
 
     fallbackTimerRef.current = setTimeout(() => {
-      finishAnimation(animatingMove.key);
+      finishAnimation(visibleAnimatingMove.key);
     }, ANIMATION_FALLBACK_MS);
 
     return clearFallbackTimer;
-  }, [animatingMove, clearFallbackTimer, finishAnimation]);
+  }, [visibleAnimatingMove, clearFallbackTimer, finishAnimation]);
 
   const onPieceTransitionEnd = useCallback(
     (event: TransitionEvent<HTMLDivElement>) => {
-      if (event.propertyName !== 'transform' || !animatingMove?.active) {
+      if (event.propertyName !== "transform" || !visibleAnimatingMove?.active) {
         return;
       }
 
       pendingTransitionsRef.current -= 1;
 
       if (pendingTransitionsRef.current <= 0) {
-        finishAnimation(animatingMove.key);
+        finishAnimation(visibleAnimatingMove.key);
       }
     },
-    [animatingMove, finishAnimation],
+    [visibleAnimatingMove, finishAnimation],
   );
 
   return {
-    pieces: animatingMove?.spec.pieces ?? null,
-    isActive: animatingMove?.active ?? false,
-    hiddenSquares: animatingMove?.spec.hiddenSquares ?? EMPTY_HIDDEN_SQUARES,
+    pieces: visibleAnimatingMove?.spec.pieces ?? null,
+    isActive: visibleAnimatingMove?.active ?? false,
+    hiddenSquares:
+      visibleAnimatingMove?.spec.hiddenSquares ?? EMPTY_HIDDEN_SQUARES,
     onPieceTransitionEnd,
     skipAnimation,
   };

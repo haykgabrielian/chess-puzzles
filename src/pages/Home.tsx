@@ -1,15 +1,15 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import BoardSizer from '@/components/board/BoardSizer';
-import ChessBoard from '@/components/board/ChessBoard';
-import SolveConfetti from '@/components/board/SolveConfetti';
-import Header from '@/components/Header';
-import Sidebar from '@/components/sidebar/Sidebar';
-import PuzzleProvider, { usePuzzle } from '@/context/PuzzleContext';
-import PuzzleGameProvider, { usePuzzleGame } from '@/context/PuzzleGameContext';
-import { getSideToMove } from '@/helpers/fen';
+import BoardSizer from "@/components/board/BoardSizer";
+import ChessBoard from "@/components/board/ChessBoard";
+import SolveConfetti from "@/components/board/SolveConfetti";
+import Header from "@/components/Header";
+import Sidebar from "@/components/sidebar/Sidebar";
+import PuzzleProvider from "@/context/PuzzleContext";
+import PuzzleGameProvider, { usePuzzleGame } from "@/context/PuzzleGameContext";
+import { getSideToMove } from "@/helpers/fen";
 
-const MOBILE = '@media (max-width: 900px)';
+const MOBILE = "@media (max-width: 900px)";
 
 const Page = styled.div`
   display: flex;
@@ -93,7 +93,7 @@ const HomeContent = () => {
                 hintSquares={hintSquares}
                 wrongMoveSquares={wrongMoveSquares}
                 canInteract={canInteract}
-                isSolved={status === 'solved'}
+                isSolved={status === "solved"}
                 promotionPicker={
                   pendingPromotion
                     ? {
@@ -106,7 +106,10 @@ const HomeContent = () => {
                 moveUpdateIntent={moveUpdateIntent}
                 onSquareClick={onSquareClick}
               />
-              <SolveConfetti isSolved={status === 'solved'} lastMoveTo={lastMove?.to ?? null} />
+              <SolveConfetti
+                isSolved={status === "solved"}
+                lastMoveTo={lastMove?.to ?? null}
+              />
             </BoardSizer>
           </BoardColumn>
         </BoardSection>

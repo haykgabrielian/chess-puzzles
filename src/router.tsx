@@ -1,15 +1,20 @@
 import {
-  Outlet,
   createRootRoute,
   createRoute,
   createRouter,
+  Outlet,
   redirect,
-} from '@tanstack/react-router';
+} from "@tanstack/react-router";
 
-import About from '@/pages/About';
-import Freeroam from '@/pages/Freeroam';
-import Home from '@/pages/Home';
-import { formatDateForUrl, getToday, isFutureDate, parseDateFromUrl } from '@/helpers/date';
+import {
+  formatDateForUrl,
+  getToday,
+  isFutureDate,
+  parseDateFromUrl,
+} from "@/helpers/date";
+import About from "@/pages/About";
+import Freeroam from "@/pages/Freeroam";
+import Home from "@/pages/Home";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -21,10 +26,10 @@ const rootRoute = createRootRoute({
 
 const IndexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   beforeLoad: () => {
     throw redirect({
-      to: '/$date',
+      to: "/$date",
       params: { date: formatDateForUrl(getToday()) },
     });
   },
@@ -32,14 +37,14 @@ const IndexRoute = createRoute({
 
 export const dateRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/$date',
+  path: "/$date",
   component: Home,
   beforeLoad: ({ params }) => {
     const date = parseDateFromUrl(params.date);
 
     if (!date || isFutureDate(date)) {
       throw redirect({
-        to: '/$date',
+        to: "/$date",
         params: { date: formatDateForUrl(getToday()) },
       });
     }
@@ -48,21 +53,26 @@ export const dateRoute = createRoute({
 
 const freeroamRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/freeroam',
+  path: "/freeroam",
   component: Freeroam,
 });
 
 const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/about',
+  path: "/about",
   component: About,
 });
 
-const routeTree = rootRoute.addChildren([IndexRoute, dateRoute, freeroamRoute, aboutRoute]);
+const routeTree = rootRoute.addChildren([
+  IndexRoute,
+  dateRoute,
+  freeroamRoute,
+  aboutRoute,
+]);
 
 const router = createRouter({ routeTree });
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }

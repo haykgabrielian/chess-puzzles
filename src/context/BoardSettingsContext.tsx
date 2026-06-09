@@ -1,15 +1,16 @@
-import React from 'react';
+import React from "react";
 
 import {
   type BoardCoordinateMode,
   type BoardTheme,
+  defaultAnimateMoves,
   defaultBoardCoordinateMode,
   defaultBoardThemeId,
-  defaultAnimateMoves,
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
+  defaultShowSquareBadges,
   getBoardThemeById,
-} from '@/helpers/boardThemes';
+} from "@/helpers/boardThemes";
 
 export const BoardSettingsContext = React.createContext<{
   boardTheme: BoardTheme;
@@ -20,6 +21,8 @@ export const BoardSettingsContext = React.createContext<{
   setShowMoveDots: (enabled: boolean) => void;
   showCaptureIndicator: boolean;
   setShowCaptureIndicator: (enabled: boolean) => void;
+  showSquareBadges: boolean;
+  setShowSquareBadges: (enabled: boolean) => void;
   animateMoves: boolean;
   setAnimateMoves: (enabled: boolean) => void;
 }>({
@@ -31,6 +34,8 @@ export const BoardSettingsContext = React.createContext<{
   setShowMoveDots: () => {},
   showCaptureIndicator: defaultShowCaptureIndicator,
   setShowCaptureIndicator: () => {},
+  showSquareBadges: defaultShowSquareBadges,
+  setShowSquareBadges: () => {},
   animateMoves: defaultAnimateMoves,
   setAnimateMoves: () => {},
 });

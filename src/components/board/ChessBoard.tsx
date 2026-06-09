@@ -1,27 +1,31 @@
 import {
-  type PointerEvent,
   memo,
+  type PointerEvent,
   useCallback,
   useContext,
   useMemo,
   useRef,
   useState,
-} from 'react';
-import styled, { css, useTheme } from 'styled-components';
+} from "react";
+import styled, { css, useTheme } from "styled-components";
 
 import BoardSquare, {
   type BoardSquareLayout,
+  type SquareBadgeType,
   type SquareHighlight,
-} from '@/components/board/BoardSquare';
-import { BoardSettingsContext } from '@/context/BoardSettingsContext';
-import { PieceSetContext } from '@/context/PieceSetContext';
-import { type BoardCoordinateMode } from '@/helpers/boardThemes';
-import type { BoardMove, PromotionPiece } from '@/helpers/chess';
-import { type Piece, getSideToMove, parseFenBoard } from '@/helpers/fen';
-import { MOVE_ANIMATION_MS, type MoveUpdateIntent } from '@/helpers/moveAnimation';
-import { useMoveAnimation } from '@/hooks/useMoveAnimation';
+} from "@/components/board/BoardSquare";
+import { BoardSettingsContext } from "@/context/BoardSettingsContext";
+import { PieceSetContext } from "@/context/PieceSetContext";
+import { type BoardCoordinateMode } from "@/helpers/boardThemes";
+import type { BoardMove, PromotionPiece } from "@/helpers/chess";
+import { getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
+import {
+  MOVE_ANIMATION_MS,
+  type MoveUpdateIntent,
+} from "@/helpers/moveAnimation";
+import { useMoveAnimation } from "@/hooks/useMoveAnimation";
 
-const MOBILE = '@media (max-width: 900px)';
+const MOBILE = "@media (max-width: 900px)";
 const DRAG_THRESHOLD_PX = 8;
 const PIECE_SIZE_RATIO = 0.88;
 
@@ -36,16 +40,16 @@ const asideCoordinateTypography = css`
 `;
 
 const BOARD_SIZE = 8;
-const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const;
+const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1] as const;
-const BLACK_ORIENTED_FILES = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] as const;
+const BLACK_ORIENTED_FILES = ["h", "g", "f", "e", "d", "c", "b", "a"] as const;
 const BLACK_ORIENTED_RANKS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
-type BoardOrientation = 'white' | 'black';
+type BoardOrientation = "white" | "black";
 
 type PromotionPickerState = {
   square: string;
-  color: 'w' | 'b';
+  color: "w" | "b";
   onSelect: (piece: PromotionPiece) => void;
 };
 
@@ -73,8 +77,8 @@ const BoardWrapper = styled.div`
 `;
 
 const LABEL_SIZE = 22;
-const BOARD_FRAME_BORDER_RADIUS = '8px';
-const BOARD_GRID_BORDER_RADIUS = '4px';
+const BOARD_FRAME_BORDER_RADIUS = "8px";
+const BOARD_GRID_BORDER_RADIUS = "4px";
 
 const BoardFrame = styled.div<{
   $frame: string;
@@ -82,19 +86,25 @@ const BoardFrame = styled.div<{
 }>`
   display: grid;
   grid-template-columns: ${({ $coordinateMode }) =>
-    $coordinateMode === 'aside' ? `${LABEL_SIZE}px 1fr ${LABEL_SIZE}px` : '1fr'};
+    $coordinateMode === "aside"
+      ? `${LABEL_SIZE}px 1fr ${LABEL_SIZE}px`
+      : "1fr"};
   grid-template-rows: ${({ $coordinateMode }) =>
-    $coordinateMode === 'aside' ? `${LABEL_SIZE}px 1fr ${LABEL_SIZE}px` : '1fr'};
+    $coordinateMode === "aside"
+      ? `${LABEL_SIZE}px 1fr ${LABEL_SIZE}px`
+      : "1fr"};
   gap: 4px;
   width: 100%;
-  aspect-ratio: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '1' : 'auto')};
-  padding: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? '6px' : '0')};
+  aspect-ratio: ${({ $coordinateMode }) =>
+    $coordinateMode === "aside" ? "1" : "auto"};
+  padding: ${({ $coordinateMode }) =>
+    $coordinateMode === "aside" ? "6px" : "0"};
   background-color: ${({ $frame, $coordinateMode }) =>
-    $coordinateMode === 'aside' ? $frame : 'transparent'};
+    $coordinateMode === "aside" ? $frame : "transparent"};
   border: ${({ $coordinateMode, theme }) =>
-    $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
+    $coordinateMode === "aside" ? `1px solid ${theme.border}` : "none"};
   border-radius: ${({ $coordinateMode }) =>
-    $coordinateMode === 'aside' ? BOARD_FRAME_BORDER_RADIUS : '0'};
+    $coordinateMode === "aside" ? BOARD_FRAME_BORDER_RADIUS : "0"};
   box-sizing: border-box;
 
   ${MOBILE} {
@@ -148,19 +158,21 @@ const Grid = styled.div<{
   $allowOverflow?: boolean;
   $isDragging?: boolean;
 }>`
-  grid-column: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
-  grid-row: ${({ $coordinateMode }) => ($coordinateMode === 'aside' ? 2 : 1)};
+  grid-column: ${({ $coordinateMode }) =>
+    $coordinateMode === "aside" ? 2 : 1};
+  grid-row: ${({ $coordinateMode }) => ($coordinateMode === "aside" ? 2 : 1)};
   position: relative;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(8, 1fr);
   width: 100%;
-  aspect-ratio: ${({ $coordinateMode }) => ($coordinateMode !== 'aside' ? '1' : 'auto')};
+  aspect-ratio: ${({ $coordinateMode }) =>
+    $coordinateMode !== "aside" ? "1" : "auto"};
   border: ${({ $coordinateMode, theme }) =>
-    $coordinateMode === 'aside' ? `1px solid ${theme.border}` : 'none'};
+    $coordinateMode === "aside" ? `1px solid ${theme.border}` : "none"};
   border-radius: ${BOARD_GRID_BORDER_RADIUS};
-  overflow: ${({ $allowOverflow }) => ($allowOverflow ? 'visible' : 'hidden')};
-  touch-action: ${({ $isDragging }) => ($isDragging ? 'none' : 'manipulation')};
+  overflow: ${({ $allowOverflow }) => ($allowOverflow ? "visible" : "hidden")};
+  touch-action: ${({ $isDragging }) => ($isDragging ? "none" : "manipulation")};
 `;
 
 const DragGhost = styled.img<{ $size: number }>`
@@ -197,7 +209,7 @@ const FlyingPieceLayer = styled.div<{
     ${({ $active, $deltaRank }) => ($active ? $deltaRank * 100 : 0)}%
   );
   transition: ${({ $active }) =>
-    $active ? `transform ${MOVE_ANIMATION_MS}ms ease-out` : 'none'};
+    $active ? `transform ${MOVE_ANIMATION_MS}ms ease-out` : "none"};
   will-change: transform;
 
   @media (prefers-reduced-motion: reduce) {
@@ -215,12 +227,18 @@ const FlyingPieceImage = styled.img`
 const isPieceOfSideToMove = (piece: Piece, fen: string): boolean => {
   const sideToMove = getSideToMove(fen);
   const isWhitePiece = /[KQRBNP]/.test(piece);
-  return (sideToMove === 'w' && isWhitePiece) || (sideToMove === 'b' && !isWhitePiece);
+  return (
+    (sideToMove === "w" && isWhitePiece) ||
+    (sideToMove === "b" && !isWhitePiece)
+  );
 };
 
-const getSquareFromPoint = (clientX: number, clientY: number): string | null => {
+const getSquareFromPoint = (
+  clientX: number,
+  clientY: number,
+): string | null => {
   const element = document.elementFromPoint(clientX, clientY);
-  return element?.closest<HTMLElement>('[data-square]')?.dataset.square ?? null;
+  return element?.closest<HTMLElement>("[data-square]")?.dataset.square ?? null;
 };
 
 type PendingPointer = {
@@ -241,28 +259,56 @@ const resolveSquareHighlight = (
     wrongMoveSquares &&
     (squareId === wrongMoveSquares.from || squareId === wrongMoveSquares.to)
   ) {
-    return 'wrong';
+    return "wrong";
   }
 
-  if (hintSquares && (squareId === hintSquares.from || squareId === hintSquares.to)) {
-    return 'hint';
+  if (
+    hintSquares &&
+    (squareId === hintSquares.from || squareId === hintSquares.to)
+  ) {
+    return "hint";
   }
 
   if (selectedSquare === squareId) {
-    return 'selected';
+    return "selected";
   }
 
   if (legalTargetSet.has(squareId)) {
-    return 'target';
+    return "target";
   }
 
-  return 'none';
+  return "none";
+};
+
+const resolveSquareBadgeType = (
+  squareId: string,
+  hintSquares: BoardMove | null,
+  wrongMoveSquares: BoardMove | null,
+  isSolved: boolean,
+  lastMove: BoardMove | null,
+): SquareBadgeType | null => {
+  if (wrongMoveSquares?.to === squareId) {
+    return "wrong";
+  }
+
+  if (hintSquares?.to === squareId) {
+    return "hint";
+  }
+
+  if (isSolved && lastMove?.to === squareId) {
+    return "solved";
+  }
+
+  return null;
 };
 
 const getDisplayAxes = (orientation: BoardOrientation) =>
-  orientation === 'white'
+  orientation === "white"
     ? { displayFiles: FILES, displayRanks: RANKS }
-    : { displayFiles: BLACK_ORIENTED_FILES, displayRanks: BLACK_ORIENTED_RANKS };
+    : {
+        displayFiles: BLACK_ORIENTED_FILES,
+        displayRanks: BLACK_ORIENTED_RANKS,
+      };
 
 const buildSquareLayouts = (
   board: (Piece | null)[][],
@@ -291,7 +337,7 @@ const buildSquareLayouts = (
 
 const ChessBoard = ({
   fen,
-  orientation = 'white',
+  orientation = "white",
   selectedSquare = null,
   legalTargets = [],
   lastMove = null,
@@ -300,12 +346,18 @@ const ChessBoard = ({
   canInteract = false,
   isSolved = false,
   promotionPicker = null,
-  moveUpdateIntent = 'forward',
+  moveUpdateIntent = "forward",
   onSquareClick,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
-  const { boardTheme, coordinateMode, showMoveDots, showCaptureIndicator, animateMoves } =
-    useContext(BoardSettingsContext);
+  const {
+    boardTheme,
+    coordinateMode,
+    showMoveDots,
+    showCaptureIndicator,
+    showSquareBadges,
+    animateMoves,
+  } = useContext(BoardSettingsContext);
   const { pieceSet } = useContext(PieceSetContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
   const squareLayouts = useMemo(
@@ -339,13 +391,16 @@ const ChessBoard = ({
     moveUpdateIntent,
   });
 
-  const getSquareFromEvent = useCallback((event: PointerEvent<HTMLDivElement>) => {
-    const squareId = (event.target as HTMLElement).closest<HTMLElement>(
-      '[data-square]',
-    )?.dataset.square;
+  const getSquareFromEvent = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const squareId = (event.target as HTMLElement).closest<HTMLElement>(
+        "[data-square]",
+      )?.dataset.square;
 
-    return squareId ?? null;
-  }, []);
+      return squareId ?? null;
+    },
+    [],
+  );
 
   const handleGridPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -363,7 +418,7 @@ const ChessBoard = ({
         return;
       }
 
-      const layout = squareLayouts.find(square => square.id === squareId);
+      const layout = squareLayouts.find((square) => square.id === squareId);
 
       dragActiveRef.current = false;
       pendingPointerRef.current = {
@@ -375,7 +430,13 @@ const ChessBoard = ({
 
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [canInteract, getSquareFromEvent, onSquareClick, promotionPicker, squareLayouts],
+    [
+      canInteract,
+      getSquareFromEvent,
+      onSquareClick,
+      promotionPicker,
+      squareLayouts,
+    ],
   );
 
   const handleGridPointerMove = useCallback(
@@ -425,10 +486,8 @@ const ChessBoard = ({
         return;
       }
 
-      setDragGhost(previous =>
-        previous
-          ? { ...previous, x: event.clientX, y: event.clientY }
-          : null,
+      setDragGhost((previous) =>
+        previous ? { ...previous, x: event.clientX, y: event.clientY } : null,
       );
     },
     [canInteract, fen, onSquareClick, promotionPicker, selectedSquare],
@@ -475,8 +534,8 @@ const ChessBoard = ({
   }, []);
 
   const labelProps = { $color: appTheme.text.secondary, $bg: boardTheme.frame };
-  const showAsideLabels = coordinateMode === 'aside';
-  const showInsideLabels = coordinateMode === 'inside';
+  const showAsideLabels = coordinateMode === "aside";
+  const showInsideLabels = coordinateMode === "inside";
   const solvedFlashKey =
     isSolved && lastMove ? `${lastMove.from}-${lastMove.to}` : null;
 
@@ -486,12 +545,12 @@ const ChessBoard = ({
         {showAsideLabels && (
           <>
             <FileLabelsTop aria-hidden="true" {...labelProps}>
-              {displayFiles.map(file => (
+              {displayFiles.map((file) => (
                 <span key={`top-${file}`}>{file}</span>
               ))}
             </FileLabelsTop>
             <RankLabelsLeft aria-hidden="true" {...labelProps}>
-              {displayRanks.map(rank => (
+              {displayRanks.map((rank) => (
                 <span key={`left-${rank}`}>{rank}</span>
               ))}
             </RankLabelsLeft>
@@ -509,7 +568,7 @@ const ChessBoard = ({
           onPointerUp={handleGridPointerUp}
           onPointerCancel={handleGridPointerCancel}
         >
-          {squareLayouts.map(layout => {
+          {squareLayouts.map((layout) => {
             const { id } = layout;
             const isLegalTarget = legalTargetSet.has(id);
             const isSelected = selectedSquare === id;
@@ -537,6 +596,17 @@ const ChessBoard = ({
                 showInsideLabels={showInsideLabels}
                 showMoveDots={showMoveDots}
                 showCaptureIndicator={showCaptureIndicator}
+                squareBadgeType={
+                  showSquareBadges
+                    ? resolveSquareBadgeType(
+                        id,
+                        hintSquares,
+                        wrongMoveSquares,
+                        isSolved,
+                        lastMove,
+                      )
+                    : null
+                }
                 boardTheme={boardTheme}
                 hintColor={appTheme.boardHighlight.hint}
                 lastMoveColor={appTheme.boardHighlight.lastMove}
@@ -549,7 +619,7 @@ const ChessBoard = ({
               />
             );
           })}
-          {animatingPieces?.map(piece => (
+          {animatingPieces?.map((piece) => (
             <FlyingPieceLayer
               key={piece.id}
               aria-hidden="true"
@@ -580,12 +650,12 @@ const ChessBoard = ({
         {showAsideLabels && (
           <>
             <RankLabelsRight aria-hidden="true" {...labelProps}>
-              {displayRanks.map(rank => (
+              {displayRanks.map((rank) => (
                 <span key={`right-${rank}`}>{rank}</span>
               ))}
             </RankLabelsRight>
             <FileLabelsBottom aria-hidden="true" {...labelProps}>
-              {displayFiles.map(file => (
+              {displayFiles.map((file) => (
                 <span key={`bottom-${file}`}>{file}</span>
               ))}
             </FileLabelsBottom>

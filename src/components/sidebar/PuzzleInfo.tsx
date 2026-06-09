@@ -1,12 +1,16 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import Card from '@/components/ui/Card';
-import { PuzzleInfoIcon } from '@/components/ui/CardIcons';
-import { usePuzzle } from '@/context/PuzzleContext';
-import { usePuzzleGame } from '@/context/PuzzleGameContext';
-import { addDays, canNavigateToNextDay } from '@/helpers/date';
-import { createGame, getCheckmateWinner, type GameOutcome } from '@/helpers/chess';
-import { getSideLabel } from '@/helpers/fen';
+import Card from "@/components/ui/Card";
+import { PuzzleInfoIcon } from "@/components/ui/CardIcons";
+import { usePuzzle } from "@/context/PuzzleContext";
+import { usePuzzleGame } from "@/context/PuzzleGameContext";
+import {
+  createGame,
+  type GameOutcome,
+  getCheckmateWinner,
+} from "@/helpers/chess";
+import { addDays, canNavigateToNextDay } from "@/helpers/date";
+import { getSideLabel } from "@/helpers/fen";
 
 const Content = styled.div`
   display: flex;
@@ -76,21 +80,21 @@ const getSolvedMessage = (
   gameOutcome: GameOutcome,
   fen: string,
 ): { title: string; detail: string | null } => {
-  if (gameOutcome === 'checkmate') {
+  if (gameOutcome === "checkmate") {
     return {
-      title: 'Puzzle solved!',
+      title: "Puzzle solved!",
       detail: `Checkmate — ${getCheckmateWinner(createGame(fen))} wins.`,
     };
   }
 
-  if (gameOutcome === 'stalemate') {
+  if (gameOutcome === "stalemate") {
     return {
-      title: 'Puzzle solved!',
-      detail: 'Stalemate — draw.',
+      title: "Puzzle solved!",
+      detail: "Stalemate — draw.",
     };
   }
 
-  return { title: 'Puzzle solved!', detail: null };
+  return { title: "Puzzle solved!", detail: null };
 };
 
 const WrongMessage = styled.p`
@@ -106,7 +110,7 @@ const Actions = styled.div`
   gap: 8px;
 `;
 
-const ActionButton = styled.button<{ $variant?: 'danger' | 'accent' }>`
+const ActionButton = styled.button<{ $variant?: "danger" | "accent" }>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -115,20 +119,24 @@ const ActionButton = styled.button<{ $variant?: 'danger' | 'accent' }>`
   min-width: 0;
   border: 1px solid
     ${({ $variant, theme }) =>
-      $variant === 'danger' ? theme.boardHighlight.danger : theme.accent};
+      $variant === "danger" ? theme.boardHighlight.danger : theme.accent};
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.8125rem;
   font-weight: 500;
   color: ${({ $variant, theme }) =>
-    $variant === 'danger' ? theme.boardHighlight.danger : theme.accent};
+    $variant === "danger" ? theme.boardHighlight.danger : theme.accent};
   background-color: transparent;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
     background-color: ${({ $variant, theme }) =>
-      $variant === 'danger' ? theme.boardHighlight.dangerMuted : theme.accentMuted};
+      $variant === "danger"
+        ? theme.boardHighlight.dangerMuted
+        : theme.accentMuted};
   }
 
   &:disabled {
@@ -139,7 +147,8 @@ const ActionButton = styled.button<{ $variant?: 'danger' | 'accent' }>`
 
 const PuzzleInfo = () => {
   const { puzzle, hasPuzzle, selectedDate, setSelectedDate } = usePuzzle();
-  const { fen, status, gameOutcome, hasProgress, resetGame, retryMove } = usePuzzleGame();
+  const { fen, status, gameOutcome, hasProgress, resetGame, retryMove } =
+    usePuzzleGame();
   const sideToMove = `${getSideLabel(fen)} to move`;
   const solvedMessage = getSolvedMessage(gameOutcome, fen);
   const previousDay = addDays(selectedDate, -1);
@@ -153,21 +162,27 @@ const PuzzleInfo = () => {
           <PuzzleSummaryRow>
             <PuzzleSummary>
               <PuzzleTitle>{puzzle.title}</PuzzleTitle>
-              <SolvedCount>Solved by {puzzle.solved_count.toLocaleString()}</SolvedCount>
+              <SolvedCount>
+                Solved by {puzzle.solved_count.toLocaleString()}
+              </SolvedCount>
             </PuzzleSummary>
-            {hasProgress && status === 'playing' && (
+            {hasProgress && status === "playing" && (
               <ActionButton type="button" onClick={resetGame}>
                 Reset puzzle
               </ActionButton>
             )}
           </PuzzleSummaryRow>
         ) : (
-          <PuzzleTitle>Today&apos;s puzzle isn&apos;t available yet</PuzzleTitle>
+          <PuzzleTitle>
+            Today&apos;s puzzle isn&apos;t available yet
+          </PuzzleTitle>
         )}
 
-        {hasPuzzle && status === 'playing' && <SideToMove>{sideToMove}</SideToMove>}
+        {hasPuzzle && status === "playing" && (
+          <SideToMove>{sideToMove}</SideToMove>
+        )}
 
-        {hasPuzzle && status === 'wrong' && (
+        {hasPuzzle && status === "wrong" && (
           <StatusBlock>
             <WrongMessage>Wrong move. Try again.</WrongMessage>
             <Actions>
@@ -178,16 +193,21 @@ const PuzzleInfo = () => {
           </StatusBlock>
         )}
 
-        {hasPuzzle && status === 'solved' && (
+        {hasPuzzle && status === "solved" && (
           <StatusBlock>
             <SuccessMessage>{solvedMessage.title}</SuccessMessage>
-            {solvedMessage.detail && <DrawMessage>{solvedMessage.detail}</DrawMessage>}
+            {solvedMessage.detail && (
+              <DrawMessage>{solvedMessage.detail}</DrawMessage>
+            )}
             <Suggestion>Try another puzzle:</Suggestion>
             <Actions>
               <ActionButton type="button" onClick={resetGame}>
                 Reset puzzle
               </ActionButton>
-              <ActionButton type="button" onClick={() => setSelectedDate(previousDay)}>
+              <ActionButton
+                type="button"
+                onClick={() => setSelectedDate(previousDay)}
+              >
                 ← Previous day
               </ActionButton>
               <ActionButton

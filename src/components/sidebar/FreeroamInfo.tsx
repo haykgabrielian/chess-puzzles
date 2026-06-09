@@ -1,11 +1,11 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import CapturedPiecesDisplay from '@/components/sidebar/CapturedPieces';
-import Card from '@/components/ui/Card';
-import { FreeroamIcon } from '@/components/ui/CardIcons';
-import type { CapturedPieces, GameOutcome } from '@/helpers/chess';
-import { createGame, getCheckmateWinner } from '@/helpers/chess';
-import { STARTING_FEN, getSideLabel } from '@/helpers/fen';
+import CapturedPiecesDisplay from "@/components/sidebar/CapturedPieces";
+import Card from "@/components/ui/Card";
+import { FreeroamIcon } from "@/components/ui/CardIcons";
+import type { CapturedPieces, GameOutcome } from "@/helpers/chess";
+import { createGame, getCheckmateWinner } from "@/helpers/chess";
+import { getSideLabel, STARTING_FEN } from "@/helpers/fen";
 
 const Content = styled.div`
   display: flex;
@@ -79,20 +79,23 @@ type FreeroamInfoProps = {
   onReset: () => void;
 };
 
-const getGameOverMessage = (gameOutcome: GameOutcome, fen: string): string | null => {
-  if (gameOutcome === 'checkmate') {
+const getGameOverMessage = (
+  gameOutcome: GameOutcome,
+  fen: string,
+): string | null => {
+  if (gameOutcome === "checkmate") {
     return `Checkmate! ${getCheckmateWinner(createGame(fen))} wins.`;
   }
 
-  if (gameOutcome === 'stalemate') {
-    return 'Stalemate — draw.';
+  if (gameOutcome === "stalemate") {
+    return "Stalemate — draw.";
   }
 
   return null;
 };
 
 const getFullMoveNumber = (fen: string): number => {
-  const fullMove = Number(fen.split(' ')[5]);
+  const fullMove = Number(fen.split(" ")[5]);
 
   return Number.isFinite(fullMove) ? fullMove : 1;
 };
@@ -116,7 +119,7 @@ const FreeroamInfo = ({
             <GameTitle>Freeroam</GameTitle>
             <MoveCount>
               {fullMoveNumber === 1 && !hasProgress
-                ? 'Starting position'
+                ? "Starting position"
                 : `Move ${fullMoveNumber}`}
             </MoveCount>
           </GameSummary>

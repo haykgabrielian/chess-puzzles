@@ -1,23 +1,25 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from "react";
 
-import { BoardSettingsContext } from '@/context/BoardSettingsContext';
+import { BoardSettingsContext } from "@/context/BoardSettingsContext";
 import {
   type BoardCoordinateMode,
   boardCoordinateModes,
-  defaultBoardCoordinateMode,
   defaultAnimateMoves,
+  defaultBoardCoordinateMode,
   defaultBoardThemeId,
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
+  defaultShowSquareBadges,
   getBoardThemeById,
   resolveBoardThemeId,
-} from '@/helpers/boardThemes';
+} from "@/helpers/boardThemes";
 
-const THEME_STORAGE_KEY = 'chess-board-theme';
-const COORDINATE_MODE_STORAGE_KEY = 'chess-board-coordinate-mode';
-const SHOW_MOVE_DOTS_STORAGE_KEY = 'chess-board-show-move-dots';
-const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = 'chess-board-show-capture-indicator';
-const ANIMATE_MOVES_STORAGE_KEY = 'chess-board-animate-moves';
+const THEME_STORAGE_KEY = "chess-board-theme";
+const COORDINATE_MODE_STORAGE_KEY = "chess-board-coordinate-mode";
+const SHOW_MOVE_DOTS_STORAGE_KEY = "chess-board-show-move-dots";
+const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = "chess-board-show-capture-indicator";
+const SHOW_SQUARE_BADGES_STORAGE_KEY = "chess-board-show-square-badges";
+const ANIMATE_MOVES_STORAGE_KEY = "chess-board-animate-moves";
 
 const getInitialBoardThemeId = () => {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
@@ -32,29 +34,43 @@ const getInitialBoardThemeId = () => {
 
 const getInitialCoordinateMode = (): BoardCoordinateMode => {
   const saved = localStorage.getItem(COORDINATE_MODE_STORAGE_KEY);
-  return boardCoordinateModes.some(mode => mode.id === saved)
+  return boardCoordinateModes.some((mode) => mode.id === saved)
     ? (saved as BoardCoordinateMode)
     : defaultBoardCoordinateMode;
 };
 
-const getInitialBooleanSetting = (key: string, defaultValue: boolean): boolean => {
+const getInitialBooleanSetting = (
+  key: string,
+  defaultValue: boolean,
+): boolean => {
   const saved = localStorage.getItem(key);
 
   if (saved === null) {
     return defaultValue;
   }
 
-  return saved === 'true';
+  return saved === "true";
 };
 
 const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [boardThemeId, setBoardThemeIdState] = useState(getInitialBoardThemeId);
-  const [coordinateMode, setCoordinateModeState] = useState(getInitialCoordinateMode);
+  const [coordinateMode, setCoordinateModeState] = useState(
+    getInitialCoordinateMode,
+  );
   const [showMoveDots, setShowMoveDotsState] = useState(() =>
     getInitialBooleanSetting(SHOW_MOVE_DOTS_STORAGE_KEY, defaultShowMoveDots),
   );
   const [showCaptureIndicator, setShowCaptureIndicatorState] = useState(() =>
-    getInitialBooleanSetting(SHOW_CAPTURE_INDICATOR_STORAGE_KEY, defaultShowCaptureIndicator),
+    getInitialBooleanSetting(
+      SHOW_CAPTURE_INDICATOR_STORAGE_KEY,
+      defaultShowCaptureIndicator,
+    ),
+  );
+  const [showSquareBadges, setShowSquareBadgesState] = useState(() =>
+    getInitialBooleanSetting(
+      SHOW_SQUARE_BADGES_STORAGE_KEY,
+      defaultShowSquareBadges,
+    ),
   );
   const [animateMoves, setAnimateMovesState] = useState(() =>
     getInitialBooleanSetting(ANIMATE_MOVES_STORAGE_KEY, defaultAnimateMoves),
@@ -80,6 +96,11 @@ const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
     setShowCaptureIndicatorState(enabled);
   };
 
+  const setShowSquareBadges = (enabled: boolean) => {
+    localStorage.setItem(SHOW_SQUARE_BADGES_STORAGE_KEY, String(enabled));
+    setShowSquareBadgesState(enabled);
+  };
+
   const setAnimateMoves = (enabled: boolean) => {
     localStorage.setItem(ANIMATE_MOVES_STORAGE_KEY, String(enabled));
     setAnimateMovesState(enabled);
@@ -96,6 +117,8 @@ const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
         setShowMoveDots,
         showCaptureIndicator,
         setShowCaptureIndicator,
+        showSquareBadges,
+        setShowSquareBadges,
         animateMoves,
         setAnimateMoves,
       }}

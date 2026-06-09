@@ -1,12 +1,12 @@
-import styled from 'styled-components';
-import { useContext, useLayoutEffect, useRef } from 'react';
-import { Link, useRouterState } from '@tanstack/react-router';
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useContext, useLayoutEffect, useRef } from "react";
+import styled from "styled-components";
 
-import logo from '@/assets/logo.png';
-import logoDarkMode from '@/assets/logo_dark_mode.png';
-import BoardSettings from '@/components/board/BoardSettings';
-import { ThemeToggleContext } from '@/context/ThemeContext';
-import { formatDateForUrl, getToday } from '@/helpers/date';
+import logo from "@/assets/logo.png";
+import logoDarkMode from "@/assets/logo_dark_mode.png";
+import BoardSettings from "@/components/board/BoardSettings";
+import { ThemeToggleContext } from "@/context/ThemeContext";
+import { formatDateForUrl, getToday } from "@/helpers/date";
 
 const DATE_PATH_PATTERN = /^\/\d{4}-\d{2}-\d{2}$/;
 
@@ -75,12 +75,14 @@ const NavItem = styled.span<{ $active?: boolean }>`
   display: inline-flex;
   align-items: center;
   align-self: stretch;
-  color: ${({ $active, theme }) => ($active ? theme.accent : theme.text.secondary)};
+  color: ${({ $active, theme }) =>
+    $active ? theme.accent : theme.text.secondary};
   font-size: 16px;
   font-weight: 500;
   line-height: 1.2;
   box-sizing: border-box;
-  border-bottom: 3px solid ${({ $active, theme }) => ($active ? theme.accent : 'transparent')};
+  border-bottom: 3px solid
+    ${({ $active, theme }) => ($active ? theme.accent : "transparent")};
   transition:
     color 0.15s ease,
     border-color 0.15s ease;
@@ -137,11 +139,13 @@ const NavLinkItem = ({ to, params, active, children }: NavLinkItemProps) => (
 const Header = () => {
   const headerRef = useRef<HTMLElement>(null);
   const { isDarkMode } = useContext(ThemeToggleContext);
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
   const todayDate = formatDateForUrl(getToday());
   const isPuzzlesActive = DATE_PATH_PATTERN.test(pathname);
-  const isSandboxActive = pathname === '/freeroam';
-  const isAboutActive = pathname === '/about';
+  const isSandboxActive = pathname === "/freeroam";
+  const isAboutActive = pathname === "/about";
 
   useLayoutEffect(() => {
     const header = headerRef.current;
@@ -149,7 +153,7 @@ const Header = () => {
 
     const syncHeight = () => {
       document.documentElement.style.setProperty(
-        '--header-height',
+        "--header-height",
         `${header.offsetHeight}px`,
       );
     };

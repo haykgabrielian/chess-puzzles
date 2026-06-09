@@ -1,17 +1,23 @@
-import { ReactNode, createContext, useCallback, useContext, useMemo } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate } from "@tanstack/react-router";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 
-import { createPlaceholderPuzzle } from '@/data/dummyPuzzle';
+import { createPlaceholderPuzzle } from "@/data/dummyPuzzle";
 import {
   formatDateForUrl,
   getToday,
   isFutureDate,
   normalizeDate,
   parseDateFromUrl,
-} from '@/helpers/date';
-import { usePuzzleForDate } from '@/hooks/usePuzzleForDate';
-import { dateRoute } from '@/router';
-import type { Puzzle } from '@/types/puzzle';
+} from "@/helpers/date";
+import { usePuzzleForDate } from "@/hooks/usePuzzleForDate";
+import { dateRoute } from "@/router";
+import type { Puzzle } from "@/types/puzzle";
 
 type PuzzleContextValue = {
   selectedDate: Date;
@@ -27,7 +33,7 @@ export const usePuzzle = () => {
   const context = useContext(PuzzleContext);
 
   if (!context) {
-    throw new Error('usePuzzle must be used within PuzzleProvider');
+    throw new Error("usePuzzle must be used within PuzzleProvider");
   }
 
   return context;
@@ -60,7 +66,7 @@ const PuzzleProvider = ({ children }: { children: ReactNode }) => {
       }
 
       navigate({
-        to: '/$date',
+        to: "/$date",
         params: { date: nextDate },
       });
     },
@@ -78,7 +84,9 @@ const PuzzleProvider = ({ children }: { children: ReactNode }) => {
     [selectedDate, setSelectedDate, fetchedPuzzle, dateString, isLoading],
   );
 
-  return <PuzzleContext.Provider value={value}>{children}</PuzzleContext.Provider>;
+  return (
+    <PuzzleContext.Provider value={value}>{children}</PuzzleContext.Provider>
+  );
 };
 
 export default PuzzleProvider;

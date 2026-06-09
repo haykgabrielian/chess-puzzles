@@ -1,30 +1,30 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import styled from 'styled-components';
-import type { Square } from 'chess.js';
+import type { Square } from "chess.js";
+import { useCallback, useMemo, useRef, useState } from "react";
+import styled from "styled-components";
 
-import BoardSizer from '@/components/board/BoardSizer';
-import ChessBoard from '@/components/board/ChessBoard';
-import SolveConfetti from '@/components/board/SolveConfetti';
-import Header from '@/components/Header';
-import FreeroamInfo from '@/components/sidebar/FreeroamInfo';
-import MoveHistory from '@/components/sidebar/MoveHistory';
+import BoardSizer from "@/components/board/BoardSizer";
+import ChessBoard from "@/components/board/ChessBoard";
+import SolveConfetti from "@/components/board/SolveConfetti";
+import Header from "@/components/Header";
+import FreeroamInfo from "@/components/sidebar/FreeroamInfo";
+import MoveHistory from "@/components/sidebar/MoveHistory";
 import {
   type BoardMove,
-  type PromotionPiece,
   createGame,
+  type GameOutcome,
   getCapturedPieces,
   getGameOutcome,
   getLegalTargetSquares,
   getMoveHistoryRows,
   isPromotionMove,
+  type PromotionPiece,
   replayGame,
   tryMove,
-  type GameOutcome,
-} from '@/helpers/chess';
-import { STARTING_FEN, getSideToMove } from '@/helpers/fen';
-import type { MoveUpdateIntent } from '@/helpers/moveAnimation';
+} from "@/helpers/chess";
+import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
+import type { MoveUpdateIntent } from "@/helpers/moveAnimation";
 
-const MOBILE = '@media (max-width: 900px)';
+const MOBILE = "@media (max-width: 900px)";
 
 const Page = styled.div`
   display: flex;
@@ -85,26 +85,34 @@ const Freeroam = () => {
   const gameRef = useRef(createGame(STARTING_FEN));
   const [moves, setMoves] = useState<string[]>([]);
   const [fenByPly, setFenByPly] = useState<string[]>([STARTING_FEN]);
-  const [lastMoveByPly, setLastMoveByPly] = useState<(BoardMove | null)[]>([null]);
+  const [lastMoveByPly, setLastMoveByPly] = useState<(BoardMove | null)[]>([
+    null,
+  ]);
   const [positionIndex, setPositionIndex] = useState(0);
   const [fen, setFen] = useState(STARTING_FEN);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
-  const [moveUpdateIntent, setMoveUpdateIntent] = useState<MoveUpdateIntent>('reset');
-  const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(null);
-  const [gameOutcome, setGameOutcome] = useState<GameOutcome>('playing');
+  const [moveUpdateIntent, setMoveUpdateIntent] =
+    useState<MoveUpdateIntent>("reset");
+  const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(
+    null,
+  );
+  const [gameOutcome, setGameOutcome] = useState<GameOutcome>("playing");
 
   const isAtLivePosition = positionIndex === moves.length;
 
-  const syncGameOutcome = useCallback((game: ReturnType<typeof createGame>, atLiveEnd: boolean) => {
-    if (!atLiveEnd) {
-      setGameOutcome('playing');
-      return;
-    }
+  const syncGameOutcome = useCallback(
+    (game: ReturnType<typeof createGame>, atLiveEnd: boolean) => {
+      if (!atLiveEnd) {
+        setGameOutcome("playing");
+        return;
+      }
 
-    setGameOutcome(getGameOutcome(game));
-  }, []);
+      setGameOutcome(getGameOutcome(game));
+    },
+    [],
+  );
 
   const applyPly = useCallback(
     (ply: number, intent: MoveUpdateIntent, liveMoveCount = moves.length) => {
@@ -126,7 +134,7 @@ const Freeroam = () => {
   );
 
   const goToPly = useCallback(
-    (ply: number) => applyPly(ply, 'historyJump'),
+    (ply: number) => applyPly(ply, "historyJump"),
     [applyPly],
   );
 
@@ -136,13 +144,13 @@ const Freeroam = () => {
     setFenByPly([STARTING_FEN]);
     setLastMoveByPly([null]);
     setPositionIndex(0);
-    setMoveUpdateIntent('reset');
+    setMoveUpdateIntent("reset");
     setFen(STARTING_FEN);
     setSelectedSquare(null);
     setLegalTargets([]);
     setLastMove(null);
     setPendingPromotion(null);
-    setGameOutcome('playing');
+    setGameOutcome("playing");
   }, []);
 
   const applyMove = useCallback(
@@ -163,10 +171,16 @@ const Freeroam = () => {
 
       gameRef.current = game;
       setMoves(nextMoves);
-      setFenByPly(previous => [...previous.slice(0, positionIndex + 1), nextFen]);
-      setLastMoveByPly(previous => [...previous.slice(0, positionIndex + 1), nextLastMove]);
+      setFenByPly((previous) => [
+        ...previous.slice(0, positionIndex + 1),
+        nextFen,
+      ]);
+      setLastMoveByPly((previous) => [
+        ...previous.slice(0, positionIndex + 1),
+        nextLastMove,
+      ]);
       setPositionIndex(nextPly);
-      setMoveUpdateIntent('forward');
+      setMoveUpdateIntent("forward");
       setFen(nextFen);
       setLastMove(nextLastMove);
       setSelectedSquare(null);
@@ -192,7 +206,7 @@ const Freeroam = () => {
 
   const onSquareClick = useCallback(
     (square: string) => {
-      if (!isAtLivePosition || gameOutcome !== 'playing') {
+      if (!isAtLivePosition || gameOutcome !== "playing") {
         return;
       }
 
@@ -233,7 +247,14 @@ const Freeroam = () => {
       setSelectedSquare(square);
       setLegalTargets(getLegalTargetSquares(game, square as Square));
     },
-    [applyMove, gameOutcome, isAtLivePosition, legalTargets, pendingPromotion, selectedSquare],
+    [
+      applyMove,
+      gameOutcome,
+      isAtLivePosition,
+      legalTargets,
+      pendingPromotion,
+      selectedSquare,
+    ],
   );
 
   const promotionPicker = useMemo(
@@ -261,8 +282,8 @@ const Freeroam = () => {
     [isLiveGameOver, moves, positionIndex],
   );
 
-  const liveGameOutcome = isAtLivePosition ? gameOutcome : 'playing';
-  const isCheckmate = liveGameOutcome === 'checkmate';
+  const liveGameOutcome = isAtLivePosition ? gameOutcome : "playing";
+  const isCheckmate = liveGameOutcome === "checkmate";
 
   return (
     <Page>
@@ -275,7 +296,7 @@ const Freeroam = () => {
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={lastMove}
-              canInteract={isAtLivePosition && liveGameOutcome === 'playing'}
+              canInteract={isAtLivePosition && liveGameOutcome === "playing"}
               isSolved={isCheckmate}
               promotionPicker={promotionPicker}
               moveUpdateIntent={moveUpdateIntent}

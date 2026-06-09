@@ -1,20 +1,18 @@
+import { Chess, type Square } from "chess.js";
 import {
-  ReactNode,
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { Chess, type Square } from 'chess.js';
+} from "react";
 
-import { usePuzzle } from '@/context/PuzzleContext';
-import { getSideToMove } from '@/helpers/fen';
+import { usePuzzle } from "@/context/PuzzleContext";
 import {
   type BoardMove,
-  type PromotionPiece,
   createGame,
   type GameOutcome,
   getGameOutcome,
@@ -23,18 +21,20 @@ import {
   isPromotionMove,
   isUserMoveIndex,
   movesMatch,
+  type PromotionPiece,
   tryMove,
   trySanMove,
-} from '@/helpers/chess';
-import type { MoveUpdateIntent } from '@/helpers/moveAnimation';
+} from "@/helpers/chess";
+import { getSideToMove } from "@/helpers/fen";
+import type { MoveUpdateIntent } from "@/helpers/moveAnimation";
 
 const OPPONENT_MOVE_DELAY_MS = 350;
 
-export type PuzzleStatus = 'idle' | 'playing' | 'wrong' | 'solved';
+export type PuzzleStatus = "idle" | "playing" | "wrong" | "solved";
 
 type PuzzleGameContextValue = {
   fen: string;
-  orientation: 'white' | 'black';
+  orientation: "white" | "black";
   selectedSquare: string | null;
   legalTargets: string[];
   lastMove: BoardMove | null;
@@ -61,7 +61,7 @@ export const usePuzzleGame = () => {
   const context = useContext(PuzzleGameContext);
 
   if (!context) {
-    throw new Error('usePuzzleGame must be used within PuzzleGameProvider');
+    throw new Error("usePuzzleGame must be used within PuzzleGameProvider");
   }
 
   return context;
@@ -78,12 +78,19 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
-  const [moveUpdateIntent, setMoveUpdateIntent] = useState<MoveUpdateIntent>('reset');
+  const [moveUpdateIntent, setMoveUpdateIntent] =
+    useState<MoveUpdateIntent>("reset");
   const [hintSquares, setHintSquares] = useState<BoardMove | null>(null);
   const [isHintRevealed, setIsHintRevealed] = useState(false);
-  const [wrongMoveSquares, setWrongMoveSquares] = useState<BoardMove | null>(null);
-  const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(null);
-  const [status, setStatus] = useState<PuzzleStatus>(hasPuzzle ? 'playing' : 'idle');
+  const [wrongMoveSquares, setWrongMoveSquares] = useState<BoardMove | null>(
+    null,
+  );
+  const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(
+    null,
+  );
+  const [status, setStatus] = useState<PuzzleStatus>(
+    hasPuzzle ? "playing" : "idle",
+  );
 
   const clearTimers = useCallback(() => {
     if (opponentTimerRef.current) {
@@ -93,7 +100,11 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const syncBoardState = useCallback(
-    (game: Chess, move: BoardMove | null, intent: MoveUpdateIntent = 'forward') => {
+    (
+      game: Chess,
+      move: BoardMove | null,
+      intent: MoveUpdateIntent = "forward",
+    ) => {
       setMoveUpdateIntent(intent);
       setFen(game.fen());
       setLastMove(move);
@@ -127,7 +138,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         syncBoardState(game, { from: move.from, to: move.to });
 
         if (nextIndex >= solutionMoves.length) {
-          setStatus('solved');
+          setStatus("solved");
         }
       }, OPPONENT_MOVE_DELAY_MS);
     },
@@ -148,44 +159,57 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     clearHint();
     setWrongMoveSquares(null);
     setPendingPromotion(null);
-    setStatus(hasPuzzle ? 'playing' : 'idle');
-    syncBoardState(gameRef.current, null, 'reset');
+    setStatus(hasPuzzle ? "playing" : "idle");
+    syncBoardState(gameRef.current, null, "reset");
   }, [clearHint, clearTimers, hasPuzzle, puzzle.parsed.fen, syncBoardState]);
 
-  const retryMove = useCallback(() => {
-    if (status !== 'wrong') {
-      return;
-    }
-
+  const undoWrongMove = useCallback((): string => {
     const game = gameRef.current;
     game.undo();
     setWrongMoveSquares(null);
     setPendingPromotion(null);
-    setStatus('playing');
-    setMoveUpdateIntent('retry');
-    setFen(game.fen());
+    setStatus("playing");
+    setMoveUpdateIntent("retry");
     setSelectedSquare(null);
     setLegalTargets([]);
 
     const history = game.history({ verbose: true });
     const previousMove = history.at(-1);
+    const correctedFen = game.fen();
 
+    setFen(correctedFen);
     setLastMove(
       previousMove ? { from: previousMove.from, to: previousMove.to } : null,
     );
-  }, [status]);
+
+    return correctedFen;
+  }, []);
+
+  const retryMove = useCallback(() => {
+    if (status !== "wrong") {
+      return;
+    }
+
+    undoWrongMove();
+  }, [status, undoWrongMove]);
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
   const revealHint = useCallback(() => {
-    if (!hasPuzzle || puzzle.parsed.moves.length === 0 || !isUserMoveIndex(moveIndex)) {
+    if (
+      !hasPuzzle ||
+      puzzle.parsed.moves.length === 0 ||
+      !isUserMoveIndex(moveIndex)
+    ) {
       return;
     }
 
+    const positionFen = status === "wrong" ? undoWrongMove() : fen;
     const expectedMove = puzzle.parsed.moves[moveIndex];
+
     setIsHintRevealed(true);
-    setHintSquares(getMoveSquares(fen, expectedMove));
-  }, [fen, hasPuzzle, moveIndex, puzzle.parsed.moves]);
+    setHintSquares(getMoveSquares(positionFen, expectedMove));
+  }, [fen, hasPuzzle, moveIndex, puzzle.parsed.moves, status, undoWrongMove]);
 
   const applyUserMove = useCallback(
     (from: string, to: string, promotion?: PromotionPiece) => {
@@ -201,8 +225,9 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       }
 
       if (!movesMatch(move.san, expectedMove)) {
+        clearHint();
         setWrongMoveSquares({ from: move.from, to: move.to });
-        setStatus('wrong');
+        setStatus("wrong");
         syncBoardState(game, { from: move.from, to: move.to });
         return;
       }
@@ -213,7 +238,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       syncBoardState(game, { from: move.from, to: move.to });
 
       if (nextIndex >= solutionMoves.length) {
-        setStatus('solved');
+        setStatus("solved");
         return;
       }
 
@@ -221,7 +246,13 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         playOpponentMove(nextIndex, solutionMoves);
       }
     },
-    [clearHint, moveIndex, playOpponentMove, puzzle.parsed.moves, syncBoardState],
+    [
+      clearHint,
+      moveIndex,
+      playOpponentMove,
+      puzzle.parsed.moves,
+      syncBoardState,
+    ],
   );
 
   const onPromotionSelect = useCallback(
@@ -239,7 +270,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
   const onSquareClick = useCallback(
     (square: string) => {
-      if (!hasPuzzle || status !== 'playing' || !isUserMoveIndex(moveIndex)) {
+      if (!hasPuzzle || status !== "playing" || !isUserMoveIndex(moveIndex)) {
         return;
       }
 
@@ -291,10 +322,11 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     ],
   );
 
-  const orientation: 'white' | 'black' =
-    getSideToMove(puzzle.parsed.fen) === 'b' ? 'black' : 'white';
-  const gameOutcome = useMemo(() => getGameOutcome(gameRef.current), [fen]);
-  const canInteract = hasPuzzle && status === 'playing' && isUserMoveIndex(moveIndex);
+  const orientation: "white" | "black" =
+    getSideToMove(puzzle.parsed.fen) === "b" ? "black" : "white";
+  const gameOutcome = useMemo(() => getGameOutcome(createGame(fen)), [fen]);
+  const canInteract =
+    hasPuzzle && status === "playing" && isUserMoveIndex(moveIndex);
   const hasProgress = moveIndex > 0 || fen !== puzzle.parsed.fen;
 
   const value = useMemo(
@@ -344,18 +376,18 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     ],
   );
 
-  return <PuzzleGameContext.Provider value={value}>{children}</PuzzleGameContext.Provider>;
+  return (
+    <PuzzleGameContext.Provider value={value}>
+      {children}
+    </PuzzleGameContext.Provider>
+  );
 };
 
 const PuzzleGameProvider = ({ children }: { children: ReactNode }) => {
   const { puzzle, selectedDate } = usePuzzle();
   const gameKey = `${puzzle.id}-${selectedDate.toISOString()}`;
 
-  return (
-    <PuzzleGameInner key={gameKey}>
-      {children}
-    </PuzzleGameInner>
-  );
+  return <PuzzleGameInner key={gameKey}>{children}</PuzzleGameInner>;
 };
 
 export default PuzzleGameProvider;

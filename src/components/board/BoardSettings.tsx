@@ -1,16 +1,16 @@
-import styled from 'styled-components';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from "react";
+import styled from "styled-components";
 
-import { BoardSettingsContext } from '@/context/BoardSettingsContext';
-import { PieceSetContext } from '@/context/PieceSetContext';
-import { ThemeToggleContext } from '@/context/ThemeContext';
+import { BoardSettingsContext } from "@/context/BoardSettingsContext";
+import { PieceSetContext } from "@/context/PieceSetContext";
+import { ThemeToggleContext } from "@/context/ThemeContext";
 import {
-  type BoardTheme,
   boardCoordinateModes,
+  type BoardTheme,
   boardThemes,
   getSquareBackground,
-} from '@/helpers/boardThemes';
-import { pieceSets } from '@/helpers/pieceSets';
+} from "@/helpers/boardThemes";
+import { pieceSets } from "@/helpers/pieceSets";
 
 const Wrapper = styled.div`
   position: relative;
@@ -69,7 +69,7 @@ const PreviewWrapper = styled.div<{ $selected: boolean }>`
   border-radius: 5px;
   overflow: hidden;
   outline: ${({ $selected, theme }) =>
-    $selected ? `2px solid ${theme.accent}` : '2px solid transparent'};
+    $selected ? `2px solid ${theme.accent}` : "2px solid transparent"};
   outline-offset: 1px;
 `;
 
@@ -157,7 +157,7 @@ const PieceSetPreviewWrapper = styled.div<{ $selected: boolean }>`
   border-radius: 6px;
   overflow: hidden;
   outline: ${({ $selected, theme }) =>
-    $selected ? `2px solid ${theme.accent}` : '2px solid transparent'};
+    $selected ? `2px solid ${theme.accent}` : "2px solid transparent"};
   outline-offset: 1px;
 `;
 
@@ -233,18 +233,20 @@ const ToggleSwitch = styled.button<{ $on: boolean }>`
   border: none;
   border-radius: 999px;
   cursor: pointer;
-  background-color: ${({ $on, theme }) => ($on ? theme.accent : theme.button.background)};
+  background-color: ${({ $on, theme }) =>
+    $on ? theme.accent : theme.button.background};
   transition: background-color 0.2s ease;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 2px;
-    left: ${({ $on }) => ($on ? '20px' : '2px')};
+    left: ${({ $on }) => ($on ? "20px" : "2px")};
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background-color: ${({ $on, theme }) => ($on ? theme.onAccent : theme.card.background)};
+    background-color: ${({ $on, theme }) =>
+      $on ? theme.onAccent : theme.card.background};
     transition: left 0.2s ease;
   }
 `;
@@ -277,7 +279,13 @@ const CoordinateOption = styled.button<{ $selected: boolean }>`
   }
 `;
 
-const CoordinatePreview = styled.div<{ $selected: boolean; $light: string; $dark: string; $coordinate: string; $frame: string }>`
+const CoordinatePreview = styled.div<{
+  $selected: boolean;
+  $light: string;
+  $dark: string;
+  $coordinate: string;
+  $frame: string;
+}>`
   position: relative;
   width: 72px;
   height: 72px;
@@ -290,7 +298,7 @@ const CoordinatePreview = styled.div<{ $selected: boolean; $light: string; $dark
   border-radius: 5px;
   overflow: hidden;
   outline: ${({ $selected, theme }) =>
-    $selected ? `2px solid ${theme.accent}` : '2px solid transparent'};
+    $selected ? `2px solid ${theme.accent}` : "2px solid transparent"};
   outline-offset: 1px;
   background-color: ${({ $frame }) => $frame};
 `;
@@ -313,7 +321,11 @@ const CoordinateCheckmark = styled(Checkmark)`
   }
 `;
 
-const AsidePreview = styled.div<{ $light: string; $dark: string; $coordinate: string }>`
+const AsidePreview = styled.div<{
+  $light: string;
+  $dark: string;
+  $coordinate: string;
+}>`
   display: grid;
   grid-template-columns: 8px 1fr 8px;
   grid-template-rows: 8px 1fr 8px;
@@ -324,7 +336,7 @@ const AsidePreview = styled.div<{ $light: string; $dark: string; $coordinate: st
   box-sizing: border-box;
 
   &::before {
-    content: 'a';
+    content: "a";
     grid-column: 2;
     grid-row: 1;
     display: flex;
@@ -336,7 +348,7 @@ const AsidePreview = styled.div<{ $light: string; $dark: string; $coordinate: st
   }
 
   &::after {
-    content: 'a';
+    content: "a";
     grid-column: 2;
     grid-row: 3;
     display: flex;
@@ -348,8 +360,11 @@ const AsidePreview = styled.div<{ $light: string; $dark: string; $coordinate: st
   }
 `;
 
-const AsidePreviewSideLabel = styled.span<{ $coordinate: string; $position: 'left' | 'right' }>`
-  grid-column: ${({ $position }) => ($position === 'left' ? 1 : 3)};
+const AsidePreviewSideLabel = styled.span<{
+  $coordinate: string;
+  $position: "left" | "right";
+}>`
+  grid-column: ${({ $position }) => ($position === "left" ? 1 : 3)};
   grid-row: 2;
   display: flex;
   align-items: center;
@@ -359,7 +374,10 @@ const AsidePreviewSideLabel = styled.span<{ $coordinate: string; $position: 'lef
   color: ${({ $coordinate }) => $coordinate};
 `;
 
-const AsidePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground: string }>`
+const AsidePreviewBoard = styled.div<{
+  $lightBackground: string;
+  $darkBackground: string;
+}>`
   grid-column: 2;
   grid-row: 2;
   display: grid;
@@ -385,7 +403,10 @@ const AsidePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground
   }
 `;
 
-const NonePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground: string }>`
+const NonePreviewBoard = styled.div<{
+  $lightBackground: string;
+  $darkBackground: string;
+}>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -413,7 +434,12 @@ const NonePreviewBoard = styled.div<{ $lightBackground: string; $darkBackground:
   }
 `;
 
-const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBackground: string; $darkBackground: string }>`
+const InsidePreviewBoard = styled.div<{
+  $light: string;
+  $dark: string;
+  $lightBackground: string;
+  $darkBackground: string;
+}>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -432,7 +458,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBac
     background: ${({ $lightBackground }) => $lightBackground};
 
     &::before {
-      content: '8';
+      content: "8";
       position: absolute;
       top: 2px;
       left: 3px;
@@ -451,7 +477,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBac
     background: ${({ $darkBackground }) => $darkBackground};
 
     &::before {
-      content: '1';
+      content: "1";
       position: absolute;
       top: 2px;
       left: 3px;
@@ -462,7 +488,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBac
     }
 
     &::after {
-      content: 'a';
+      content: "a";
       position: absolute;
       bottom: 2px;
       right: 3px;
@@ -477,7 +503,7 @@ const InsidePreviewBoard = styled.div<{ $light: string; $dark: string; $lightBac
     background: ${({ $lightBackground }) => $lightBackground};
 
     &::after {
-      content: 'b';
+      content: "b";
       position: absolute;
       bottom: 2px;
       right: 3px;
@@ -537,7 +563,13 @@ const SettingsIcon = () => (
 );
 
 const CheckIcon = () => (
-  <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+  <svg
+    viewBox="0 0 12 12"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
     <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
@@ -556,7 +588,10 @@ const ThemePreview = ({ theme }: { theme: BoardTheme }) => {
         const isLight = (Math.floor(i / 4) + i) % 2 === 0;
 
         return (
-          <PreviewSquare key={i} $background={getSquareBackground(theme, isLight)} />
+          <PreviewSquare
+            key={i}
+            $background={getSquareBackground(theme, isLight)}
+          />
         );
       })}
     </PreviewGrid>
@@ -585,6 +620,8 @@ const BoardSettings = () => {
     setShowMoveDots,
     showCaptureIndicator,
     setShowCaptureIndicator,
+    showSquareBadges,
+    setShowSquareBadges,
     animateMoves,
     setAnimateMoves,
   } = useContext(BoardSettingsContext);
@@ -597,13 +634,16 @@ const BoardSettings = () => {
     if (!isOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   return (
@@ -627,7 +667,7 @@ const BoardSettings = () => {
           <MenuDivider />
           <MenuTitle>Chess Theme ({boardThemes.length} Options)</MenuTitle>
           <ThemeGrid>
-            {boardThemes.map(theme => {
+            {boardThemes.map((theme) => {
               const selected = boardTheme.id === theme.id;
               return (
                 <ThemeOption
@@ -654,7 +694,7 @@ const BoardSettings = () => {
           <CoordinateSectionTitle>Piece style</CoordinateSectionTitle>
           <PieceSetRows>
             <PieceSetGrid>
-              {pieceSets.slice(0, 4).map(set => {
+              {pieceSets.slice(0, 4).map((set) => {
                 const selected = pieceSet.id === set.id;
                 return (
                   <PieceSetOption
@@ -681,7 +721,7 @@ const BoardSettings = () => {
               })}
             </PieceSetGrid>
             <PieceSetGrid>
-              {pieceSets.slice(4).map(set => {
+              {pieceSets.slice(4).map((set) => {
                 const selected = pieceSet.id === set.id;
                 return (
                   <PieceSetOption
@@ -711,7 +751,7 @@ const BoardSettings = () => {
           <MenuDivider />
           <CoordinateSectionTitle>Coordinates</CoordinateSectionTitle>
           <CoordinateGrid>
-            {boardCoordinateModes.map(mode => {
+            {boardCoordinateModes.map((mode) => {
               const selected = coordinateMode === mode.id;
               return (
                 <CoordinateOption
@@ -728,7 +768,7 @@ const BoardSettings = () => {
                     $coordinate={boardTheme.coordinate}
                     $frame={boardTheme.frame}
                   >
-                    {mode.id === 'aside' ? (
+                    {mode.id === "aside" ? (
                       <AsidePreview
                         $light={boardTheme.light}
                         $dark={boardTheme.dark}
@@ -741,7 +781,9 @@ const BoardSettings = () => {
                         >
                           8
                         </AsidePreviewSideLabel>
-                        <AsidePreviewBoard {...squarePreviewBackgrounds(boardTheme)}>
+                        <AsidePreviewBoard
+                          {...squarePreviewBackgrounds(boardTheme)}
+                        >
                           <span aria-hidden="true" />
                           <span aria-hidden="true" />
                           <span aria-hidden="true" />
@@ -755,7 +797,7 @@ const BoardSettings = () => {
                           8
                         </AsidePreviewSideLabel>
                       </AsidePreview>
-                    ) : mode.id === 'inside' ? (
+                    ) : mode.id === "inside" ? (
                       <InsidePreviewBoard
                         $light={boardTheme.light}
                         $dark={boardTheme.dark}
@@ -767,7 +809,9 @@ const BoardSettings = () => {
                         <span aria-hidden="true" />
                       </InsidePreviewBoard>
                     ) : (
-                      <NonePreviewBoard {...squarePreviewBackgrounds(boardTheme)}>
+                      <NonePreviewBoard
+                        {...squarePreviewBackgrounds(boardTheme)}
+                      >
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
                         <span aria-hidden="true" />
@@ -789,7 +833,9 @@ const BoardSettings = () => {
           <CoordinateSectionTitle>Board</CoordinateSectionTitle>
           <SettingsList>
             <SettingsRow>
-              <SettingsLabel id="animate-moves-label">Move animation</SettingsLabel>
+              <SettingsLabel id="animate-moves-label">
+                Move animation
+              </SettingsLabel>
               <ToggleSwitch
                 type="button"
                 role="switch"
@@ -815,7 +861,9 @@ const BoardSettings = () => {
               />
             </SettingsRow>
             <SettingsRow>
-              <SettingsLabel id="show-capture-indicator-label">Capture indicator</SettingsLabel>
+              <SettingsLabel id="show-capture-indicator-label">
+                Capture indicator
+              </SettingsLabel>
               <ToggleSwitch
                 type="button"
                 role="switch"
@@ -823,6 +871,19 @@ const BoardSettings = () => {
                 aria-checked={showCaptureIndicator}
                 $on={showCaptureIndicator}
                 onClick={() => setShowCaptureIndicator(!showCaptureIndicator)}
+              />
+            </SettingsRow>
+            <SettingsRow>
+              <SettingsLabel id="show-square-badges-label">
+                Square badges
+              </SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="show-square-badges-label"
+                aria-checked={showSquareBadges}
+                $on={showSquareBadges}
+                onClick={() => setShowSquareBadges(!showSquareBadges)}
               />
             </SettingsRow>
           </SettingsList>
@@ -834,7 +895,7 @@ const BoardSettings = () => {
           type="button"
           aria-label="Settings"
           aria-expanded={isOpen}
-          onClick={() => setIsOpen(prev => !prev)}
+          onClick={() => setIsOpen((prev) => !prev)}
         >
           <SettingsIcon />
         </TriggerButton>

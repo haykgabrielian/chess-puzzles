@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import styled from 'styled-components';
+import { useMemo, useState } from "react";
+import styled from "styled-components";
 
-import Card from '@/components/ui/Card';
-import { CalendarIcon } from '@/components/ui/CardIcons';
-import { usePuzzle } from '@/context/PuzzleContext';
-import { canNavigateToNextMonth, getToday, isFutureDate } from '@/helpers/date';
+import Card from "@/components/ui/Card";
+import { CalendarIcon } from "@/components/ui/CardIcons";
+import { usePuzzle } from "@/context/PuzzleContext";
+import { canNavigateToNextMonth, getToday, isFutureDate } from "@/helpers/date";
 
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] as const;
+const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] as const;
 
 const CalendarHeader = styled.div`
   display: flex;
@@ -37,8 +37,9 @@ const NavButton = styled.button<{ $isDisabled?: boolean }>`
   padding: 0;
   border: none;
   border-radius: 6px;
-  cursor: ${({ $isDisabled }) => ($isDisabled ? 'not-allowed' : 'pointer')};
-  color: ${({ $isDisabled, theme }) => ($isDisabled ? theme.text.muted : theme.text.secondary)};
+  cursor: ${({ $isDisabled }) => ($isDisabled ? "not-allowed" : "pointer")};
+  color: ${({ $isDisabled, theme }) =>
+    $isDisabled ? theme.text.muted : theme.text.secondary};
   background: transparent;
   opacity: ${({ $isDisabled }) => ($isDisabled ? 0.45 : 1)};
   transition: background-color 0.2s ease;
@@ -91,7 +92,11 @@ const DaysGrid = styled.div`
   gap: 2px;
 `;
 
-const DayButton = styled.button<{ $isSelected: boolean; $isMuted: boolean; $isDisabled: boolean }>`
+const DayButton = styled.button<{
+  $isSelected: boolean;
+  $isMuted: boolean;
+  $isDisabled: boolean;
+}>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,7 +104,7 @@ const DayButton = styled.button<{ $isSelected: boolean; $isMuted: boolean; $isDi
   padding: 0;
   border: none;
   border-radius: 50%;
-  cursor: ${({ $isDisabled }) => ($isDisabled ? 'not-allowed' : 'pointer')};
+  cursor: ${({ $isDisabled }) => ($isDisabled ? "not-allowed" : "pointer")};
   font-size: 0.875rem;
   font-weight: ${({ $isSelected }) => ($isSelected ? 600 : 400)};
   color: ${({ $isSelected, $isMuted, $isDisabled, theme }) => {
@@ -109,11 +114,11 @@ const DayButton = styled.button<{ $isSelected: boolean; $isMuted: boolean; $isDi
     return theme.text.primary;
   }};
   background-color: ${({ $isSelected, theme }) =>
-    $isSelected ? theme.accent : 'transparent'};
+    $isSelected ? theme.accent : "transparent"};
   opacity: ${({ $isDisabled }) => ($isDisabled ? 0.45 : 1)};
   transition: background-color 0.15s ease;
 
-  &:hover:not([aria-current='date']):not(:disabled) {
+  &:hover:not([aria-current="date"]):not(:disabled) {
     background-color: ${({ $isSelected, theme }) =>
       $isSelected ? theme.accent : theme.button.background};
   }
@@ -145,27 +150,42 @@ const isSameDay = (a: Date, b: Date) =>
   a.getDate() === b.getDate();
 
 const ChevronLeft = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
     <path d="M15 18l-6-6 6-6" />
   </svg>
 );
 
 const ChevronRight = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
     <path d="M9 18l6-6-6-6" />
   </svg>
 );
 
-const getMonthStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
+const getMonthStart = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), 1);
 
 const Calendar = () => {
   const today = useMemo(() => getToday(), []);
   const { selectedDate, setSelectedDate } = usePuzzle();
   const [viewDate, setViewDate] = useState(() => getMonthStart(selectedDate));
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
 
-  useEffect(() => {
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
     setViewDate(getMonthStart(selectedDate));
-  }, [selectedDate]);
+  }
 
   const canGoNextMonth = canNavigateToNextMonth(viewDate);
 
@@ -175,12 +195,16 @@ const Calendar = () => {
   );
 
   const monthLabel = viewDate.toLocaleDateString(undefined, {
-    month: 'long',
-    year: 'numeric',
+    month: "long",
+    year: "numeric",
   });
 
   const goToPreviousMonth = () => {
-    setViewDate(getMonthStart(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)));
+    setViewDate(
+      getMonthStart(
+        new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1),
+      ),
+    );
   };
 
   const goToNextMonth = () => {
@@ -188,7 +212,11 @@ const Calendar = () => {
       return;
     }
 
-    setViewDate(getMonthStart(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)));
+    setViewDate(
+      getMonthStart(
+        new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1),
+      ),
+    );
   };
 
   const goToToday = () => {
@@ -205,10 +233,18 @@ const Calendar = () => {
       <CalendarHeader>
         <MonthLabel>{monthLabel}</MonthLabel>
         <NavButtons>
-          <NavButton type="button" onClick={goToPreviousMonth} aria-label="Previous month">
+          <NavButton
+            type="button"
+            onClick={goToPreviousMonth}
+            aria-label="Previous month"
+          >
             <ChevronLeft />
           </NavButton>
-          <TodayButton type="button" onClick={goToToday} aria-label="Go to today">
+          <TodayButton
+            type="button"
+            onClick={goToToday}
+            aria-label="Go to today"
+          >
             Today
           </TodayButton>
           <NavButton
@@ -223,7 +259,7 @@ const Calendar = () => {
         </NavButtons>
       </CalendarHeader>
       <WeekdayRow aria-hidden="true">
-        {WEEKDAYS.map(day => (
+        {WEEKDAYS.map((day) => (
           <Weekday key={day}>{day}</Weekday>
         ))}
       </WeekdayRow>
@@ -242,12 +278,12 @@ const Calendar = () => {
               $isMuted={!isCurrentMonth}
               $isDisabled={isDisabled}
               disabled={isDisabled}
-              aria-current={isToday ? 'date' : undefined}
+              aria-current={isToday ? "date" : undefined}
               aria-disabled={isDisabled || undefined}
               aria-label={date.toLocaleDateString(undefined, {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
+                weekday: "long",
+                month: "long",
+                day: "numeric",
               })}
               onClick={() => setSelectedDate(date)}
             >
