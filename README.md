@@ -5,7 +5,7 @@ Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puz
 ## Screenshots
 
 <p align="center">
-  <img src="screenshot/page.png" alt="Chess Puzzles main page" width="80%" />
+  <img src="screenshot/page1.png" alt="Chess Puzzles main page with board arrows" width="80%" />
 </p>
 
 ## Setup
@@ -82,7 +82,7 @@ src/
 
 job/               # Chess.com puzzle sync script
 puzzle/            # Generated puzzle JSON (local only, gitignored)
-screenshot/        # App screenshot (page.png)
+screenshot/        # App screenshots (page1.png)
 ```
 
 ## License
