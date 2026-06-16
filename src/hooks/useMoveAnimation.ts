@@ -43,10 +43,6 @@ type UseMoveAnimationParams = {
 const prefersReducedMotion = () =>
   window.matchMedia(REDUCED_MOTION_MEDIA).matches;
 
-const scheduleStateUpdate = (update: () => void) => {
-  queueMicrotask(update);
-};
-
 export const useMoveAnimation = ({
   lastMove,
   fen,
@@ -150,9 +146,7 @@ export const useMoveAnimation = ({
 
     pendingTransitionsRef.current = spec.pieces.length;
     animatingKeyRef.current = moveKey;
-    scheduleStateUpdate(() =>
-      setAnimatingMove({ key: moveKey, spec, active: false }),
-    );
+    setAnimatingMove({ key: moveKey, spec, active: false });
   }, [
     animateMoves,
     board,
