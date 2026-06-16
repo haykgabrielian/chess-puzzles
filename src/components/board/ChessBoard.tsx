@@ -3,12 +3,14 @@ import {
   type PointerEvent,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import styled, { css, useTheme } from "styled-components";
 
+import BoardAnnotations from "@/components/board/BoardAnnotations";
 import BoardSquare, {
   type BoardSquareLayout,
   type SquareBadgeType,
@@ -16,6 +18,14 @@ import BoardSquare, {
 } from "@/components/board/BoardSquare";
 import { BoardSettingsContext } from "@/context/BoardSettingsContext";
 import { PieceSetContext } from "@/context/PieceSetContext";
+import {
+  type BoardArrow,
+  buildDrawPreview,
+  createArrowId,
+  type DrawPreview,
+  getArrowColorFromModifiers,
+  toggleArrow,
+} from "@/helpers/boardAnnotations";
 import { type BoardCoordinateMode } from "@/helpers/boardThemes";
 import type { BoardMove, PromotionPiece } from "@/helpers/chess";
 import { getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
@@ -27,6 +37,7 @@ import { useMoveAnimation } from "@/hooks/useMoveAnimation";
 
 const MOBILE = "@media (max-width: 900px)";
 const DRAG_THRESHOLD_PX = 8;
+const DRAW_THRESHOLD_PX = 4;
 const PIECE_SIZE_RATIO = 0.88;
 
 const asideCoordinateTypography = css`
@@ -66,6 +77,7 @@ type ChessBoardProps = {
   promotionPicker?: PromotionPickerState | null;
   moveUpdateIntent?: MoveUpdateIntent;
   onSquareClick?: (square: string) => void;
+  enableAnnotations?: boolean;
 };
 
 const BoardWrapper = styled.div`
@@ -248,6 +260,18 @@ type PendingPointer = {
   startY: number;
 };
 
+type PendingDraw = {
+  from: string;
+  arrowColor: ReturnType<typeof getArrowColorFromModifiers>;
+  startX: number;
+  startY: number;
+};
+
+const isDrawPointer = (
+  button: number,
+  aKeyHeld: boolean,
+): boolean => button === 2 || (aKeyHeld && button === 0);
+
 const resolveSquareHighlight = (
   squareId: string,
   selectedSquare: string | null,
@@ -335,7 +359,7 @@ const buildSquareLayouts = (
   );
 };
 
-const ChessBoard = ({
+const ChessBoardInner = ({
   fen,
   orientation = "white",
   selectedSquare = null,
@@ -348,6 +372,7 @@ const ChessBoard = ({
   promotionPicker = null,
   moveUpdateIntent = "forward",
   onSquareClick,
+  enableAnnotations = true,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
   const {
@@ -367,7 +392,9 @@ const ChessBoard = ({
   const legalTargetSet = useMemo(() => new Set(legalTargets), [legalTargets]);
   const { displayFiles, displayRanks } = getDisplayAxes(orientation);
   const pendingPointerRef = useRef<PendingPointer | null>(null);
+  const pendingDrawRef = useRef<PendingDraw | null>(null);
   const dragActiveRef = useRef(false);
+  const aKeyHeldRef = useRef(false);
   const [dragGhost, setDragGhost] = useState<{
     from: string;
     piece: Piece;
@@ -375,6 +402,41 @@ const ChessBoard = ({
     y: number;
     size: number;
   } | null>(null);
+  const [arrows, setArrows] = useState<BoardArrow[]>([]);
+  const [drawPreview, setDrawPreview] = useState<DrawPreview | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "a" || event.key === "A") {
+        aKeyHeldRef.current = true;
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "a" || event.key === "A") {
+        aKeyHeldRef.current = false;
+      }
+    };
+
+    const handleBlur = () => {
+      aKeyHeldRef.current = false;
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
+  }, []);
+
+  const clearAnnotations = useCallback(() => {
+    setArrows([]);
+    setDrawPreview(null);
+  }, []);
 
   const {
     pieces: animatingPieces,
@@ -402,19 +464,81 @@ const ChessBoard = ({
     [],
   );
 
-  const handleGridPointerDown = useCallback(
-    (event: PointerEvent<HTMLDivElement>) => {
-      if (!canInteract || !onSquareClick || promotionPicker) {
+  const finishDraw = useCallback(
+    (pending: PendingDraw, toSquare: string, dragged: boolean) => {
+      if (!dragged || pending.from === toSquare) {
         return;
       }
 
-      if (event.button !== 0) {
+      const preview = buildDrawPreview(
+        pending.from,
+        toSquare,
+        pending.arrowColor,
+      );
+
+      if (!preview) {
+        return;
+      }
+
+      setArrows((current) =>
+        toggleArrow(current, {
+          id: createArrowId(),
+          from: preview.from,
+          to: preview.to,
+          path: preview.path,
+          color: preview.color,
+        }),
+      );
+    },
+    [],
+  );
+
+  const handleGridContextMenu = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (enableAnnotations) {
+        event.preventDefault();
+      }
+    },
+    [enableAnnotations],
+  );
+
+  const handleGridPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (promotionPicker) {
         return;
       }
 
       const squareId = getSquareFromEvent(event);
 
       if (!squareId) {
+        return;
+      }
+
+      if (
+        enableAnnotations &&
+        isDrawPointer(event.button, aKeyHeldRef.current)
+      ) {
+        event.preventDefault();
+        pendingDrawRef.current = {
+          from: squareId,
+          arrowColor: getArrowColorFromModifiers(event),
+          startX: event.clientX,
+          startY: event.clientY,
+        };
+        setDrawPreview(null);
+        event.currentTarget.setPointerCapture(event.pointerId);
+        return;
+      }
+
+      if (event.button !== 0 || aKeyHeldRef.current) {
+        return;
+      }
+
+      if (enableAnnotations) {
+        clearAnnotations();
+      }
+
+      if (!canInteract || !onSquareClick) {
         return;
       }
 
@@ -432,6 +556,8 @@ const ChessBoard = ({
     },
     [
       canInteract,
+      clearAnnotations,
+      enableAnnotations,
       getSquareFromEvent,
       onSquareClick,
       promotionPicker,
@@ -441,6 +567,22 @@ const ChessBoard = ({
 
   const handleGridPointerMove = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
+      const pendingDraw = pendingDrawRef.current;
+
+      if (pendingDraw && enableAnnotations) {
+        const toSquare =
+          getSquareFromPoint(event.clientX, event.clientY) ?? pendingDraw.from;
+
+        setDrawPreview(
+          buildDrawPreview(
+            pendingDraw.from,
+            toSquare,
+            pendingDraw.arrowColor,
+          ),
+        );
+        return;
+      }
+
       const pending = pendingPointerRef.current;
 
       if (!pending || !canInteract || !onSquareClick) {
@@ -490,11 +632,32 @@ const ChessBoard = ({
         previous ? { ...previous, x: event.clientX, y: event.clientY } : null,
       );
     },
-    [canInteract, fen, onSquareClick, promotionPicker, selectedSquare],
+    [canInteract, enableAnnotations, fen, onSquareClick, promotionPicker, selectedSquare],
   );
 
   const handleGridPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
+      const pendingDraw = pendingDrawRef.current;
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+
+      if (pendingDraw && enableAnnotations) {
+        const toSquare =
+          getSquareFromPoint(event.clientX, event.clientY) ?? pendingDraw.from;
+        const dragged =
+          Math.hypot(
+            event.clientX - pendingDraw.startX,
+            event.clientY - pendingDraw.startY,
+          ) >= DRAW_THRESHOLD_PX;
+
+        finishDraw(pendingDraw, toSquare, dragged);
+        pendingDrawRef.current = null;
+        setDrawPreview(null);
+        return;
+      }
+
       const pending = pendingPointerRef.current;
 
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -524,13 +687,15 @@ const ChessBoard = ({
 
       onSquareClick(pending.square);
     },
-    [canInteract, onSquareClick, skipAnimation],
+    [canInteract, enableAnnotations, finishDraw, onSquareClick, skipAnimation],
   );
 
   const handleGridPointerCancel = useCallback(() => {
     pendingPointerRef.current = null;
+    pendingDrawRef.current = null;
     dragActiveRef.current = false;
     setDragGhost(null);
+    setDrawPreview(null);
   }, []);
 
   const labelProps = { $color: appTheme.text.secondary, $bg: boardTheme.frame };
@@ -563,6 +728,7 @@ const ChessBoard = ({
           $coordinateMode={coordinateMode}
           $allowOverflow={Boolean(promotionPicker)}
           $isDragging={Boolean(dragGhost)}
+          onContextMenu={handleGridContextMenu}
           onPointerDown={handleGridPointerDown}
           onPointerMove={handleGridPointerMove}
           onPointerUp={handleGridPointerUp}
@@ -619,6 +785,13 @@ const ChessBoard = ({
               />
             );
           })}
+          {enableAnnotations && (
+            <BoardAnnotations
+              squareLayouts={squareLayouts}
+              arrows={arrows}
+              preview={drawPreview}
+            />
+          )}
           {animatingPieces?.map((piece) => (
             <FlyingPieceLayer
               key={piece.id}
@@ -665,5 +838,9 @@ const ChessBoard = ({
     </BoardWrapper>
   );
 };
+
+const ChessBoard = (props: ChessBoardProps) => (
+  <ChessBoardInner key={props.fen} {...props} />
+);
 
 export default memo(ChessBoard);
