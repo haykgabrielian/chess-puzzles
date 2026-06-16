@@ -12,8 +12,8 @@ const CalendarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 40px;
-  margin-bottom: 10px;
+  min-height: 38px;
+  margin-bottom: 9px;
 `;
 
 const MonthLabel = styled.span`
@@ -32,8 +32,8 @@ const NavButton = styled.button<{ $isDisabled?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
   border-radius: 6px;
@@ -55,8 +55,8 @@ const NavButton = styled.button<{ $isDisabled?: boolean }>`
 `;
 
 const TodayButton = styled.button`
-  height: 34px;
-  padding: 0 11px;
+  height: 32px;
+  padding: 0 10px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -75,20 +75,22 @@ const WeekdayRow = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
-  margin-bottom: 4px;
+  margin-top: 4px;
+  margin-bottom: 10px;
 `;
 
 const Weekday = styled.span`
   text-align: center;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.text.muted};
-  padding: 2px 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.text.primary};
+  padding: 4px 0;
 `;
 
 const DaysGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 40px;
   gap: 2px;
 `;
 
@@ -100,7 +102,9 @@ const DayButton = styled.button<{
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1;
+  width: 40px;
+  height: 40px;
+  justify-self: center;
   padding: 0;
   border: none;
   border-radius: 50%;
