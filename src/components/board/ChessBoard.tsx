@@ -359,7 +359,7 @@ const buildSquareLayouts = (
   );
 };
 
-const ChessBoardInner = ({
+const ChessBoard = ({
   fen,
   orientation = "white",
   selectedSquare = null,
@@ -437,6 +437,10 @@ const ChessBoardInner = ({
     setArrows([]);
     setDrawPreview(null);
   }, []);
+
+  useEffect(() => {
+    clearAnnotations();
+  }, [fen, clearAnnotations]);
 
   const {
     pieces: animatingPieces,
@@ -838,9 +842,5 @@ const ChessBoardInner = ({
     </BoardWrapper>
   );
 };
-
-const ChessBoard = (props: ChessBoardProps) => (
-  <ChessBoardInner key={props.fen} {...props} />
-);
 
 export default memo(ChessBoard);
