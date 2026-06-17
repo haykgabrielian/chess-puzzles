@@ -22,7 +22,12 @@ import {
   tryMove,
 } from "@/helpers/chess";
 import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
-import type { MoveUpdateIntent } from "@/helpers/moveAnimation";
+import {
+  type BoardAnimationMode,
+  createMoveAnimationRequest,
+  type MoveAnimationRequest,
+  type MoveUpdateIntent,
+} from "@/helpers/moveAnimation";
 
 const MOBILE = "@media (max-width: 900px)";
 
@@ -83,6 +88,7 @@ const SidebarRoot = styled.aside`
 
 const Freeroam = () => {
   const gameRef = useRef(createGame(STARTING_FEN));
+  const animationIdRef = useRef(0);
   const [moves, setMoves] = useState<string[]>([]);
   const [fenByPly, setFenByPly] = useState<string[]>([STARTING_FEN]);
   const [lastMoveByPly, setLastMoveByPly] = useState<(BoardMove | null)[]>([
@@ -93,8 +99,8 @@ const Freeroam = () => {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
-  const [moveUpdateIntent, setMoveUpdateIntent] =
-    useState<MoveUpdateIntent>("reset");
+  const [animationRequest, setAnimationRequest] =
+    useState<MoveAnimationRequest | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<BoardMove | null>(
     null,
   );
@@ -114,6 +120,37 @@ const Freeroam = () => {
     [],
   );
 
+  const commitBoardUpdate = useCallback(
+    (
+      game: ReturnType<typeof createGame>,
+      move: BoardMove | null,
+      intent: MoveUpdateIntent = "forward",
+      animation: BoardAnimationMode = "none",
+    ) => {
+      setFen(game.fen());
+      setLastMove(move);
+      setSelectedSquare(null);
+      setLegalTargets([]);
+      setPendingPromotion(null);
+
+      if (!move || animation === "none") {
+        setAnimationRequest(null);
+        return;
+      }
+
+      setAnimationRequest(
+        createMoveAnimationRequest(
+          ++animationIdRef.current,
+          move,
+          game.fen(),
+          intent,
+          animation === "skip" ? "skip" : "animate",
+        ),
+      );
+    },
+    [],
+  );
+
   const applyPly = useCallback(
     (ply: number, intent: MoveUpdateIntent, liveMoveCount = moves.length) => {
       const nextFen = fenByPly[ply] ?? STARTING_FEN;
@@ -122,15 +159,15 @@ const Freeroam = () => {
 
       gameRef.current = game;
       setPositionIndex(ply);
-      setMoveUpdateIntent(intent);
-      setFen(nextFen);
-      setLastMove(nextLastMove);
-      setSelectedSquare(null);
-      setLegalTargets([]);
-      setPendingPromotion(null);
       syncGameOutcome(game, ply === liveMoveCount);
+      commitBoardUpdate(
+        game,
+        nextLastMove,
+        intent,
+        nextLastMove ? "animate" : "none",
+      );
     },
-    [fenByPly, lastMoveByPly, moves.length, syncGameOutcome],
+    [commitBoardUpdate, fenByPly, lastMoveByPly, moves.length, syncGameOutcome],
   );
 
   const goToPly = useCallback(
@@ -144,17 +181,22 @@ const Freeroam = () => {
     setFenByPly([STARTING_FEN]);
     setLastMoveByPly([null]);
     setPositionIndex(0);
-    setMoveUpdateIntent("reset");
     setFen(STARTING_FEN);
     setSelectedSquare(null);
     setLegalTargets([]);
     setLastMove(null);
+    setAnimationRequest(null);
     setPendingPromotion(null);
     setGameOutcome("playing");
   }, []);
 
   const applyMove = useCallback(
-    (from: string, to: string, promotion?: PromotionPiece) => {
+    (
+      from: string,
+      to: string,
+      promotion?: PromotionPiece,
+      skipAnimation = false,
+    ) => {
       const game = createGame(fenByPly[positionIndex] ?? STARTING_FEN);
       const move = tryMove(game, from as Square, to as Square, promotion);
 
@@ -180,15 +222,15 @@ const Freeroam = () => {
         nextLastMove,
       ]);
       setPositionIndex(nextPly);
-      setMoveUpdateIntent("forward");
-      setFen(nextFen);
-      setLastMove(nextLastMove);
-      setSelectedSquare(null);
-      setLegalTargets([]);
-      setPendingPromotion(null);
       syncGameOutcome(game, true);
+      commitBoardUpdate(
+        game,
+        nextLastMove,
+        "forward",
+        skipAnimation ? "skip" : "animate",
+      );
     },
-    [fenByPly, moves, positionIndex, syncGameOutcome],
+    [commitBoardUpdate, fenByPly, moves, positionIndex, syncGameOutcome],
   );
 
   const onPromotionSelect = useCallback(
@@ -205,7 +247,7 @@ const Freeroam = () => {
   );
 
   const onSquareClick = useCallback(
-    (square: string) => {
+    (square: string, options?: { skipAnimation?: boolean }) => {
       if (!isAtLivePosition || gameOutcome !== "playing") {
         return;
       }
@@ -232,7 +274,12 @@ const Freeroam = () => {
           return;
         }
 
-        applyMove(selectedSquare, square);
+        applyMove(
+          selectedSquare,
+          square,
+          undefined,
+          options?.skipAnimation,
+        );
         return;
       }
 
@@ -299,7 +346,7 @@ const Freeroam = () => {
               canInteract={isAtLivePosition && liveGameOutcome === "playing"}
               isSolved={isCheckmate}
               promotionPicker={promotionPicker}
-              moveUpdateIntent={moveUpdateIntent}
+              animationRequest={animationRequest}
               onSquareClick={onSquareClick}
             />
             <SolveConfetti

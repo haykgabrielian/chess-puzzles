@@ -6,17 +6,15 @@ import {
   useState,
 } from "react";
 
-import type { BoardMove } from "@/helpers/chess";
 import type { Piece } from "@/helpers/fen";
 import {
   type BoardOrientation,
   buildMoveAnimation,
   DEFAULT_MOVE_ANIMATION_POLICY,
-  getMoveAnimationKey,
   MOVE_ANIMATION_MS,
   type MoveAnimationPolicy,
+  type MoveAnimationRequest,
   type MoveAnimationSpec,
-  type MoveUpdateIntent,
   shouldAnimateMoveUpdate,
 } from "@/helpers/moveAnimation";
 
@@ -31,12 +29,10 @@ type AnimatingMove = {
 };
 
 type UseMoveAnimationParams = {
-  lastMove: BoardMove | null;
-  fen: string;
+  request: MoveAnimationRequest | null;
   board: (Piece | null)[][];
   orientation: BoardOrientation;
   animateMoves: boolean;
-  moveUpdateIntent?: MoveUpdateIntent;
   moveAnimationPolicy?: MoveAnimationPolicy;
 };
 
@@ -44,25 +40,22 @@ const prefersReducedMotion = () =>
   window.matchMedia(REDUCED_MOTION_MEDIA).matches;
 
 export const useMoveAnimation = ({
-  lastMove,
-  fen,
+  request,
   board,
   orientation,
   animateMoves,
-  moveUpdateIntent = "forward",
   moveAnimationPolicy = DEFAULT_MOVE_ANIMATION_POLICY,
 }: UseMoveAnimationParams) => {
   const pendingTransitionsRef = useRef(0);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startFrameRef = useRef<number | null>(null);
 
+  const [handledRequestId, setHandledRequestId] = useState<number | null>(
+    null,
+  );
   const [animatingMove, setAnimatingMove] = useState<AnimatingMove | null>(
     null,
   );
-  const [processedMoveKey, setProcessedMoveKey] = useState<string | null>(
-    null,
-  );
-  const [skipNext, setSkipNext] = useState(false);
 
   const clearFallbackTimer = useCallback(() => {
     if (fallbackTimerRef.current !== null) {
@@ -78,53 +71,47 @@ export const useMoveAnimation = ({
     }
   }, []);
 
-  const finishAnimation = useCallback(
-    (key: string) => {
-      clearFallbackTimer();
-      clearStartFrame();
-      pendingTransitionsRef.current = 0;
-      setProcessedMoveKey(key);
+  const finishAnimation = useCallback(() => {
+    clearFallbackTimer();
+    clearStartFrame();
+    pendingTransitionsRef.current = 0;
+    setAnimatingMove(null);
+  }, [clearFallbackTimer, clearStartFrame]);
+
+  const requestId = request?.id ?? null;
+
+  if (requestId === null) {
+    if (handledRequestId !== null) {
+      setHandledRequestId(null);
       setAnimatingMove(null);
-    },
-    [clearFallbackTimer, clearStartFrame],
-  );
-
-  const skipAnimation = useCallback(() => {
-    setSkipNext(true);
-  }, []);
-
-  const moveKey = lastMove ? getMoveAnimationKey(fen, lastMove) : null;
-
-  if (!moveKey) {
-    if (processedMoveKey !== null) {
-      setProcessedMoveKey(null);
     }
-  } else if (
-    moveKey !== processedMoveKey &&
-    animatingMove?.key !== moveKey
-  ) {
-    if (skipNext) {
-      setSkipNext(false);
-      setProcessedMoveKey(moveKey);
-    } else if (
-      !animateMoves ||
-      prefersReducedMotion() ||
-      !shouldAnimateMoveUpdate(moveUpdateIntent, moveAnimationPolicy)
-    ) {
-      setProcessedMoveKey(moveKey);
-    } else if (lastMove) {
-      const spec = buildMoveAnimation(lastMove, board, orientation);
+  } else if (requestId !== handledRequestId && request) {
+    const shouldPlay =
+      request.behavior === "animate" &&
+      animateMoves &&
+      !prefersReducedMotion() &&
+      shouldAnimateMoveUpdate(request.intent, moveAnimationPolicy);
+
+    if (!shouldPlay) {
+      setHandledRequestId(requestId);
+      setAnimatingMove(null);
+    } else {
+      const spec = buildMoveAnimation(request.lastMove, board, orientation);
 
       if (!spec) {
-        setProcessedMoveKey(moveKey);
+        setHandledRequestId(requestId);
+        setAnimatingMove(null);
       } else {
-        setAnimatingMove({ key: moveKey, spec, active: false });
+        setHandledRequestId(requestId);
+        setAnimatingMove({ key: String(requestId), spec, active: false });
       }
     }
   }
 
   const visibleAnimatingMove =
-    moveKey && animatingMove?.key === moveKey ? animatingMove : null;
+    requestId !== null && animatingMove?.key === String(requestId)
+      ? animatingMove
+      : null;
 
   useLayoutEffect(() => {
     if (!visibleAnimatingMove || visibleAnimatingMove.active) {
@@ -152,7 +139,7 @@ export const useMoveAnimation = ({
     }
 
     fallbackTimerRef.current = setTimeout(() => {
-      finishAnimation(visibleAnimatingMove.key);
+      finishAnimation();
     }, ANIMATION_FALLBACK_MS);
 
     return clearFallbackTimer;
@@ -167,7 +154,7 @@ export const useMoveAnimation = ({
       pendingTransitionsRef.current -= 1;
 
       if (pendingTransitionsRef.current <= 0) {
-        finishAnimation(visibleAnimatingMove.key);
+        finishAnimation();
       }
     },
     [visibleAnimatingMove, finishAnimation],
@@ -179,6 +166,5 @@ export const useMoveAnimation = ({
     hiddenSquares:
       visibleAnimatingMove?.spec.hiddenSquares ?? EMPTY_HIDDEN_SQUARES,
     onPieceTransitionEnd,
-    skipAnimation,
   };
 };

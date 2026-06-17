@@ -74,7 +74,7 @@ const HomeContent = () => {
     onPromotionSelect,
     pendingPromotion,
     status,
-    moveUpdateIntent,
+    animationRequest,
   } = usePuzzleGame();
 
   return (
@@ -103,7 +103,7 @@ const HomeContent = () => {
                       }
                     : null
                 }
-                moveUpdateIntent={moveUpdateIntent}
+                animationRequest={animationRequest}
                 onSquareClick={onSquareClick}
               />
               <SolveConfetti

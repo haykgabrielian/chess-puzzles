@@ -26,7 +26,12 @@ import {
   trySanMove,
 } from "@/helpers/chess";
 import { getSideToMove } from "@/helpers/fen";
-import type { MoveUpdateIntent } from "@/helpers/moveAnimation";
+import {
+  type BoardAnimationMode,
+  createMoveAnimationRequest,
+  type MoveAnimationRequest,
+  type MoveUpdateIntent,
+} from "@/helpers/moveAnimation";
 
 const OPPONENT_MOVE_DELAY_MS = 350;
 
@@ -38,7 +43,7 @@ type PuzzleGameContextValue = {
   selectedSquare: string | null;
   legalTargets: string[];
   lastMove: BoardMove | null;
-  moveUpdateIntent: MoveUpdateIntent;
+  animationRequest: MoveAnimationRequest | null;
   hintSquares: BoardMove | null;
   isHintRevealed: boolean;
   moveIndex: number;
@@ -48,7 +53,7 @@ type PuzzleGameContextValue = {
   canInteract: boolean;
   hasProgress: boolean;
   pendingPromotion: BoardMove | null;
-  onSquareClick: (square: string) => void;
+  onSquareClick: (square: string, options?: { skipAnimation?: boolean }) => void;
   onPromotionSelect: (piece: PromotionPiece) => void;
   resetGame: () => void;
   retryMove: () => void;
@@ -72,14 +77,15 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   const gameRef = useRef(createGame(puzzle.parsed.fen));
   const opponentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionRef = useRef(0);
+  const animationIdRef = useRef(0);
 
   const [fen, setFen] = useState(puzzle.parsed.fen);
   const [moveIndex, setMoveIndex] = useState(0);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalTargets, setLegalTargets] = useState<string[]>([]);
   const [lastMove, setLastMove] = useState<BoardMove | null>(null);
-  const [moveUpdateIntent, setMoveUpdateIntent] =
-    useState<MoveUpdateIntent>("reset");
+  const [animationRequest, setAnimationRequest] =
+    useState<MoveAnimationRequest | null>(null);
   const [hintSquares, setHintSquares] = useState<BoardMove | null>(null);
   const [isHintRevealed, setIsHintRevealed] = useState(false);
   const [wrongMoveSquares, setWrongMoveSquares] = useState<BoardMove | null>(
@@ -99,18 +105,33 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const syncBoardState = useCallback(
+  const commitBoardUpdate = useCallback(
     (
       game: Chess,
       move: BoardMove | null,
       intent: MoveUpdateIntent = "forward",
+      animation: BoardAnimationMode = "none",
     ) => {
-      setMoveUpdateIntent(intent);
       setFen(game.fen());
       setLastMove(move);
       setSelectedSquare(null);
       setLegalTargets([]);
       setPendingPromotion(null);
+
+      if (!move || animation === "none") {
+        setAnimationRequest(null);
+        return;
+      }
+
+      setAnimationRequest(
+        createMoveAnimationRequest(
+          ++animationIdRef.current,
+          move,
+          game.fen(),
+          intent,
+          animation === "skip" ? "skip" : "animate",
+        ),
+      );
     },
     [],
   );
@@ -135,14 +156,14 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
 
         const nextIndex = startIndex + 1;
         setMoveIndex(nextIndex);
-        syncBoardState(game, { from: move.from, to: move.to });
+        commitBoardUpdate(game, { from: move.from, to: move.to }, "forward", "animate");
 
         if (nextIndex >= solutionMoves.length) {
           setStatus("solved");
         }
       }, OPPONENT_MOVE_DELAY_MS);
     },
-    [clearTimers, syncBoardState],
+    [clearTimers, commitBoardUpdate],
   );
 
   const clearHint = useCallback(() => {
@@ -160,8 +181,8 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     setWrongMoveSquares(null);
     setPendingPromotion(null);
     setStatus(hasPuzzle ? "playing" : "idle");
-    syncBoardState(gameRef.current, null, "reset");
-  }, [clearHint, clearTimers, hasPuzzle, puzzle.parsed.fen, syncBoardState]);
+    commitBoardUpdate(gameRef.current, null, "reset", "none");
+  }, [clearHint, clearTimers, hasPuzzle, puzzle.parsed.fen, commitBoardUpdate]);
 
   const undoWrongMove = useCallback((): string => {
     const game = gameRef.current;
@@ -169,9 +190,9 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     setWrongMoveSquares(null);
     setPendingPromotion(null);
     setStatus("playing");
-    setMoveUpdateIntent("retry");
     setSelectedSquare(null);
     setLegalTargets([]);
+    setAnimationRequest(null);
 
     const history = game.history({ verbose: true });
     const previousMove = history.at(-1);
@@ -212,7 +233,12 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   }, [fen, hasPuzzle, moveIndex, puzzle.parsed.moves, status, undoWrongMove]);
 
   const applyUserMove = useCallback(
-    (from: string, to: string, promotion?: PromotionPiece) => {
+    (
+      from: string,
+      to: string,
+      promotion?: PromotionPiece,
+      skipAnimation = false,
+    ) => {
       const game = gameRef.current;
       const solutionMoves = puzzle.parsed.moves;
       const expectedMove = solutionMoves[moveIndex];
@@ -228,14 +254,24 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         clearHint();
         setWrongMoveSquares({ from: move.from, to: move.to });
         setStatus("wrong");
-        syncBoardState(game, { from: move.from, to: move.to });
+        commitBoardUpdate(
+          game,
+          { from: move.from, to: move.to },
+          "forward",
+          skipAnimation ? "skip" : "animate",
+        );
         return;
       }
 
       const nextIndex = moveIndex + 1;
       setMoveIndex(nextIndex);
       clearHint();
-      syncBoardState(game, { from: move.from, to: move.to });
+      commitBoardUpdate(
+        game,
+        { from: move.from, to: move.to },
+        "forward",
+        skipAnimation ? "skip" : "animate",
+      );
 
       if (nextIndex >= solutionMoves.length) {
         setStatus("solved");
@@ -251,7 +287,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       moveIndex,
       playOpponentMove,
       puzzle.parsed.moves,
-      syncBoardState,
+      commitBoardUpdate,
     ],
   );
 
@@ -269,7 +305,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
   );
 
   const onSquareClick = useCallback(
-    (square: string) => {
+    (square: string, options?: { skipAnimation?: boolean }) => {
       if (!hasPuzzle || status !== "playing" || !isUserMoveIndex(moveIndex)) {
         return;
       }
@@ -296,7 +332,12 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
           return;
         }
 
-        applyUserMove(selectedSquare, square);
+        applyUserMove(
+          selectedSquare,
+          square,
+          undefined,
+          options?.skipAnimation,
+        );
         return;
       }
 
@@ -336,7 +377,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       selectedSquare,
       legalTargets,
       lastMove,
-      moveUpdateIntent,
+      animationRequest,
       hintSquares,
       isHintRevealed,
       moveIndex,
@@ -360,7 +401,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       hintSquares,
       isHintRevealed,
       lastMove,
-      moveUpdateIntent,
+      animationRequest,
       moveIndex,
       legalTargets,
       onSquareClick,

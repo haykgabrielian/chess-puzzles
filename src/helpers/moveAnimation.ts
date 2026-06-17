@@ -45,8 +45,31 @@ export const shouldAnimateMoveUpdate = (
   policy: MoveAnimationPolicy = DEFAULT_MOVE_ANIMATION_POLICY,
 ): boolean => policy[intent];
 
-export const getMoveAnimationKey = (fen: string, lastMove: BoardMove): string =>
-  `${fen}|${lastMove.from}|${lastMove.to}`;
+export type MoveAnimationBehavior = 'animate' | 'skip';
+
+export type MoveAnimationRequest = {
+  id: number;
+  lastMove: BoardMove;
+  fenAfter: string;
+  intent: MoveUpdateIntent;
+  behavior: MoveAnimationBehavior;
+};
+
+export type BoardAnimationMode = 'animate' | 'skip' | 'none';
+
+export const createMoveAnimationRequest = (
+  id: number,
+  lastMove: BoardMove,
+  fenAfter: string,
+  intent: MoveUpdateIntent,
+  behavior: MoveAnimationBehavior = 'animate',
+): MoveAnimationRequest => ({
+  id,
+  lastMove,
+  fenAfter,
+  intent,
+  behavior,
+});
 
 const CASTLING_ROOK_MOVES: Record<string, BoardMove> = {
   'e1-g1': { from: 'h1', to: 'f1' },

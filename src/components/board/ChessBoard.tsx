@@ -31,7 +31,7 @@ import type { BoardMove, PromotionPiece } from "@/helpers/chess";
 import { getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
 import {
   MOVE_ANIMATION_MS,
-  type MoveUpdateIntent,
+  type MoveAnimationRequest,
 } from "@/helpers/moveAnimation";
 import { useMoveAnimation } from "@/hooks/useMoveAnimation";
 
@@ -64,6 +64,10 @@ type PromotionPickerState = {
   onSelect: (piece: PromotionPiece) => void;
 };
 
+type SquareClickOptions = {
+  skipAnimation?: boolean;
+};
+
 type ChessBoardProps = {
   fen: string;
   orientation?: BoardOrientation;
@@ -75,8 +79,8 @@ type ChessBoardProps = {
   canInteract?: boolean;
   isSolved?: boolean;
   promotionPicker?: PromotionPickerState | null;
-  moveUpdateIntent?: MoveUpdateIntent;
-  onSquareClick?: (square: string) => void;
+  animationRequest?: MoveAnimationRequest | null;
+  onSquareClick?: (square: string, options?: SquareClickOptions) => void;
   enableAnnotations?: boolean;
 };
 
@@ -370,7 +374,7 @@ const ChessBoard = ({
   canInteract = false,
   isSolved = false,
   promotionPicker = null,
-  moveUpdateIntent = "forward",
+  animationRequest = null,
   onSquareClick,
   enableAnnotations = true,
 }: ChessBoardProps) => {
@@ -450,14 +454,11 @@ const ChessBoard = ({
     isActive: isMoveAnimationActive,
     hiddenSquares,
     onPieceTransitionEnd,
-    skipAnimation,
   } = useMoveAnimation({
-    lastMove: lastMove ?? null,
-    fen,
+    request: animationRequest,
     board,
     orientation,
     animateMoves,
-    moveUpdateIntent,
   });
 
   const getSquareFromEvent = useCallback(
@@ -684,8 +685,7 @@ const ChessBoard = ({
         const targetSquare = getSquareFromPoint(event.clientX, event.clientY);
 
         if (targetSquare && targetSquare !== pending.square) {
-          skipAnimation();
-          onSquareClick(targetSquare);
+          onSquareClick(targetSquare, { skipAnimation: true });
         }
 
         setDragGhost(null);
@@ -694,7 +694,7 @@ const ChessBoard = ({
 
       onSquareClick(pending.square);
     },
-    [canInteract, enableAnnotations, finishDraw, onSquareClick, skipAnimation],
+    [canInteract, enableAnnotations, finishDraw, onSquareClick],
   );
 
   const handleGridPointerCancel = useCallback(() => {
