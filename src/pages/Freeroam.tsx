@@ -1,5 +1,5 @@
 import type { Square } from "chess.js";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 import BoardSizer from "@/components/board/BoardSizer";
@@ -30,6 +30,11 @@ import {
 } from "@/helpers/moveAnimation";
 
 const MOBILE = "@media (max-width: 900px)";
+
+const KEY_CODE = {
+  ARROW_LEFT: 37,
+  ARROW_RIGHT: 39,
+} as const;
 
 const Page = styled.div`
   display: flex;
@@ -174,6 +179,34 @@ const Freeroam = () => {
     (ply: number) => applyPly(ply, "historyJump"),
     [applyPly],
   );
+
+  const handleHistoryKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    const { keyCode } = event;
+
+    if (keyCode !== KEY_CODE.ARROW_LEFT && keyCode !== KEY_CODE.ARROW_RIGHT) {
+      return;
+    }
+
+    if (keyCode === KEY_CODE.ARROW_LEFT && positionIndex > 0) {
+      event.preventDefault();
+      goToPly(positionIndex - 1);
+      return;
+    }
+
+    if (keyCode === KEY_CODE.ARROW_RIGHT && positionIndex < moves.length) {
+      event.preventDefault();
+      goToPly(positionIndex + 1);
+    }
+  });
+
+  useEffect(() => {
+    if (moves.length === 0) {
+      return;
+    }
+
+    window.addEventListener("keydown", handleHistoryKeyDown);
+    return () => window.removeEventListener("keydown", handleHistoryKeyDown);
+  }, [moves.length]);
 
   const resetGame = useCallback(() => {
     gameRef.current = createGame(STARTING_FEN);

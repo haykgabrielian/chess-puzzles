@@ -12,7 +12,7 @@ const Root = styled.div`
 `;
 
 const ScrollArea = styled.div`
-  max-height: min(220px, 32vh);
+  max-height: min(360px, 48vh);
   overflow-y: auto;
   overscroll-behavior: contain;
 
@@ -212,6 +212,80 @@ const EmptyText = styled.p`
   line-height: 1.45;
 `;
 
+const NavBar = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const NavButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const NavButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: ${({ theme }) => theme.accent};
+  background-color: ${({ theme }) => theme.accentMuted};
+  transition: background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: ${({ theme }) => `${theme.accent}33`};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+  }
+`;
+
+const PositionLabel = styled.span`
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: ${({ theme }) => theme.text.secondary};
+  white-space: nowrap;
+`;
+
+const ChevronLeft = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+
+const ChevronRight = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <path d="M9 18l6-6-6-6" />
+  </svg>
+);
+
 type MoveHistoryProps = {
   rows: MoveHistoryRow[];
   positionIndex: number;
@@ -221,19 +295,26 @@ type MoveHistoryProps = {
 
 const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHistoryProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const canGoPrevious = positionIndex > 0;
+  const canGoNext = positionIndex < liveMoveCount;
 
   useEffect(() => {
-    if (positionIndex !== liveMoveCount) {
-      return;
-    }
-
     const container = scrollRef.current;
 
     if (!container) {
       return;
     }
 
-    container.scrollTop = container.scrollHeight;
+    const activeMove = container.querySelector('[aria-current="true"]');
+
+    if (activeMove) {
+      activeMove.scrollIntoView({ block: 'nearest' });
+      return;
+    }
+
+    if (positionIndex === liveMoveCount) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [liveMoveCount, positionIndex, rows]);
 
   return (
@@ -244,6 +325,29 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
         </EmptyState>
       ) : (
         <Root>
+          <NavBar>
+            <NavButtons>
+              <NavButton
+                type="button"
+                aria-label="Previous move"
+                disabled={!canGoPrevious}
+                onClick={() => onSelectPly(positionIndex - 1)}
+              >
+                <ChevronLeft />
+              </NavButton>
+              <NavButton
+                type="button"
+                aria-label="Next move"
+                disabled={!canGoNext}
+                onClick={() => onSelectPly(positionIndex + 1)}
+              >
+                <ChevronRight />
+              </NavButton>
+            </NavButtons>
+            <PositionLabel>
+              {positionIndex} / {liveMoveCount}
+            </PositionLabel>
+          </NavBar>
           <ScrollArea ref={scrollRef} aria-label="Move list">
             <Table>
               <TableHead>
