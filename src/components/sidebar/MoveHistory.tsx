@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -294,28 +293,8 @@ type MoveHistoryProps = {
 };
 
 const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHistoryProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const canGoPrevious = positionIndex > 0;
   const canGoNext = positionIndex < liveMoveCount;
-
-  useEffect(() => {
-    const container = scrollRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    const activeMove = container.querySelector('[aria-current="true"]');
-
-    if (activeMove) {
-      activeMove.scrollIntoView({ block: 'nearest' });
-      return;
-    }
-
-    if (positionIndex === liveMoveCount) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [liveMoveCount, positionIndex, rows]);
 
   return (
     <Card title="Move History" icon={<HistoryIcon />} collapsibleOnMobile>
@@ -348,7 +327,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
               {positionIndex} / {liveMoveCount}
             </PositionLabel>
           </NavBar>
-          <ScrollArea ref={scrollRef} aria-label="Move list">
+          <ScrollArea aria-label="Move list">
             <Table>
               <TableHead>
                 <tr>
