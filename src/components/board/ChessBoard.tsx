@@ -404,6 +404,13 @@ const ChessBoard = ({
   } | null>(null);
   const [arrows, setArrows] = useState<BoardArrow[]>([]);
   const [drawPreview, setDrawPreview] = useState<DrawPreview | null>(null);
+  const [prevFen, setPrevFen] = useState(fen);
+
+  if (fen !== prevFen) {
+    setPrevFen(fen);
+    setArrows([]);
+    setDrawPreview(null);
+  }
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -437,10 +444,6 @@ const ChessBoard = ({
     setArrows([]);
     setDrawPreview(null);
   }, []);
-
-  useEffect(() => {
-    clearAnnotations();
-  }, [fen, clearAnnotations]);
 
   const {
     pieces: animatingPieces,
