@@ -3,7 +3,6 @@ import {
   type PointerEvent,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -271,11 +270,6 @@ type PendingDraw = {
   startY: number;
 };
 
-const isDrawPointer = (
-  button: number,
-  aKeyHeld: boolean,
-): boolean => button === 2 || (aKeyHeld && button === 0);
-
 const resolveSquareHighlight = (
   squareId: string,
   selectedSquare: string | null,
@@ -398,7 +392,6 @@ const ChessBoard = ({
   const pendingPointerRef = useRef<PendingPointer | null>(null);
   const pendingDrawRef = useRef<PendingDraw | null>(null);
   const dragActiveRef = useRef(false);
-  const aKeyHeldRef = useRef(false);
   const [dragGhost, setDragGhost] = useState<{
     from: string;
     piece: Piece;
@@ -415,34 +408,6 @@ const ChessBoard = ({
     setArrows([]);
     setDrawPreview(null);
   }
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "a" || event.key === "A") {
-        aKeyHeldRef.current = true;
-      }
-    };
-
-    const handleKeyUp = (event: KeyboardEvent) => {
-      if (event.key === "a" || event.key === "A") {
-        aKeyHeldRef.current = false;
-      }
-    };
-
-    const handleBlur = () => {
-      aKeyHeldRef.current = false;
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    window.addEventListener("blur", handleBlur);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-      window.removeEventListener("blur", handleBlur);
-    };
-  }, []);
 
   const clearAnnotations = useCallback(() => {
     setArrows([]);
@@ -522,10 +487,7 @@ const ChessBoard = ({
         return;
       }
 
-      if (
-        enableAnnotations &&
-        isDrawPointer(event.button, aKeyHeldRef.current)
-      ) {
+      if (enableAnnotations && event.button === 2) {
         event.preventDefault();
         pendingDrawRef.current = {
           from: squareId,
@@ -538,7 +500,7 @@ const ChessBoard = ({
         return;
       }
 
-      if (event.button !== 0 || aKeyHeldRef.current) {
+      if (event.button !== 0) {
         return;
       }
 
