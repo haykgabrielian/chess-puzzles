@@ -173,11 +173,6 @@ const moveCellStyles = css<{
         background-color: ${theme.button.hover};
       }
     `}
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.accent};
-    outline-offset: 1px;
-  }
 `;
 
 const MoveCellButton = styled.button<{ $viewing?: boolean; $pending?: boolean }>`

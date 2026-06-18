@@ -61,11 +61,6 @@ const PopupOption = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.button.hover};
   }
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.accent};
-    outline-offset: 1px;
-  }
 `;
 
 const PopupPieceImage = styled.img`

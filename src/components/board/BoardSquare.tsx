@@ -67,11 +67,6 @@ const Square = styled.button<{
   aspect-ratio: 1;
   cursor: ${({ $canInteract }) => ($canInteract ? "pointer" : "default")};
   background: ${({ $squareBackground }) => $squareBackground};
-
-  &:focus-visible {
-    outline: 2px solid ${({ theme }) => theme.accent};
-    outline-offset: -2px;
-  }
 `;
 
 const LastMoveOverlay = styled.span<{ $color: string }>`
