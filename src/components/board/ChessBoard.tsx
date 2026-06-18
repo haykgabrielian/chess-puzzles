@@ -19,11 +19,13 @@ import { BoardSettingsContext } from "@/context/BoardSettingsContext";
 import { PieceSetContext } from "@/context/PieceSetContext";
 import {
   type BoardArrow,
+  type BoardCircle,
   buildDrawPreview,
   createArrowId,
   type DrawPreview,
   getArrowColorFromModifiers,
   toggleArrow,
+  toggleCircle,
 } from "@/helpers/boardAnnotations";
 import { type BoardCoordinateMode } from "@/helpers/boardThemes";
 import type { BoardMove, PromotionPiece } from "@/helpers/chess";
@@ -80,6 +82,7 @@ type ChessBoardProps = {
   promotionPicker?: PromotionPickerState | null;
   animationRequest?: MoveAnimationRequest | null;
   onSquareClick?: (square: string, options?: SquareClickOptions) => void;
+  onClearSelection?: () => void;
   enableAnnotations?: boolean;
 };
 
@@ -370,6 +373,7 @@ const ChessBoard = ({
   promotionPicker = null,
   animationRequest = null,
   onSquareClick,
+  onClearSelection,
   enableAnnotations = true,
 }: ChessBoardProps) => {
   const appTheme = useTheme();
@@ -400,17 +404,20 @@ const ChessBoard = ({
     size: number;
   } | null>(null);
   const [arrows, setArrows] = useState<BoardArrow[]>([]);
+  const [circles, setCircles] = useState<BoardCircle[]>([]);
   const [drawPreview, setDrawPreview] = useState<DrawPreview | null>(null);
   const [prevFen, setPrevFen] = useState(fen);
 
   if (fen !== prevFen) {
     setPrevFen(fen);
     setArrows([]);
+    setCircles([]);
     setDrawPreview(null);
   }
 
   const clearAnnotations = useCallback(() => {
     setArrows([]);
+    setCircles([]);
     setDrawPreview(null);
   }, []);
 
@@ -439,7 +446,18 @@ const ChessBoard = ({
 
   const finishDraw = useCallback(
     (pending: PendingDraw, toSquare: string, dragged: boolean) => {
-      if (!dragged || pending.from === toSquare) {
+      if (!dragged) {
+        setCircles((current) =>
+          toggleCircle(current, {
+            id: createArrowId(),
+            square: pending.from,
+            color: pending.arrowColor,
+          }),
+        );
+        return;
+      }
+
+      if (pending.from === toSquare) {
         return;
       }
 
@@ -489,6 +507,9 @@ const ChessBoard = ({
 
       if (enableAnnotations && event.button === 2) {
         event.preventDefault();
+        if (selectedSquare && onClearSelection) {
+          onClearSelection();
+        }
         pendingDrawRef.current = {
           from: squareId,
           arrowColor: getArrowColorFromModifiers(event),
@@ -529,8 +550,10 @@ const ChessBoard = ({
       clearAnnotations,
       enableAnnotations,
       getSquareFromEvent,
+      onClearSelection,
       onSquareClick,
       promotionPicker,
+      selectedSquare,
       squareLayouts,
     ],
   );
@@ -758,6 +781,7 @@ const ChessBoard = ({
             <BoardAnnotations
               squareLayouts={squareLayouts}
               arrows={arrows}
+              circles={circles}
               preview={drawPreview}
             />
           )}

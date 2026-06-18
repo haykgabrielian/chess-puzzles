@@ -8,6 +8,12 @@ export type BoardArrow = {
   color: AnnotationColor;
 };
 
+export type BoardCircle = {
+  id: string;
+  square: string;
+  color: AnnotationColor;
+};
+
 export type DrawPreview = {
   from: string;
   to: string;
@@ -143,6 +149,22 @@ export const toggleArrow = (
   }
 
   return [...arrows, arrow];
+};
+
+export const circlesMatch = (left: BoardCircle, right: BoardCircle): boolean =>
+  left.square === right.square && left.color === right.color;
+
+export const toggleCircle = (
+  circles: BoardCircle[],
+  circle: BoardCircle,
+): BoardCircle[] => {
+  const existing = circles.find((candidate) => circlesMatch(candidate, circle));
+
+  if (existing) {
+    return circles.filter((candidate) => candidate.id !== existing.id);
+  }
+
+  return [...circles, circle];
 };
 
 export type SquarePoint = {

@@ -22,13 +22,13 @@ import {
   tryMove,
 } from "@/helpers/chess";
 import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
-import { playFreeroamMoveSound, playHistoryMoveSound } from "@/helpers/moveSound";
 import {
   type BoardAnimationMode,
   createMoveAnimationRequest,
   type MoveAnimationRequest,
   type MoveUpdateIntent,
 } from "@/helpers/moveAnimation";
+import { playFreeroamMoveSound, playHistoryMoveSound } from "@/helpers/moveSound";
 
 const MOBILE = "@media (max-width: 900px)";
 
@@ -292,6 +292,11 @@ const Freeroam = () => {
     [applyMove, pendingPromotion],
   );
 
+  const clearSelection = useCallback(() => {
+    setSelectedSquare(null);
+    setLegalTargets([]);
+  }, []);
+
   const onSquareClick = useCallback(
     (square: string, options?: { skipAnimation?: boolean }) => {
       if (!isAtLivePosition || gameOutcome !== "playing") {
@@ -394,6 +399,7 @@ const Freeroam = () => {
               promotionPicker={promotionPicker}
               animationRequest={animationRequest}
               onSquareClick={onSquareClick}
+              onClearSelection={clearSelection}
             />
             <SolveConfetti
               isSolved={isCheckmate}

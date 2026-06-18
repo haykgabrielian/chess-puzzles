@@ -27,16 +27,16 @@ import {
 } from "@/helpers/chess";
 import { getSideToMove } from "@/helpers/fen";
 import {
-  playAchievementSound,
-  playIncorrectSound,
-  playMoveSound,
-} from "@/helpers/moveSound";
-import {
   type BoardAnimationMode,
   createMoveAnimationRequest,
   type MoveAnimationRequest,
   type MoveUpdateIntent,
 } from "@/helpers/moveAnimation";
+import {
+  playAchievementSound,
+  playIncorrectSound,
+  playMoveSound,
+} from "@/helpers/moveSound";
 
 const OPPONENT_MOVE_DELAY_MS = 350;
 
@@ -59,6 +59,7 @@ type PuzzleGameContextValue = {
   hasProgress: boolean;
   pendingPromotion: BoardMove | null;
   onSquareClick: (square: string, options?: { skipAnimation?: boolean }) => void;
+  onClearSelection: () => void;
   onPromotionSelect: (piece: PromotionPiece) => void;
   resetGame: () => void;
   retryMove: () => void;
@@ -314,6 +315,11 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     [applyUserMove, pendingPromotion],
   );
 
+  const clearSelection = useCallback(() => {
+    setSelectedSquare(null);
+    setLegalTargets([]);
+  }, []);
+
   const onSquareClick = useCallback(
     (square: string, options?: { skipAnimation?: boolean }) => {
       if (!hasPuzzle || status !== "playing" || !isUserMoveIndex(moveIndex)) {
@@ -398,6 +404,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
       hasProgress,
       pendingPromotion,
       onSquareClick,
+      onClearSelection: clearSelection,
       onPromotionSelect,
       resetGame,
       retryMove,
@@ -405,6 +412,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
     }),
     [
       canInteract,
+      clearSelection,
       gameOutcome,
       hasProgress,
       fen,

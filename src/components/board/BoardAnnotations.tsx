@@ -5,6 +5,7 @@ import type { BoardSquareLayout } from "@/components/board/BoardSquare";
 import {
   ANNOTATION_COLORS,
   type BoardArrow,
+  type BoardCircle,
   buildConnectedPolylinePoints,
   type DrawPreview,
   getSquareCenter,
@@ -28,6 +29,7 @@ const AnnotationLayer = styled.svg`
 type BoardAnnotationsProps = {
   squareLayouts: BoardSquareLayout[];
   arrows: BoardArrow[];
+  circles: BoardCircle[];
   preview: DrawPreview | null;
 };
 
@@ -60,6 +62,7 @@ const renderConnectedArrow = (
 const BoardAnnotations = ({
   squareLayouts,
   arrows,
+  circles,
   preview,
 }: BoardAnnotationsProps) => {
   const markerIds = useMemo(
@@ -71,6 +74,26 @@ const BoardAnnotations = ({
     }),
     [],
   );
+
+  const circleElements = circles.map((circle) => {
+    const center = getSquareCenter(circle.square, squareLayouts);
+
+    if (!center) {
+      return null;
+    }
+
+    return (
+      <circle
+        key={circle.id}
+        cx={center.x}
+        cy={center.y}
+        r={0.455}
+        fill="none"
+        stroke={ANNOTATION_COLORS[circle.color]}
+        strokeWidth={0.05}
+      />
+    );
+  });
 
   const arrowElements = arrows.map((arrow) => {
     const points = arrow.path
@@ -127,6 +150,7 @@ const BoardAnnotations = ({
           ),
         )}
       </defs>
+      {circleElements}
       {arrowElements}
       {previewElements}
     </AnnotationLayer>

@@ -71,6 +71,7 @@ const HomeContent = () => {
     wrongMoveSquares,
     canInteract,
     onSquareClick,
+    onClearSelection,
     onPromotionSelect,
     pendingPromotion,
     status,
@@ -105,6 +106,7 @@ const HomeContent = () => {
                 }
                 animationRequest={animationRequest}
                 onSquareClick={onSquareClick}
+                onClearSelection={onClearSelection}
               />
               <SolveConfetti
                 isSolved={status === "solved"}

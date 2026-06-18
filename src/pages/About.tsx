@@ -2,11 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { useContext } from "react";
 import styled from "styled-components";
 
-import boardAnnotationsImg from "@/assets/board_annotations.png";
 import londonSystemImg from "@/assets/board_annotation_london_system.png";
+import boardAnnotationsImg from "@/assets/board_annotations.png";
 import moveHintsImg from "@/assets/move_hints.png";
 import Header from "@/components/Header";
-import { PieceSetContext } from "@/context/PieceSetContext";
 import Card from "@/components/ui/Card";
 import {
   CalendarIcon,
@@ -14,6 +13,7 @@ import {
   HintIcon,
   PuzzleInfoIcon,
 } from "@/components/ui/CardIcons";
+import { PieceSetContext } from "@/context/PieceSetContext";
 import { formatDateForUrl, getToday } from "@/helpers/date";
 import type { Piece } from "@/helpers/fen";
 

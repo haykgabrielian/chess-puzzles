@@ -1,7 +1,7 @@
 import type { Chess, Move } from 'chess.js';
 
 import { replayGame } from '@/helpers/chess';
-import { type SoundKind, playSound } from '@/helpers/sounds';
+import { playSound, type SoundKind } from '@/helpers/sounds';
 
 export const getMoveSoundKind = (
   move: Move,
