@@ -17,3 +17,13 @@ body {
 button {
   font: inherit;
 }
+
+button,
+a,
+input,
+select,
+textarea,
+summary,
+[role="button"] {
+  outline: none;
+}
