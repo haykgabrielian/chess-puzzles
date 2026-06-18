@@ -27,6 +27,11 @@ import {
 } from "@/helpers/chess";
 import { getSideToMove } from "@/helpers/fen";
 import {
+  playAchievementSound,
+  playIncorrectSound,
+  playMoveSound,
+} from "@/helpers/moveSound";
+import {
   type BoardAnimationMode,
   createMoveAnimationRequest,
   type MoveAnimationRequest,
@@ -157,9 +162,11 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         const nextIndex = startIndex + 1;
         setMoveIndex(nextIndex);
         commitBoardUpdate(game, { from: move.from, to: move.to }, "forward", "animate");
+        playMoveSound(move, game, false);
 
         if (nextIndex >= solutionMoves.length) {
           setStatus("solved");
+          playAchievementSound();
         }
       }, OPPONENT_MOVE_DELAY_MS);
     },
@@ -260,6 +267,7 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
           "forward",
           skipAnimation ? "skip" : "animate",
         );
+        playIncorrectSound();
         return;
       }
 
@@ -272,9 +280,11 @@ const PuzzleGameInner = ({ children }: { children: ReactNode }) => {
         "forward",
         skipAnimation ? "skip" : "animate",
       );
+      playMoveSound(move, game, true);
 
       if (nextIndex >= solutionMoves.length) {
         setStatus("solved");
+        playAchievementSound();
         return;
       }
 

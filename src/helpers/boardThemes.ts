@@ -157,6 +157,7 @@ export const defaultShowMoveDots = true;
 export const defaultShowCaptureIndicator = true;
 export const defaultShowSquareBadges = true;
 export const defaultAnimateMoves = true;
+export const defaultSoundEnabled = true;
 
 const legacyBoardThemeIds: Record<string, string> = {
   slate: "vintage-blue",

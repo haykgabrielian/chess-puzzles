@@ -624,6 +624,8 @@ const BoardSettings = () => {
     setShowSquareBadges,
     animateMoves,
     setAnimateMoves,
+    soundEnabled,
+    setSoundEnabled,
   } = useContext(BoardSettingsContext);
   const { pieceSet, setPieceSetId } = useContext(PieceSetContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
@@ -843,6 +845,19 @@ const BoardSettings = () => {
                 aria-checked={animateMoves}
                 $on={animateMoves}
                 onClick={() => setAnimateMoves(!animateMoves)}
+              />
+            </SettingsRow>
+            <SettingsRow>
+              <SettingsLabel id="sound-effects-label">
+                Sound effects
+              </SettingsLabel>
+              <ToggleSwitch
+                type="button"
+                role="switch"
+                aria-labelledby="sound-effects-label"
+                aria-checked={soundEnabled}
+                $on={soundEnabled}
+                onClick={() => setSoundEnabled(!soundEnabled)}
               />
             </SettingsRow>
           </SettingsList>

@@ -22,6 +22,7 @@ import {
   tryMove,
 } from "@/helpers/chess";
 import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
+import { playFreeroamMoveSound, playHistoryMoveSound } from "@/helpers/moveSound";
 import {
   type BoardAnimationMode,
   createMoveAnimationRequest,
@@ -171,8 +172,19 @@ const Freeroam = () => {
         intent,
         nextLastMove ? "animate" : "none",
       );
+
+      if (intent === "historyJump" && ply !== positionIndex) {
+        playHistoryMoveSound(moves, ply);
+      }
     },
-    [commitBoardUpdate, fenByPly, lastMoveByPly, moves.length, syncGameOutcome],
+    [
+      commitBoardUpdate,
+      fenByPly,
+      lastMoveByPly,
+      moves,
+      positionIndex,
+      syncGameOutcome,
+    ],
   );
 
   const goToPly = useCallback(
@@ -262,6 +274,7 @@ const Freeroam = () => {
         "forward",
         skipAnimation ? "skip" : "animate",
       );
+      playFreeroamMoveSound(move, game);
     },
     [commitBoardUpdate, fenByPly, moves, positionIndex, syncGameOutcome],
   );

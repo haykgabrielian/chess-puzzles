@@ -9,6 +9,7 @@ import {
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
   defaultShowSquareBadges,
+  defaultSoundEnabled,
   getBoardThemeById,
 } from "@/helpers/boardThemes";
 
@@ -25,6 +26,8 @@ export const BoardSettingsContext = React.createContext<{
   setShowSquareBadges: (enabled: boolean) => void;
   animateMoves: boolean;
   setAnimateMoves: (enabled: boolean) => void;
+  soundEnabled: boolean;
+  setSoundEnabled: (enabled: boolean) => void;
 }>({
   boardTheme: getBoardThemeById(defaultBoardThemeId),
   setBoardThemeId: () => {},
@@ -38,4 +41,6 @@ export const BoardSettingsContext = React.createContext<{
   setShowSquareBadges: () => {},
   animateMoves: defaultAnimateMoves,
   setAnimateMoves: () => {},
+  soundEnabled: defaultSoundEnabled,
+  setSoundEnabled: () => {},
 });

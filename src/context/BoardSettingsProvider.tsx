@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 
 import { BoardSettingsContext } from "@/context/BoardSettingsContext";
 import {
@@ -10,9 +10,11 @@ import {
   defaultShowCaptureIndicator,
   defaultShowMoveDots,
   defaultShowSquareBadges,
+  defaultSoundEnabled,
   getBoardThemeById,
   resolveBoardThemeId,
 } from "@/helpers/boardThemes";
+import { setSoundEnabled as syncSoundEnabled } from "@/helpers/sounds";
 
 const THEME_STORAGE_KEY = "chess-board-theme";
 const COORDINATE_MODE_STORAGE_KEY = "chess-board-coordinate-mode";
@@ -20,6 +22,7 @@ const SHOW_MOVE_DOTS_STORAGE_KEY = "chess-board-show-move-dots";
 const SHOW_CAPTURE_INDICATOR_STORAGE_KEY = "chess-board-show-capture-indicator";
 const SHOW_SQUARE_BADGES_STORAGE_KEY = "chess-board-show-square-badges";
 const ANIMATE_MOVES_STORAGE_KEY = "chess-board-animate-moves";
+const SOUND_ENABLED_STORAGE_KEY = "chess-sound-enabled";
 
 const getInitialBoardThemeId = () => {
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
@@ -75,6 +78,18 @@ const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [animateMoves, setAnimateMovesState] = useState(() =>
     getInitialBooleanSetting(ANIMATE_MOVES_STORAGE_KEY, defaultAnimateMoves),
   );
+  const [soundEnabled, setSoundEnabledState] = useState(() => {
+    const enabled = getInitialBooleanSetting(
+      SOUND_ENABLED_STORAGE_KEY,
+      defaultSoundEnabled,
+    );
+    syncSoundEnabled(enabled);
+    return enabled;
+  });
+
+  useEffect(() => {
+    syncSoundEnabled(soundEnabled);
+  }, [soundEnabled]);
 
   const setBoardThemeId = (id: string) => {
     localStorage.setItem(THEME_STORAGE_KEY, id);
@@ -106,6 +121,11 @@ const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
     setAnimateMovesState(enabled);
   };
 
+  const setSoundEnabled = (enabled: boolean) => {
+    localStorage.setItem(SOUND_ENABLED_STORAGE_KEY, String(enabled));
+    setSoundEnabledState(enabled);
+  };
+
   return (
     <BoardSettingsContext.Provider
       value={{
@@ -121,6 +141,8 @@ const BoardSettingsProvider = ({ children }: { children: ReactNode }) => {
         setShowSquareBadges,
         animateMoves,
         setAnimateMoves,
+        soundEnabled,
+        setSoundEnabled,
       }}
     >
       {children}
