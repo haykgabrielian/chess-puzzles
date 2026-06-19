@@ -4,25 +4,28 @@ Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puz
 
 ## Screenshots
 
-<p align="center">
-  <img src="screenshot/page.png" alt="Chess Puzzles main page" width="80%" />
-</p>
-
-<p align="center">
-  <img src="screenshot/page1.png" alt="Chess Puzzles main page with board arrows" width="80%" />
-</p>
-
-<p align="center">
-  <img src="screenshot/page2.png" alt="London System puzzle" width="80%" />
-  <br />
-  <em>London System</em>
-</p>
-
-<p align="center">
-  <img src="screenshot/page3.png" alt="Sandbox mode with Sicilian Defense board annotations" width="80%" />
-  <br />
-  <em>Sicilian Defense in Sandbox</em>
-</p>
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="screenshot/page.png" alt="Chess Puzzles main page" width="100%" />
+    </td>
+    <td align="center" width="50%">
+      <img src="screenshot/page1.png" alt="Chess Puzzles main page with board arrows" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="screenshot/page2.png" alt="London System puzzle" width="100%" />
+      <br />
+      <em>London System</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="screenshot/page3.png" alt="Sandbox mode with Sicilian Defense board annotations" width="100%" />
+      <br />
+      <em>Sicilian Defense</em>
+    </td>
+  </tr>
+</table>
 
 ## Setup
 
