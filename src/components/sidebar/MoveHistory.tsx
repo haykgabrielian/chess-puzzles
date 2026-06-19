@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -288,8 +289,24 @@ type MoveHistoryProps = {
 };
 
 const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHistoryProps) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const activeMoveRef = useRef<HTMLButtonElement>(null);
   const canGoPrevious = positionIndex > 0;
   const canGoNext = positionIndex < liveMoveCount;
+
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) {
+      return;
+    }
+
+    if (positionIndex === 0) {
+      scrollArea.scrollTop = 0;
+      return;
+    }
+
+    activeMoveRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [positionIndex, rows]);
 
   return (
     <Card title="Move History" icon={<HistoryIcon />} collapsibleOnMobile>
@@ -322,7 +339,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
               {positionIndex} / {liveMoveCount}
             </PositionLabel>
           </NavBar>
-          <ScrollArea aria-label="Move list">
+          <ScrollArea ref={scrollAreaRef} aria-label="Move list">
             <Table>
               <TableHead>
                 <tr>
@@ -340,6 +357,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
                     <Cell>
                       {row.white && row.whitePly !== null ? (
                         <MoveCellButton
+                          ref={row.isWhiteViewing ? activeMoveRef : undefined}
                           type="button"
                           $viewing={row.isWhiteViewing}
                           aria-label={`Go to after ${row.white}`}
@@ -357,6 +375,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
                     <Cell>
                       {row.black && row.blackPly !== null ? (
                         <MoveCellButton
+                          ref={row.isBlackViewing ? activeMoveRef : undefined}
                           type="button"
                           $viewing={row.isBlackViewing}
                           aria-label={`Go to after ${row.black}`}
