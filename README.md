@@ -18,6 +18,12 @@ Browse Chess.com daily puzzles by date. Pick a day on the calendar, load the puz
   <em>London System</em>
 </p>
 
+<p align="center">
+  <img src="screenshot/page3.png" alt="Sandbox mode with Sicilian Defense board annotations" width="80%" />
+  <br />
+  <em>Sicilian Defense in Sandbox</em>
+</p>
+
 ## Setup
 
 ### Prerequisites
@@ -92,7 +98,7 @@ src/
 
 job/               # Chess.com puzzle sync script
 puzzle/            # Generated puzzle JSON (local only, gitignored)
-screenshot/        # App screenshots (page.png, page1.png, page2.png)
+screenshot/        # App screenshots (page.png, page1.png, page2.png, page3.png)
 ```
 
 ## License

@@ -3,6 +3,7 @@ import { useContext } from "react";
 import styled from "styled-components";
 
 import londonSystemImg from "@/assets/board_annotation_london_system.png";
+import sicilianDefenseImg from "@/assets/board_annotation_sicilian_defense.png";
 import boardAnnotationsImg from "@/assets/board_annotations.png";
 import moveHintsImg from "@/assets/move_hints.png";
 import Header from "@/components/Header";
@@ -296,7 +297,7 @@ const InfoItem = styled.li`
   }
 `;
 
-type ShowcaseAccentKey = "hints" | "arrows" | "sandbox";
+type ShowcaseAccentKey = "hints" | "arrows" | "sandbox" | "openings";
 
 const SHOWCASE_ACCENT_PIECES: Record<
   ShowcaseAccentKey,
@@ -305,6 +306,7 @@ const SHOWCASE_ACCENT_PIECES: Record<
   hints: { piece: "q", opacity: 0.2 },
   arrows: { piece: "b", opacity: 0.2 },
   sandbox: { piece: "k", opacity: 0.2 },
+  openings: { piece: "n", opacity: 0.2 },
 };
 
 const ShowcasePieceDecor = ({ piece }: { piece: ShowcaseAccentKey }) => {
@@ -446,6 +448,34 @@ const About = () => {
                 clock or scoreboard.
               </ShowcaseText>
               <ShowcasePieceDecor piece="sandbox" />
+            </ShowcaseBody>
+          </Showcase>
+
+          <Showcase $reverse>
+            <ShowcaseFigure>
+              <ShowcaseImage
+                src={sicilianDefenseImg}
+                alt="Sicilian Defense position after 1.e4 c5 with red arrows showing typical knight development and pressure on the e4 pawn"
+              />
+              <ShowcaseCaption>
+                Sicilian Defense after 1.e4 c5 — typical black setup and
+                ideas.
+              </ShowcaseCaption>
+            </ShowcaseFigure>
+            <ShowcaseBody>
+              <ShowcaseLabel>
+                <FreeroamIcon />
+                Openings
+              </ShowcaseLabel>
+              <ShowcaseTitle>Walk through opening ideas</ShowcaseTitle>
+              <ShowcaseText>
+                Use Sandbox to set up any opening and mark the plans with
+                arrows. Trace knight development, pawn breaks, and pressure on
+                the center — whether you&apos;re studying the Sicilian, the
+                London, or your own repertoire. Annotations stay on the board
+                until you move or reset.
+              </ShowcaseText>
+              <ShowcasePieceDecor piece="openings" />
             </ShowcaseBody>
           </Showcase>
         </ShowcaseList>
