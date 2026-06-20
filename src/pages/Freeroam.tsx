@@ -5,6 +5,7 @@ import styled from "styled-components";
 import BoardSizer from "@/components/board/BoardSizer";
 import ChessBoard from "@/components/board/ChessBoard";
 import SolveConfetti from "@/components/board/SolveConfetti";
+import GameFormatsModal from "@/components/freeroam/GameFormatsModal";
 import Header from "@/components/Header";
 import FreeroamInfo from "@/components/sidebar/FreeroamInfo";
 import MoveHistory from "@/components/sidebar/MoveHistory";
@@ -22,6 +23,12 @@ import {
   tryMove,
 } from "@/helpers/chess";
 import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
+import {
+  exportFreeroamPgn,
+  type FreeroamImportResult,
+  hasFreeroamProgress,
+  type PgnGameInfo,
+} from "@/helpers/gameImport";
 import {
   type BoardAnimationMode,
   createMoveAnimationRequest,
@@ -111,6 +118,11 @@ const Freeroam = () => {
     null,
   );
   const [gameOutcome, setGameOutcome] = useState<GameOutcome>("playing");
+  const [importSnapshot, setImportSnapshot] = useState<{
+    pgn: string;
+    fen: string;
+  } | null>(null);
+  const [pgnInfo, setPgnInfo] = useState<PgnGameInfo | null>(null);
 
   const isAtLivePosition = positionIndex === moves.length;
 
@@ -174,7 +186,7 @@ const Freeroam = () => {
       );
 
       if (intent === "historyJump" && ply !== positionIndex) {
-        playHistoryMoveSound(moves, ply);
+        playHistoryMoveSound(moves, ply, fenByPly[0] ?? STARTING_FEN);
       }
     },
     [
@@ -233,7 +245,31 @@ const Freeroam = () => {
     setAnimationRequest(null);
     setPendingPromotion(null);
     setGameOutcome("playing");
+    setPgnInfo(null);
   }, []);
+
+  const loadImportedGame = useCallback(
+    (result: FreeroamImportResult) => {
+      const finalPly = result.moves.length;
+      const finalFen = result.fenByPly[finalPly] ?? result.startingFen;
+      const finalLastMove = result.lastMoveByPly[finalPly] ?? null;
+      const game = createGame(finalFen);
+
+      gameRef.current = game;
+      setMoves(result.moves);
+      setFenByPly(result.fenByPly);
+      setLastMoveByPly(result.lastMoveByPly);
+      setPositionIndex(finalPly);
+      setSelectedSquare(null);
+      setLegalTargets([]);
+      setPendingPromotion(null);
+      setAnimationRequest(null);
+      setPgnInfo(result.pgnInfo ?? null);
+      syncGameOutcome(game, true);
+      commitBoardUpdate(game, finalLastMove, "forward", "none");
+    },
+    [commitBoardUpdate, syncGameOutcome],
+  );
 
   const applyMove = useCallback(
     (
@@ -367,12 +403,33 @@ const Freeroam = () => {
     [fen, isAtLivePosition, onPromotionSelect, pendingPromotion],
   );
 
-  const liveGame = useMemo(() => replayGame(moves, moves.length), [moves]);
+  const startingFen = fenByPly[0] ?? STARTING_FEN;
+  const hasProgress = hasFreeroamProgress(startingFen, moves);
+
+  const openImport = useCallback(() => {
+    setImportSnapshot({
+      pgn: exportFreeroamPgn(
+        startingFen,
+        moves.slice(0, positionIndex),
+        pgnInfo,
+      ),
+      fen: fenByPly[positionIndex] ?? fen,
+    });
+  }, [fen, fenByPly, moves, pgnInfo, positionIndex, startingFen]);
+
+  const closeImport = useCallback(() => {
+    setImportSnapshot(null);
+  }, []);
+
+  const liveGame = useMemo(
+    () => replayGame(moves, moves.length, startingFen),
+    [moves, startingFen],
+  );
   const isLiveGameOver = liveGame.isGameOver();
 
   const capturedPieces = useMemo(
-    () => getCapturedPieces(replayGame(moves, positionIndex)),
-    [moves, positionIndex],
+    () => getCapturedPieces(replayGame(moves, positionIndex, startingFen)),
+    [moves, positionIndex, startingFen],
   );
 
   const moveHistoryRows = useMemo(
@@ -412,6 +469,9 @@ const Freeroam = () => {
             fen={fen}
             captured={capturedPieces}
             gameOutcome={liveGameOutcome}
+            hasProgress={hasProgress}
+            pgnInfo={pgnInfo}
+            onImport={openImport}
             onReset={resetGame}
           />
           <MoveHistory
@@ -422,6 +482,19 @@ const Freeroam = () => {
           />
         </SidebarRoot>
       </Content>
+      {importSnapshot && (
+        <GameFormatsModal
+          currentPgn={importSnapshot.pgn}
+          currentFen={importSnapshot.fen}
+          pgnExportContext={{
+            startingFen,
+            moves,
+            pgnInfo,
+          }}
+          onClose={closeImport}
+          onApply={loadImportedGame}
+        />
+      )}
     </Page>
   );
 };

@@ -1,6 +1,7 @@
 import type { Chess, Move } from 'chess.js';
 
 import { replayGame } from '@/helpers/chess';
+import { STARTING_FEN } from '@/helpers/fen';
 import { playSound, type SoundKind } from '@/helpers/sounds';
 
 export const getMoveSoundKind = (
@@ -48,12 +49,16 @@ export const playFreeroamMoveSound = (move: Move, game: Chess) => {
   playMoveSound(move, game, move.color === 'w');
 };
 
-export const playHistoryMoveSound = (moves: string[], ply: number) => {
+export const playHistoryMoveSound = (
+  moves: string[],
+  ply: number,
+  startingFen: string = STARTING_FEN,
+) => {
   if (ply <= 0 || ply > moves.length) {
     return;
   }
 
-  const game = replayGame(moves, ply);
+  const game = replayGame(moves, ply, startingFen);
   const move = game.history({ verbose: true }).at(-1);
 
   if (!move) {

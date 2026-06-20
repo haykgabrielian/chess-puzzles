@@ -20,12 +20,27 @@ const Content = styled.div`
   min-height: 100%;
 `;
 
-const PuzzleSummaryRow = styled.div`
+const PuzzleActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const PuzzleActionsHeading = styled.span`
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.muted};
+`;
+
+const PuzzleActionsButtons = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 12px;
 `;
 
 const PuzzleSummary = styled.div`
@@ -71,11 +86,6 @@ const DrawMessage = styled.span`
   color: ${({ theme }) => theme.text.secondary};
 `;
 
-const Suggestion = styled.span`
-  font-size: 0.8125rem;
-  color: ${({ theme }) => theme.text.secondary};
-`;
-
 const getSolvedMessage = (
   gameOutcome: GameOutcome,
   fen: string,
@@ -102,12 +112,6 @@ const WrongMessage = styled.p`
   font-size: 0.875rem;
   font-weight: 500;
   color: ${({ theme }) => theme.boardHighlight.danger};
-`;
-
-const Actions = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 `;
 
 const ActionButton = styled.button<{ $variant?: "danger" | "accent" }>`
@@ -158,50 +162,15 @@ const PuzzleInfo = () => {
   return (
     <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
       <Content>
-        {hasPuzzle ? (
-          <PuzzleSummaryRow>
-            <PuzzleSummary>
-              <PuzzleTitle>{puzzle.title}</PuzzleTitle>
-              <SolvedCount>
-                Solved by {puzzle.solved_count.toLocaleString()}
-              </SolvedCount>
-            </PuzzleSummary>
-            {hasProgress && status === "playing" && (
-              <ActionButton type="button" onClick={resetGame}>
-                Reset puzzle
-              </ActionButton>
-            )}
-          </PuzzleSummaryRow>
-        ) : (
-          <PuzzleTitle>
-            Today&apos;s puzzle isn&apos;t available yet
-          </PuzzleTitle>
-        )}
-
-        {hasPuzzle && status === "playing" && (
-          <SideToMove>{sideToMove}</SideToMove>
-        )}
-
-        {hasPuzzle && status === "wrong" && (
-          <StatusBlock>
-            <WrongMessage>Wrong move. Try again.</WrongMessage>
-            <Actions>
-              <ActionButton type="button" $variant="danger" onClick={retryMove}>
-                Retry
-              </ActionButton>
-            </Actions>
-          </StatusBlock>
-        )}
-
-        {hasPuzzle && status === "solved" && (
-          <StatusBlock>
-            <SuccessMessage>{solvedMessage.title}</SuccessMessage>
-            {solvedMessage.detail && (
-              <DrawMessage>{solvedMessage.detail}</DrawMessage>
-            )}
-            <Suggestion>Try another puzzle:</Suggestion>
-            <Actions>
-              <ActionButton type="button" onClick={resetGame}>
+        {hasPuzzle && (
+          <PuzzleActions aria-label="Puzzle actions">
+            <PuzzleActionsHeading>Actions</PuzzleActionsHeading>
+            <PuzzleActionsButtons>
+              <ActionButton
+                type="button"
+                onClick={resetGame}
+                disabled={!hasProgress}
+              >
                 Reset puzzle
               </ActionButton>
               <ActionButton
@@ -217,7 +186,42 @@ const PuzzleInfo = () => {
               >
                 Next day →
               </ActionButton>
-            </Actions>
+            </PuzzleActionsButtons>
+          </PuzzleActions>
+        )}
+
+        {hasPuzzle ? (
+          <PuzzleSummary>
+            <PuzzleTitle>{puzzle.title}</PuzzleTitle>
+            <SolvedCount>
+              Solved by {puzzle.solved_count.toLocaleString()}
+            </SolvedCount>
+          </PuzzleSummary>
+        ) : (
+          <PuzzleTitle>
+            Today&apos;s puzzle isn&apos;t available yet
+          </PuzzleTitle>
+        )}
+
+        {hasPuzzle && status === "playing" && (
+          <SideToMove>{sideToMove}</SideToMove>
+        )}
+
+        {hasPuzzle && status === "wrong" && (
+          <StatusBlock>
+            <WrongMessage>Wrong move. Try again.</WrongMessage>
+            <ActionButton type="button" $variant="danger" onClick={retryMove}>
+              Retry
+            </ActionButton>
+          </StatusBlock>
+        )}
+
+        {hasPuzzle && status === "solved" && (
+          <StatusBlock>
+            <SuccessMessage>{solvedMessage.title}</SuccessMessage>
+            {solvedMessage.detail && (
+              <DrawMessage>{solvedMessage.detail}</DrawMessage>
+            )}
           </StatusBlock>
         )}
       </Content>

@@ -27,14 +27,14 @@ const SidebarItem = styled.div<{ $mobileOrder: number }>`
 
 const Sidebar = () => (
   <SidebarRoot aria-label="Puzzle sidebar">
-    <SidebarItem $mobileOrder={2}>
+    <SidebarItem $mobileOrder={1}>
       <PuzzleInfo />
+    </SidebarItem>
+    <SidebarItem $mobileOrder={2}>
+      <Hint />
     </SidebarItem>
     <SidebarItem $mobileOrder={3}>
       <Calendar />
-    </SidebarItem>
-    <SidebarItem $mobileOrder={1}>
-      <Hint />
     </SidebarItem>
   </SidebarRoot>
 );

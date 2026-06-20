@@ -5,7 +5,8 @@ import Card from "@/components/ui/Card";
 import { FreeroamIcon } from "@/components/ui/CardIcons";
 import type { CapturedPieces, GameOutcome } from "@/helpers/chess";
 import { createGame, getCheckmateWinner } from "@/helpers/chess";
-import { getSideLabel, STARTING_FEN } from "@/helpers/fen";
+import { getSideLabel } from "@/helpers/fen";
+import type { PgnGameInfo } from "@/helpers/gameImport";
 
 const Content = styled.div`
   display: flex;
@@ -13,12 +14,27 @@ const Content = styled.div`
   gap: 12px;
 `;
 
-const GameSummaryRow = styled.div`
+const GameActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const GameActionsHeading = styled.span`
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.muted};
+`;
+
+const GameActionsButtons = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 12px;
 `;
 
 const GameSummary = styled.div`
@@ -40,6 +56,19 @@ const MoveCount = styled.span`
   color: ${({ theme }) => theme.text.secondary};
 `;
 
+const PlayersLine = styled.span`
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.primary};
+  line-height: 1.4;
+`;
+
+const GameMeta = styled.span`
+  font-size: 0.75rem;
+  color: ${({ theme }) => theme.text.secondary};
+  line-height: 1.4;
+`;
+
 const SideToMove = styled.span`
   font-size: 1rem;
   font-weight: 700;
@@ -52,11 +81,13 @@ const GameOverMessage = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
-const ResetButton = styled.button`
-  display: flex;
+const ActionButton = styled.button`
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
+  padding: 8px 14px;
+  flex: 1 1 auto;
+  min-width: 0;
   border: 1px solid ${({ theme }) => theme.accent};
   border-radius: 8px;
   cursor: pointer;
@@ -67,8 +98,13 @@ const ResetButton = styled.button`
   transition: background-color 0.2s ease;
   white-space: nowrap;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: ${({ theme }) => theme.accentMuted};
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 `;
 
@@ -76,7 +112,31 @@ type FreeroamInfoProps = {
   fen: string;
   captured: CapturedPieces;
   gameOutcome: GameOutcome;
+  hasProgress: boolean;
+  pgnInfo: PgnGameInfo | null;
+  onImport: () => void;
   onReset: () => void;
+};
+
+const formatPlayersLine = (pgnInfo: PgnGameInfo): string | null => {
+  const { white, black } = pgnInfo;
+
+  if (white && black) {
+    return `${white} vs ${black}`;
+  }
+
+  return white ?? black ?? null;
+};
+
+const formatGameMeta = (pgnInfo: PgnGameInfo): string | null => {
+  const parts = [
+    pgnInfo.date,
+    pgnInfo.site,
+    pgnInfo.round ? `Round ${pgnInfo.round}` : undefined,
+    pgnInfo.result,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" · ") : null;
 };
 
 const getGameOverMessage = (
@@ -104,31 +164,43 @@ const FreeroamInfo = ({
   fen,
   captured,
   gameOutcome,
+  hasProgress,
+  pgnInfo,
+  onImport,
   onReset,
 }: FreeroamInfoProps) => {
-  const hasProgress = fen !== STARTING_FEN;
   const fullMoveNumber = getFullMoveNumber(fen);
   const sideToMove = `${getSideLabel(fen)} to move`;
   const gameOverMessage = getGameOverMessage(gameOutcome, fen);
+  const playersLine = pgnInfo ? formatPlayersLine(pgnInfo) : null;
+  const gameMeta = pgnInfo ? formatGameMeta(pgnInfo) : null;
 
   return (
     <Card title="Game Info" icon={<FreeroamIcon />} collapsibleOnMobile>
       <Content>
-        <GameSummaryRow>
-          <GameSummary>
-            <GameTitle>Freeroam</GameTitle>
-            <MoveCount>
-              {fullMoveNumber === 1 && !hasProgress
-                ? "Starting position"
-                : `Move ${fullMoveNumber}`}
-            </MoveCount>
-          </GameSummary>
-          {hasProgress && (
-            <ResetButton type="button" onClick={onReset}>
+        <GameActions aria-label="Game actions">
+          <GameActionsHeading>Actions</GameActionsHeading>
+          <GameActionsButtons>
+            <ActionButton type="button" onClick={onImport}>
+              Import / Export
+            </ActionButton>
+            <ActionButton type="button" onClick={onReset} disabled={!hasProgress}>
               New game
-            </ResetButton>
-          )}
-        </GameSummaryRow>
+            </ActionButton>
+          </GameActionsButtons>
+        </GameActions>
+
+        <GameSummary>
+          <GameTitle>{pgnInfo?.event ?? "Freeroam"}</GameTitle>
+          {playersLine && <PlayersLine>{playersLine}</PlayersLine>}
+          {gameMeta && <GameMeta>{gameMeta}</GameMeta>}
+          <MoveCount>
+            {fullMoveNumber === 1 && !hasProgress
+              ? "Starting position"
+              : `Move ${fullMoveNumber}`}
+          </MoveCount>
+        </GameSummary>
+
         {gameOverMessage ? (
           <GameOverMessage>{gameOverMessage}</GameOverMessage>
         ) : (

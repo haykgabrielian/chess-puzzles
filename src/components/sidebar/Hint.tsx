@@ -69,12 +69,14 @@ const Hint = () => {
       ? formatHintSentence(fen, puzzle.parsed.moves[moveIndex])
       : null;
 
+  if (!hasPuzzle) {
+    return null;
+  }
+
   return (
     <Card title="Hint" icon={<HintIcon />} bodyHeight={HINT_BODY_HEIGHT}>
       <HintBody>
-        {!hasPuzzle ? (
-          <RevealedHint>Check back later for today&apos;s puzzle.</RevealedHint>
-        ) : isHintRevealed ? (
+        {isHintRevealed ? (
           <RevealedHint>{revealedHint}</RevealedHint>
         ) : (
           <ShowHintButton type="button" onClick={revealHint} disabled={isSolved}>

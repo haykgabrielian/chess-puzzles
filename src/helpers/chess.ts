@@ -238,8 +238,12 @@ const isRowActive = (
   blackPly: number | null,
 ): boolean => positionIndex === whitePly || positionIndex === blackPly;
 
-export function replayGame(moves: string[], ply: number): Chess {
-  const game = createGame(STARTING_FEN);
+export function replayGame(
+  moves: string[],
+  ply: number,
+  startingFen: string = STARTING_FEN,
+): Chess {
+  const game = createGame(startingFen);
   const clampedPly = Math.max(0, Math.min(ply, moves.length));
 
   for (let index = 0; index < clampedPly; index += 1) {
