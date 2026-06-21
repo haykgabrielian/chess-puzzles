@@ -31,6 +31,7 @@ import {
 } from "@/helpers/gameImport";
 import {
   type BoardAnimationMode,
+  type BoardOrientation,
   createMoveAnimationRequest,
   type MoveAnimationRequest,
   type MoveUpdateIntent,
@@ -123,8 +124,16 @@ const Freeroam = () => {
     fen: string;
   } | null>(null);
   const [pgnInfo, setPgnInfo] = useState<PgnGameInfo | null>(null);
+  const [boardOrientation, setBoardOrientation] =
+    useState<BoardOrientation>("white");
 
   const isAtLivePosition = positionIndex === moves.length;
+
+  const toggleBoardOrientation = useCallback(() => {
+    setBoardOrientation((current) =>
+      current === "white" ? "black" : "white",
+    );
+  }, []);
 
   const syncGameOutcome = useCallback(
     (game: ReturnType<typeof createGame>, atLiveEnd: boolean) => {
@@ -448,6 +457,7 @@ const Freeroam = () => {
           <BoardSizer>
             <ChessBoard
               fen={fen}
+              orientation={boardOrientation}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={lastMove}
@@ -473,6 +483,7 @@ const Freeroam = () => {
             pgnInfo={pgnInfo}
             onImport={openImport}
             onReset={resetGame}
+            onFlipBoard={toggleBoardOrientation}
           />
           <MoveHistory
             rows={moveHistoryRows}

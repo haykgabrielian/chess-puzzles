@@ -116,6 +116,7 @@ type FreeroamInfoProps = {
   pgnInfo: PgnGameInfo | null;
   onImport: () => void;
   onReset: () => void;
+  onFlipBoard: () => void;
 };
 
 const formatPlayersLine = (pgnInfo: PgnGameInfo): string | null => {
@@ -168,6 +169,7 @@ const FreeroamInfo = ({
   pgnInfo,
   onImport,
   onReset,
+  onFlipBoard,
 }: FreeroamInfoProps) => {
   const fullMoveNumber = getFullMoveNumber(fen);
   const sideToMove = `${getSideLabel(fen)} to move`;
@@ -183,6 +185,9 @@ const FreeroamInfo = ({
           <GameActionsButtons>
             <ActionButton type="button" onClick={onImport}>
               Import / Export
+            </ActionButton>
+            <ActionButton type="button" onClick={onFlipBoard}>
+              Flip board
             </ActionButton>
             <ActionButton type="button" onClick={onReset} disabled={!hasProgress}>
               New game

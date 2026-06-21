@@ -19,12 +19,12 @@ import type { Piece } from "@/helpers/fen";
 const MOBILE = "@media (max-width: 900px)";
 
 const insideCoordinateTypography = css`
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 600;
   line-height: 1;
 
   ${MOBILE} {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 `;
 
