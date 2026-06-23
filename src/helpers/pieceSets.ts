@@ -58,6 +58,30 @@ import modernQueenBlack from "@/assets/modern/queen_black.svg";
 import modernQueenWhite from "@/assets/modern/queen_white.svg";
 import modernRookBlack from "@/assets/modern/rook_black.svg";
 import modernRookWhite from "@/assets/modern/rook_white.svg";
+import clubBishopBlack from "@/assets/club/bb.png";
+import clubKingBlack from "@/assets/club/bk.png";
+import clubKnightBlack from "@/assets/club/bn.png";
+import clubPawnBlack from "@/assets/club/bp.png";
+import clubQueenBlack from "@/assets/club/bq.png";
+import clubRookBlack from "@/assets/club/br.png";
+import clubBishopWhite from "@/assets/club/wb.png";
+import clubKingWhite from "@/assets/club/wk.png";
+import clubKnightWhite from "@/assets/club/wn.png";
+import clubPawnWhite from "@/assets/club/wp.png";
+import clubQueenWhite from "@/assets/club/wq.png";
+import clubRookWhite from "@/assets/club/wr.png";
+import mayaBishopBlack from "@/assets/maya/bb.png";
+import mayaKingBlack from "@/assets/maya/bk.png";
+import mayaKnightBlack from "@/assets/maya/bn.png";
+import mayaPawnBlack from "@/assets/maya/bp.png";
+import mayaQueenBlack from "@/assets/maya/bq.png";
+import mayaRookBlack from "@/assets/maya/br.png";
+import mayaBishopWhite from "@/assets/maya/wb.png";
+import mayaKingWhite from "@/assets/maya/wk.png";
+import mayaKnightWhite from "@/assets/maya/wn.png";
+import mayaPawnWhite from "@/assets/maya/wp.png";
+import mayaQueenWhite from "@/assets/maya/wq.png";
+import mayaRookWhite from "@/assets/maya/wr.png";
 import newspaperBishopBlack from "@/assets/newspaper/bb.png";
 import newspaperKingBlack from "@/assets/newspaper/bk.png";
 import newspaperKnightBlack from "@/assets/newspaper/bn.png";
@@ -153,6 +177,36 @@ const eightBitImages: Record<Piece, string> = {
   p: eightBitPawnBlack,
 };
 
+const clubImages: Record<Piece, string> = {
+  K: clubKingWhite,
+  Q: clubQueenWhite,
+  R: clubRookWhite,
+  B: clubBishopWhite,
+  N: clubKnightWhite,
+  P: clubPawnWhite,
+  k: clubKingBlack,
+  q: clubQueenBlack,
+  r: clubRookBlack,
+  b: clubBishopBlack,
+  n: clubKnightBlack,
+  p: clubPawnBlack,
+};
+
+const mayaImages: Record<Piece, string> = {
+  K: mayaKingWhite,
+  Q: mayaQueenWhite,
+  R: mayaRookWhite,
+  B: mayaBishopWhite,
+  N: mayaKnightWhite,
+  P: mayaPawnWhite,
+  k: mayaKingBlack,
+  q: mayaQueenBlack,
+  r: mayaRookBlack,
+  b: mayaBishopBlack,
+  n: mayaKnightBlack,
+  p: mayaPawnBlack,
+};
+
 const newspaperImages: Record<Piece, string> = {
   K: newspaperKingWhite,
   Q: newspaperQueenWhite,
@@ -175,6 +229,8 @@ export const pieceSets: PieceSet[] = [
   { id: "gotic", name: "Gothic", images: gothicImages },
   { id: "8bit", name: "8-Bit", images: eightBitImages },
   { id: "newspaper", name: "Newspaper", images: newspaperImages },
+  { id: "club", name: "Club", images: clubImages },
+  { id: "maya", name: "Maya", images: mayaImages },
 ];
 
 export const defaultPieceSetId = "classic";

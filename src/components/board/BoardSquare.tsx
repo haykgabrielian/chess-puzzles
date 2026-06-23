@@ -272,7 +272,7 @@ const getMoveIndicatorColor = (
 };
 
 const getCaptureFrameBorderRadius = (pieceSetId: string): string =>
-  ["gotic", "newspaper"].includes(pieceSetId) ? "30%" : "50%";
+  ["gotic", "newspaper", "club", "maya"].includes(pieceSetId) ? "30%" : "50%";
 
 const renderSquareBadgeIcon = (type: SquareBadgeType) => {
   switch (type) {
