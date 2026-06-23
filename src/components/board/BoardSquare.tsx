@@ -8,7 +8,6 @@ import {
   WrongBadgeIcon,
 } from "@/components/board/SquareBadgeIcons";
 import { PieceSetContext } from "@/context/PieceSetContext";
-import { getPieceSizeRatio } from "@/helpers/pieceSets";
 import {
   type BoardHighlight,
   type BoardTheme,
@@ -132,15 +131,11 @@ const SquareCoordinate = styled.span<{
   }
 `;
 
-const PieceImage = styled.img<{
-  $isDragSource?: boolean;
-  $hidden?: boolean;
-  $sizeRatio: number;
-}>`
+const PieceImage = styled.img<{ $isDragSource?: boolean; $hidden?: boolean }>`
   position: relative;
   z-index: 3;
-  width: ${({ $sizeRatio }) => $sizeRatio * 100}%;
-  height: ${({ $sizeRatio }) => $sizeRatio * 100}%;
+  width: 88%;
+  height: 88%;
   object-fit: contain;
   user-select: none;
   pointer-events: none;
@@ -373,7 +368,6 @@ const BoardSquare = memo(function BoardSquare({
           alt=""
           aria-hidden="true"
           draggable={false}
-          $sizeRatio={getPieceSizeRatio(pieceSet, piece)}
           $isDragSource={isDragSource}
           $hidden={hidePiece}
         />

@@ -1,16 +1,4 @@
 import threeDBishopBlack from "@/assets/3d/bb.png";
-import chessKidBishopBlack from "@/assets/3d-chesskid/bb.png";
-import chessKidKingBlack from "@/assets/3d-chesskid/bk.png";
-import chessKidKnightBlack from "@/assets/3d-chesskid/bn.png";
-import chessKidPawnBlack from "@/assets/3d-chesskid/bp.png";
-import chessKidQueenBlack from "@/assets/3d-chesskid/bq.png";
-import chessKidRookBlack from "@/assets/3d-chesskid/br.png";
-import chessKidBishopWhite from "@/assets/3d-chesskid/wb.png";
-import chessKidKingWhite from "@/assets/3d-chesskid/wk.png";
-import chessKidKnightWhite from "@/assets/3d-chesskid/wn.png";
-import chessKidPawnWhite from "@/assets/3d-chesskid/wp.png";
-import chessKidQueenWhite from "@/assets/3d-chesskid/wq.png";
-import chessKidRookWhite from "@/assets/3d-chesskid/wr.png";
 import threeDKingBlack from "@/assets/3d/bk.png";
 import threeDKnightBlack from "@/assets/3d/bn.png";
 import threeDPawnBlack from "@/assets/3d/bp.png";
@@ -22,18 +10,6 @@ import threeDKnightWhite from "@/assets/3d/wn.png";
 import threeDPawnWhite from "@/assets/3d/wp.png";
 import threeDQueenWhite from "@/assets/3d/wq.png";
 import threeDRookWhite from "@/assets/3d/wr.png";
-import eightBitBishopBlack from "@/assets/8bit/bb.png";
-import eightBitKingBlack from "@/assets/8bit/bk.png";
-import eightBitKnightBlack from "@/assets/8bit/bn.png";
-import eightBitPawnBlack from "@/assets/8bit/bp.png";
-import eightBitQueenBlack from "@/assets/8bit/bq.png";
-import eightBitRookBlack from "@/assets/8bit/br.png";
-import eightBitBishopWhite from "@/assets/8bit/wb.png";
-import eightBitKingWhite from "@/assets/8bit/wk.png";
-import eightBitKnightWhite from "@/assets/8bit/wn.png";
-import eightBitPawnWhite from "@/assets/8bit/wp.png";
-import eightBitQueenWhite from "@/assets/8bit/wq.png";
-import eightBitRookWhite from "@/assets/8bit/wr.png";
 import classicBishopBlack from "@/assets/classic/bishop_black.svg";
 import classicBishopWhite from "@/assets/classic/bishop_white.svg";
 import classicKingBlack from "@/assets/classic/king_black.svg";
@@ -120,16 +96,10 @@ import newspaperQueenWhite from "@/assets/newspaper/wq.png";
 import newspaperRookWhite from "@/assets/newspaper/wr.png";
 import type { Piece } from "@/helpers/fen";
 
-export const DEFAULT_PIECE_SIZE_RATIO = 0.88;
-
-export type PieceKind = "K" | "Q" | "R" | "B" | "N" | "P";
-
 export type PieceSet = {
   id: string;
   name: string;
   images: Record<Piece, string>;
-  sizeRatio?: number;
-  enlargedPieces?: PieceKind[];
 };
 
 const classicImages: Record<Piece, string> = {
@@ -177,21 +147,6 @@ const threeDImages: Record<Piece, string> = {
   p: threeDPawnBlack,
 };
 
-const chessKidImages: Record<Piece, string> = {
-  K: chessKidKingWhite,
-  Q: chessKidQueenWhite,
-  R: chessKidRookWhite,
-  B: chessKidBishopWhite,
-  N: chessKidKnightWhite,
-  P: chessKidPawnWhite,
-  k: chessKidKingBlack,
-  q: chessKidQueenBlack,
-  r: chessKidRookBlack,
-  b: chessKidBishopBlack,
-  n: chessKidKnightBlack,
-  p: chessKidPawnBlack,
-};
-
 const gothicImages: Record<Piece, string> = {
   K: gothicKingWhite,
   Q: gothicQueenWhite,
@@ -205,21 +160,6 @@ const gothicImages: Record<Piece, string> = {
   b: gothicBishopBlack,
   n: gothicKnightBlack,
   p: gothicPawnBlack,
-};
-
-const eightBitImages: Record<Piece, string> = {
-  K: eightBitKingWhite,
-  Q: eightBitQueenWhite,
-  R: eightBitRookWhite,
-  B: eightBitBishopWhite,
-  N: eightBitKnightWhite,
-  P: eightBitPawnWhite,
-  k: eightBitKingBlack,
-  q: eightBitQueenBlack,
-  r: eightBitRookBlack,
-  b: eightBitBishopBlack,
-  n: eightBitKnightBlack,
-  p: eightBitPawnBlack,
 };
 
 const clubImages: Record<Piece, string> = {
@@ -286,15 +226,7 @@ export const pieceSets: PieceSet[] = [
   { id: "classic", name: "Classic", images: classicImages },
   { id: "modern", name: "Modern", images: modernImages },
   { id: "3d", name: "3D", images: threeDImages },
-  {
-    id: "3d-chesskid",
-    name: "ChessKid",
-    images: chessKidImages,
-    sizeRatio: 0.96,
-    enlargedPieces: ["K", "Q", "R", "B", "N"],
-  },
   { id: "gotic", name: "Gothic", images: gothicImages },
-  { id: "8bit", name: "8-Bit", images: eightBitImages },
   { id: "newspaper", name: "Newspaper", images: newspaperImages },
   { id: "club", name: "Club", images: clubImages },
   { id: "maya", name: "Maya", images: mayaImages },
@@ -302,16 +234,6 @@ export const pieceSets: PieceSet[] = [
 ];
 
 export const defaultPieceSetId = "classic";
-
-export const getPieceSizeRatio = (set: PieceSet, piece: Piece): number => {
-  const pieceKind = piece.toUpperCase() as PieceKind;
-
-  if (set.enlargedPieces?.includes(pieceKind)) {
-    return set.sizeRatio ?? DEFAULT_PIECE_SIZE_RATIO;
-  }
-
-  return DEFAULT_PIECE_SIZE_RATIO;
-};
 
 export const getPieceSetById = (id: string): PieceSet =>
   pieceSets.find((set) => set.id === id) ?? pieceSets[0];
