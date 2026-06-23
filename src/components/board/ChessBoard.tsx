@@ -17,6 +17,7 @@ import BoardSquare, {
 } from "@/components/board/BoardSquare";
 import { BoardSettingsContext } from "@/context/BoardSettingsContext";
 import { PieceSetContext } from "@/context/PieceSetContext";
+import { getPieceSizeRatio } from "@/helpers/pieceSets";
 import {
   type BoardArrow,
   type BoardCircle,
@@ -39,7 +40,6 @@ import { useMoveAnimation } from "@/hooks/useMoveAnimation";
 const MOBILE = "@media (max-width: 900px)";
 const DRAG_THRESHOLD_PX = 8;
 const DRAW_THRESHOLD_PX = 4;
-const PIECE_SIZE_RATIO = 0.88;
 
 const asideCoordinateTypography = css`
   font-size: 0.8125rem;
@@ -235,9 +235,9 @@ const FlyingPieceLayer = styled.div<{
   }
 `;
 
-const FlyingPieceImage = styled.img`
-  width: 88%;
-  height: 88%;
+const FlyingPieceImage = styled.img<{ $sizeRatio: number }>`
+  width: ${({ $sizeRatio }) => $sizeRatio * 100}%;
+  height: ${({ $sizeRatio }) => $sizeRatio * 100}%;
   object-fit: contain;
   user-select: none;
 `;
@@ -609,7 +609,10 @@ const ChessBoard = ({
           `[data-square="${pending.square}"]`,
         );
         const squareSize = squareElement?.getBoundingClientRect().width ?? 0;
-        const pieceSize = squareSize > 0 ? squareSize * PIECE_SIZE_RATIO : 0;
+        const pieceSize =
+          squareSize > 0
+            ? squareSize * getPieceSizeRatio(pieceSet, pending.piece)
+            : 0;
 
         setDragGhost({
           from: pending.square,
@@ -625,7 +628,7 @@ const ChessBoard = ({
         previous ? { ...previous, x: event.clientX, y: event.clientY } : null,
       );
     },
-    [canInteract, enableAnnotations, fen, onSquareClick, promotionPicker, selectedSquare],
+    [canInteract, enableAnnotations, fen, onSquareClick, pieceSet, promotionPicker, selectedSquare],
   );
 
   const handleGridPointerUp = useCallback(
@@ -800,6 +803,7 @@ const ChessBoard = ({
                 src={pieceSet.images[piece.piece]}
                 alt=""
                 draggable={false}
+                $sizeRatio={getPieceSizeRatio(pieceSet, piece.piece)}
               />
             </FlyingPieceLayer>
           ))}

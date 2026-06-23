@@ -8,6 +8,7 @@ import {
   WrongBadgeIcon,
 } from "@/components/board/SquareBadgeIcons";
 import { PieceSetContext } from "@/context/PieceSetContext";
+import { getPieceSizeRatio } from "@/helpers/pieceSets";
 import {
   type BoardHighlight,
   type BoardTheme,
@@ -131,11 +132,15 @@ const SquareCoordinate = styled.span<{
   }
 `;
 
-const PieceImage = styled.img<{ $isDragSource?: boolean; $hidden?: boolean }>`
+const PieceImage = styled.img<{
+  $isDragSource?: boolean;
+  $hidden?: boolean;
+  $sizeRatio: number;
+}>`
   position: relative;
   z-index: 3;
-  width: 88%;
-  height: 88%;
+  width: ${({ $sizeRatio }) => $sizeRatio * 100}%;
+  height: ${({ $sizeRatio }) => $sizeRatio * 100}%;
   object-fit: contain;
   user-select: none;
   pointer-events: none;
@@ -272,7 +277,7 @@ const getMoveIndicatorColor = (
 };
 
 const getCaptureFrameBorderRadius = (pieceSetId: string): string =>
-  ["gotic", "newspaper", "club", "maya"].includes(pieceSetId) ? "30%" : "50%";
+  ["gotic", "newspaper", "club", "maya", "condal"].includes(pieceSetId) ? "30%" : "50%";
 
 const renderSquareBadgeIcon = (type: SquareBadgeType) => {
   switch (type) {
@@ -368,6 +373,7 @@ const BoardSquare = memo(function BoardSquare({
           alt=""
           aria-hidden="true"
           draggable={false}
+          $sizeRatio={getPieceSizeRatio(pieceSet, piece)}
           $isDragSource={isDragSource}
           $hidden={hidePiece}
         />

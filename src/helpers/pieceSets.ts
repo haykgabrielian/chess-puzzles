@@ -1,4 +1,16 @@
 import threeDBishopBlack from "@/assets/3d/bb.png";
+import chessKidBishopBlack from "@/assets/3d-chesskid/bb.png";
+import chessKidKingBlack from "@/assets/3d-chesskid/bk.png";
+import chessKidKnightBlack from "@/assets/3d-chesskid/bn.png";
+import chessKidPawnBlack from "@/assets/3d-chesskid/bp.png";
+import chessKidQueenBlack from "@/assets/3d-chesskid/bq.png";
+import chessKidRookBlack from "@/assets/3d-chesskid/br.png";
+import chessKidBishopWhite from "@/assets/3d-chesskid/wb.png";
+import chessKidKingWhite from "@/assets/3d-chesskid/wk.png";
+import chessKidKnightWhite from "@/assets/3d-chesskid/wn.png";
+import chessKidPawnWhite from "@/assets/3d-chesskid/wp.png";
+import chessKidQueenWhite from "@/assets/3d-chesskid/wq.png";
+import chessKidRookWhite from "@/assets/3d-chesskid/wr.png";
 import threeDKingBlack from "@/assets/3d/bk.png";
 import threeDKnightBlack from "@/assets/3d/bn.png";
 import threeDPawnBlack from "@/assets/3d/bp.png";
@@ -70,6 +82,18 @@ import clubKnightWhite from "@/assets/club/wn.png";
 import clubPawnWhite from "@/assets/club/wp.png";
 import clubQueenWhite from "@/assets/club/wq.png";
 import clubRookWhite from "@/assets/club/wr.png";
+import condalBishopBlack from "@/assets/condal/bb.png";
+import condalKingBlack from "@/assets/condal/bk.png";
+import condalKnightBlack from "@/assets/condal/bn.png";
+import condalPawnBlack from "@/assets/condal/bp.png";
+import condalQueenBlack from "@/assets/condal/bq.png";
+import condalRookBlack from "@/assets/condal/br.png";
+import condalBishopWhite from "@/assets/condal/wb.png";
+import condalKingWhite from "@/assets/condal/wk.png";
+import condalKnightWhite from "@/assets/condal/wn.png";
+import condalPawnWhite from "@/assets/condal/wp.png";
+import condalQueenWhite from "@/assets/condal/wq.png";
+import condalRookWhite from "@/assets/condal/wr.png";
 import mayaBishopBlack from "@/assets/maya/bb.png";
 import mayaKingBlack from "@/assets/maya/bk.png";
 import mayaKnightBlack from "@/assets/maya/bn.png";
@@ -96,10 +120,16 @@ import newspaperQueenWhite from "@/assets/newspaper/wq.png";
 import newspaperRookWhite from "@/assets/newspaper/wr.png";
 import type { Piece } from "@/helpers/fen";
 
+export const DEFAULT_PIECE_SIZE_RATIO = 0.88;
+
+export type PieceKind = "K" | "Q" | "R" | "B" | "N" | "P";
+
 export type PieceSet = {
   id: string;
   name: string;
   images: Record<Piece, string>;
+  sizeRatio?: number;
+  enlargedPieces?: PieceKind[];
 };
 
 const classicImages: Record<Piece, string> = {
@@ -147,6 +177,21 @@ const threeDImages: Record<Piece, string> = {
   p: threeDPawnBlack,
 };
 
+const chessKidImages: Record<Piece, string> = {
+  K: chessKidKingWhite,
+  Q: chessKidQueenWhite,
+  R: chessKidRookWhite,
+  B: chessKidBishopWhite,
+  N: chessKidKnightWhite,
+  P: chessKidPawnWhite,
+  k: chessKidKingBlack,
+  q: chessKidQueenBlack,
+  r: chessKidRookBlack,
+  b: chessKidBishopBlack,
+  n: chessKidKnightBlack,
+  p: chessKidPawnBlack,
+};
+
 const gothicImages: Record<Piece, string> = {
   K: gothicKingWhite,
   Q: gothicQueenWhite,
@@ -192,6 +237,21 @@ const clubImages: Record<Piece, string> = {
   p: clubPawnBlack,
 };
 
+const condalImages: Record<Piece, string> = {
+  K: condalKingWhite,
+  Q: condalQueenWhite,
+  R: condalRookWhite,
+  B: condalBishopWhite,
+  N: condalKnightWhite,
+  P: condalPawnWhite,
+  k: condalKingBlack,
+  q: condalQueenBlack,
+  r: condalRookBlack,
+  b: condalBishopBlack,
+  n: condalKnightBlack,
+  p: condalPawnBlack,
+};
+
 const mayaImages: Record<Piece, string> = {
   K: mayaKingWhite,
   Q: mayaQueenWhite,
@@ -226,14 +286,32 @@ export const pieceSets: PieceSet[] = [
   { id: "classic", name: "Classic", images: classicImages },
   { id: "modern", name: "Modern", images: modernImages },
   { id: "3d", name: "3D", images: threeDImages },
+  {
+    id: "3d-chesskid",
+    name: "ChessKid",
+    images: chessKidImages,
+    sizeRatio: 0.96,
+    enlargedPieces: ["K", "Q", "R", "B", "N"],
+  },
   { id: "gotic", name: "Gothic", images: gothicImages },
   { id: "8bit", name: "8-Bit", images: eightBitImages },
   { id: "newspaper", name: "Newspaper", images: newspaperImages },
   { id: "club", name: "Club", images: clubImages },
   { id: "maya", name: "Maya", images: mayaImages },
+  { id: "condal", name: "Condal", images: condalImages },
 ];
 
 export const defaultPieceSetId = "classic";
+
+export const getPieceSizeRatio = (set: PieceSet, piece: Piece): number => {
+  const pieceKind = piece.toUpperCase() as PieceKind;
+
+  if (set.enlargedPieces?.includes(pieceKind)) {
+    return set.sizeRatio ?? DEFAULT_PIECE_SIZE_RATIO;
+  }
+
+  return DEFAULT_PIECE_SIZE_RATIO;
+};
 
 export const getPieceSetById = (id: string): PieceSet =>
   pieceSets.find((set) => set.id === id) ?? pieceSets[0];
