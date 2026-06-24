@@ -3,7 +3,7 @@ export type Piece = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P' | 'k' | 'q' | 'r' | 'b' | 
 export const STARTING_FEN =
   'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-export function parseFenBoard(fen: string): (Piece | null)[][] {
+export const parseFenBoard = (fen: string): (Piece | null)[][] => {
   const ranks = fen.split(' ')[0].split('/');
 
   return ranks.map(rank => {
@@ -21,17 +21,15 @@ export function parseFenBoard(fen: string): (Piece | null)[][] {
 
     return squares;
   });
-}
+};
 
-export function getSideToMove(fen: string): 'w' | 'b' {
-  return fen.split(' ')[1] === 'b' ? 'b' : 'w';
-}
+export const getSideToMove = (fen: string): 'w' | 'b' =>
+  fen.split(' ')[1] === 'b' ? 'b' : 'w';
 
-export function getSideLabel(fen: string): string {
-  return getSideToMove(fen) === 'w' ? 'White' : 'Black';
-}
+export const getSideLabel = (fen: string): string =>
+  getSideToMove(fen) === 'w' ? 'White' : 'Black';
 
-export function getPuzzleGoal(moves: string[]): string {
+export const getPuzzleGoal = (moves: string[]): string => {
   const lastMove = moves.at(-1);
 
   if (lastMove?.includes('#')) {
@@ -43,4 +41,4 @@ export function getPuzzleGoal(moves: string[]): string {
   }
 
   return 'win';
-}
+};

@@ -295,7 +295,7 @@ const renderSquareBadgeIcon = (type: SquareBadgeType) => {
   }
 };
 
-const BoardSquare = memo(function BoardSquare({
+const BoardSquare = memo(({
   layout,
   squareHighlight,
   isLegalTarget,
@@ -313,7 +313,7 @@ const BoardSquare = memo(function BoardSquare({
   promotionPicker,
   isDragSource,
   hidePiece = false,
-}: BoardSquareProps) {
+}: BoardSquareProps) => {
   const { pieceSet } = useContext(PieceSetContext);
   const { id, file, rank, displayRankIndex, displayFileIndex, isLight, piece } =
     layout;

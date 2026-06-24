@@ -13,11 +13,9 @@ export const PROMOTION_PIECES: PromotionPiece[] = ['q', 'r', 'b', 'n'];
 
 export type GameOutcome = 'playing' | 'checkmate' | 'stalemate';
 
-export function createGame(fen: string): Chess {
-  return new Chess(fen);
-}
+export const createGame = (fen: string): Chess => new Chess(fen);
 
-export function getGameOutcome(game: Chess): GameOutcome {
+export const getGameOutcome = (game: Chess): GameOutcome => {
   if (game.isCheckmate()) {
     return 'checkmate';
   }
@@ -27,13 +25,12 @@ export function getGameOutcome(game: Chess): GameOutcome {
   }
 
   return 'playing';
-}
+};
 
-export function getCheckmateWinner(game: Chess): 'White' | 'Black' {
-  return game.turn() === 'w' ? 'Black' : 'White';
-}
+export const getCheckmateWinner = (game: Chess): 'White' | 'Black' =>
+  game.turn() === 'w' ? 'Black' : 'White';
 
-export function getCheckmatedKingSquare(game: Chess): string | null {
+export const getCheckmatedKingSquare = (game: Chess): string | null => {
   if (!game.isCheckmate()) {
     return null;
   }
@@ -52,24 +49,24 @@ export function getCheckmatedKingSquare(game: Chess): string | null {
   }
 
   return null;
-}
+};
 
-export function getLegalTargetSquares(game: Chess, from: Square): Square[] {
+export const getLegalTargetSquares = (game: Chess, from: Square): Square[] => {
   const moves = game.moves({ square: from, verbose: true }) as Move[];
   return [...new Set(moves.map(move => move.to))];
-}
+};
 
-export function isPromotionMove(game: Chess, from: Square, to: Square): boolean {
+export const isPromotionMove = (game: Chess, from: Square, to: Square): boolean => {
   const moves = game.moves({ square: from, verbose: true }) as Move[];
   return moves.some(move => move.to === to && move.promotion);
-}
+};
 
-export function tryMove(
+export const tryMove = (
   game: Chess,
   from: Square,
   to: Square,
   promotion: 'q' | 'r' | 'b' | 'n' = 'q',
-): Move | null {
+): Move | null => {
   const moves = game.moves({ square: from, verbose: true }) as Move[];
   const matching = moves.filter(move => move.to === to);
 
@@ -91,7 +88,7 @@ export function tryMove(
   } catch {
     return null;
   }
-}
+};
 
 export type CapturedPieces = {
   byWhite: Move['piece'][];
@@ -112,7 +109,7 @@ const sortCapturedPieces = (pieces: Move['piece'][]): Move['piece'][] =>
     (left, right) => CAPTURED_PIECE_ORDER[left] - CAPTURED_PIECE_ORDER[right],
   );
 
-export function getCapturedPieces(game: Chess): CapturedPieces {
+export const getCapturedPieces = (game: Chess): CapturedPieces => {
   const byWhite: Move['piece'][] = [];
   const byBlack: Move['piece'][] = [];
 
@@ -132,25 +129,23 @@ export function getCapturedPieces(game: Chess): CapturedPieces {
     byWhite: sortCapturedPieces(byWhite),
     byBlack: sortCapturedPieces(byBlack),
   };
-}
+};
 
-export function trySanMove(game: Chess, san: string): Move | null {
+export const trySanMove = (game: Chess, san: string): Move | null => {
   try {
     return game.move(san);
   } catch {
     return null;
   }
-}
+};
 
-export function normalizeSan(san: string): string {
-  return san.replace(/[+#!?]+$/, '');
-}
+export const normalizeSan = (san: string): string =>
+  san.replace(/[+#!?]+$/, '');
 
-export function movesMatch(actual: string, expected: string): boolean {
-  return normalizeSan(actual) === normalizeSan(expected);
-}
+export const movesMatch = (actual: string, expected: string): boolean =>
+  normalizeSan(actual) === normalizeSan(expected);
 
-export function getMoveSquares(fen: string, san: string): BoardMove | null {
+export const getMoveSquares = (fen: string, san: string): BoardMove | null => {
   const game = createGame(fen);
   const move = trySanMove(game, san);
 
@@ -159,7 +154,7 @@ export function getMoveSquares(fen: string, san: string): BoardMove | null {
   }
 
   return { from: move.from, to: move.to };
-}
+};
 
 const PIECE_NAMES: Record<Move['piece'], string> = {
   p: 'pawn',
@@ -225,7 +220,7 @@ const describeMove = (move: Move): string => {
   return `Try moving your ${piece} to ${to}`;
 };
 
-export function formatHintSentence(fen: string, san: string): string {
+export const formatHintSentence = (fen: string, san: string): string => {
   const game = createGame(fen);
   const move = trySanMove(game, san);
 
@@ -234,11 +229,10 @@ export function formatHintSentence(fen: string, san: string): string {
   }
 
   return appendMoveOutcome(describeMove(move), san);
-}
+};
 
-export function isUserMoveIndex(moveIndex: number): boolean {
-  return moveIndex % 2 === 0;
-}
+export const isUserMoveIndex = (moveIndex: number): boolean =>
+  moveIndex % 2 === 0;
 
 export type MoveHistoryRow = {
   number: number;
@@ -259,11 +253,11 @@ const isRowActive = (
   blackPly: number | null,
 ): boolean => positionIndex === whitePly || positionIndex === blackPly;
 
-export function replayGame(
+export const replayGame = (
   moves: string[],
   ply: number,
   startingFen: string = STARTING_FEN,
-): Chess {
+): Chess => {
   const game = createGame(startingFen);
   const clampedPly = Math.max(0, Math.min(ply, moves.length));
 
@@ -272,13 +266,13 @@ export function replayGame(
   }
 
   return game;
-}
+};
 
-export function getMoveHistoryRows(
+export const getMoveHistoryRows = (
   moves: string[],
   positionIndex: number,
   isLiveGameOver: boolean,
-): MoveHistoryRow[] {
+): MoveHistoryRow[] => {
   const rows: MoveHistoryRow[] = [];
   const completedPairs = Math.floor(moves.length / 2);
   const isAtLiveEnd = positionIndex === moves.length;
@@ -320,4 +314,4 @@ export function getMoveHistoryRows(
   }
 
   return rows;
-}
+};
