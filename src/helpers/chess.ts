@@ -33,6 +33,27 @@ export function getCheckmateWinner(game: Chess): 'White' | 'Black' {
   return game.turn() === 'w' ? 'Black' : 'White';
 }
 
+export function getCheckmatedKingSquare(game: Chess): string | null {
+  if (!game.isCheckmate()) {
+    return null;
+  }
+
+  const sideToMove = game.turn();
+  const board = game.board();
+
+  for (let rankIndex = 0; rankIndex < board.length; rankIndex += 1) {
+    for (let fileIndex = 0; fileIndex < board[rankIndex].length; fileIndex += 1) {
+      const piece = board[rankIndex][fileIndex];
+
+      if (piece?.type === 'k' && piece.color === sideToMove) {
+        return `${'abcdefgh'[fileIndex]}${8 - rankIndex}`;
+      }
+    }
+  }
+
+  return null;
+}
+
 export function getLegalTargetSquares(game: Chess, from: Square): Square[] {
   const moves = game.moves({ square: from, verbose: true }) as Move[];
   return [...new Set(moves.map(move => move.to))];

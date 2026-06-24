@@ -28,7 +28,12 @@ import {
   toggleCircle,
 } from "@/helpers/boardAnnotations";
 import { type BoardCoordinateMode } from "@/helpers/boardThemes";
-import type { BoardMove, PromotionPiece } from "@/helpers/chess";
+import {
+  type BoardMove,
+  createGame,
+  getCheckmatedKingSquare,
+  type PromotionPiece,
+} from "@/helpers/chess";
 import { getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
 import {
   MOVE_ANIMATION_MS,
@@ -279,12 +284,17 @@ const resolveSquareHighlight = (
   legalTargetSet: ReadonlySet<string>,
   hintSquares: BoardMove | null,
   wrongMoveSquares: BoardMove | null,
+  checkmatedKingSquare: string | null,
 ): SquareHighlight => {
   if (
     wrongMoveSquares &&
     (squareId === wrongMoveSquares.from || squareId === wrongMoveSquares.to)
   ) {
     return "wrong";
+  }
+
+  if (checkmatedKingSquare === squareId) {
+    return "checkmate";
   }
 
   if (
@@ -311,6 +321,7 @@ const resolveSquareBadgeType = (
   wrongMoveSquares: BoardMove | null,
   isSolved: boolean,
   lastMove: BoardMove | null,
+  checkmatedKingSquare: string | null,
 ): SquareBadgeType | null => {
   if (wrongMoveSquares?.to === squareId) {
     return "wrong";
@@ -318,6 +329,10 @@ const resolveSquareBadgeType = (
 
   if (hintSquares?.to === squareId) {
     return "hint";
+  }
+
+  if (checkmatedKingSquare === squareId) {
+    return "checkmate";
   }
 
   if (isSolved && lastMove?.to === squareId) {
@@ -387,6 +402,13 @@ const ChessBoard = ({
   } = useContext(BoardSettingsContext);
   const { pieceSet } = useContext(PieceSetContext);
   const board = useMemo(() => parseFenBoard(fen), [fen]);
+  const checkmatedKingSquare = useMemo(() => {
+    if (!isSolved) {
+      return null;
+    }
+
+    return getCheckmatedKingSquare(createGame(fen));
+  }, [fen, isSolved]);
   const squareLayouts = useMemo(
     () => buildSquareLayouts(board, orientation),
     [board, orientation],
@@ -738,6 +760,7 @@ const ChessBoard = ({
               legalTargetSet,
               hintSquares,
               wrongMoveSquares,
+              checkmatedKingSquare,
             );
 
             return (
@@ -762,12 +785,11 @@ const ChessBoard = ({
                         wrongMoveSquares,
                         isSolved,
                         lastMove,
+                        checkmatedKingSquare,
                       )
                     : null
                 }
                 boardTheme={boardTheme}
-                hintColor={appTheme.boardHighlight.hint}
-                lastMoveColor={appTheme.boardHighlight.lastMove}
                 accentColor={appTheme.accent}
                 promotionPicker={
                   promotionPicker?.square === id ? promotionPicker : null

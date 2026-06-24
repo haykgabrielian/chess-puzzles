@@ -6,6 +6,7 @@ export type BoardHighlight = {
   lastMove: string;
   hint: string;
   wrong: string;
+  checkmate: string;
   moveDotOnLight: string;
   moveDotOnDark: string;
   captureRingOnLight: string;
@@ -51,9 +52,10 @@ export const createBoardHighlight = (
 ): BoardHighlight => ({
   selectedOnLight: rgbaFromHex(dark, 0.15),
   selectedOnDark: rgbaFromHex("#000000", 0.13),
-  lastMove: rgbaFromHex(dark, 0.24),
+  lastMove: "rgba(155, 199, 0, 0.41)",
   hint: rgbaFromHex("#d4a72c", 0.45),
   wrong: "rgba(178, 95, 95, 0.55)",
+  checkmate: "rgba(210, 70, 45, 0.58)",
   moveDotOnLight: rgbaFromHex(dark, 0.58),
   moveDotOnDark: rgbaFromHex(light, 0.82),
   captureRingOnLight: rgbaFromHex(dark, 0.72),

@@ -3,6 +3,7 @@ import styled, { css, keyframes } from "styled-components";
 
 import PromotionPicker from "@/components/board/PromotionPicker";
 import {
+  CheckmateBadgeIcon,
   HintBadgeIcon,
   SolvedBadgeIcon,
   WrongBadgeIcon,
@@ -148,7 +149,7 @@ const PieceImage = styled.img<{ $isDragSource?: boolean; $hidden?: boolean }>`
   }};
 `;
 
-export type SquareBadgeType = "hint" | "wrong" | "solved";
+export type SquareBadgeType = "hint" | "wrong" | "solved" | "checkmate";
 
 const SquareBadge = styled.span<{
   $type: SquareBadgeType;
@@ -173,6 +174,8 @@ const SquareBadge = styled.span<{
         return "#c9a227";
       case "wrong":
         return "#b25f5f";
+      case "checkmate":
+        return "#c4482a";
       case "solved":
         return $accentColor;
     }
@@ -198,7 +201,13 @@ const SquareBadge = styled.span<{
   }
 `;
 
-export type SquareHighlight = "none" | "selected" | "target" | "hint" | "wrong";
+export type SquareHighlight =
+  | "none"
+  | "selected"
+  | "target"
+  | "hint"
+  | "wrong"
+  | "checkmate";
 
 export type BoardSquareLayout = {
   id: string;
@@ -224,8 +233,6 @@ type BoardSquareProps = {
   showCaptureIndicator: boolean;
   squareBadgeType: SquareBadgeType | null;
   boardTheme: BoardTheme;
-  hintColor: string;
-  lastMoveColor: string;
   accentColor: string;
   promotionPicker: {
     color: "w" | "b";
@@ -238,7 +245,6 @@ type BoardSquareProps = {
 const getOverlayColor = (
   highlight: SquareHighlight,
   boardHighlight: BoardHighlight,
-  hintColor: string,
   isLight: boolean,
 ): string | null => {
   switch (highlight) {
@@ -247,9 +253,11 @@ const getOverlayColor = (
         ? boardHighlight.selectedOnLight
         : boardHighlight.selectedOnDark;
     case "hint":
-      return hintColor;
+      return boardHighlight.hint;
     case "wrong":
       return boardHighlight.wrong;
+    case "checkmate":
+      return boardHighlight.checkmate;
     default:
       return null;
   }
@@ -280,6 +288,8 @@ const renderSquareBadgeIcon = (type: SquareBadgeType) => {
       return <HintBadgeIcon />;
     case "wrong":
       return <WrongBadgeIcon />;
+    case "checkmate":
+      return <CheckmateBadgeIcon />;
     case "solved":
       return <SolvedBadgeIcon />;
   }
@@ -299,8 +309,6 @@ const BoardSquare = memo(function BoardSquare({
   showCaptureIndicator,
   squareBadgeType,
   boardTheme,
-  hintColor,
-  lastMoveColor,
   accentColor,
   promotionPicker,
   isDragSource,
@@ -312,7 +320,6 @@ const BoardSquare = memo(function BoardSquare({
   const highlightColor = getOverlayColor(
     squareHighlight,
     boardTheme.highlight,
-    hintColor,
     isLight,
   );
 
@@ -327,8 +334,13 @@ const BoardSquare = memo(function BoardSquare({
       aria-selected={isSelected}
       disabled={!canInteract}
     >
-      {isLastMoveSquare && squareHighlight !== "wrong" && (
-        <LastMoveOverlay aria-hidden="true" $color={lastMoveColor} />
+      {isLastMoveSquare &&
+        squareHighlight !== "wrong" &&
+        squareHighlight !== "checkmate" && (
+        <LastMoveOverlay
+          aria-hidden="true"
+          $color={boardTheme.highlight.lastMove}
+        />
       )}
       {highlightColor && (
         <HighlightOverlay aria-hidden="true" $color={highlightColor} />
