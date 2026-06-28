@@ -22,10 +22,10 @@ export type DrawPreview = {
 };
 
 export const ANNOTATION_COLORS: Record<AnnotationColor, string> = {
-  yellow: "rgba(235, 194, 0, 0.8)",
-  red: "rgba(235, 60, 60, 0.8)",
-  blue: "rgba(60, 120, 235, 0.8)",
-  green: "rgba(60, 180, 75, 0.8)",
+  yellow: "rgba(235, 194, 0, 0.67)",
+  red: "rgba(235, 60, 60, 0.67)",
+  blue: "rgba(60, 120, 235, 0.67)",
+  green: "rgba(60, 180, 75, 0.67)",
 };
 
 const ARROW_COLOR_BY_MODIFIERS = (
