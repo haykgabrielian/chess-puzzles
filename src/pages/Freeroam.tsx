@@ -14,13 +14,15 @@ import {
   createGame,
   type GameOutcome,
   getCapturedPieces,
+  getFreeroamHistoryRows,
   getGameOutcome,
   getLegalTargetSquares,
-  getMoveHistoryRows,
+  type HistoryRowKind,
   isPromotionMove,
   type PromotionPiece,
   replayGame,
   tryMove,
+  type Variation,
 } from "@/helpers/chess";
 import { getSideToMove, STARTING_FEN } from "@/helpers/fen";
 import {
@@ -108,6 +110,7 @@ const Freeroam = () => {
   const [lastMoveByPly, setLastMoveByPly] = useState<(BoardMove | null)[]>([
     null,
   ]);
+  const [variation, setVariation] = useState<Variation | null>(null);
   const [positionIndex, setPositionIndex] = useState(0);
   const [fen, setFen] = useState(STARTING_FEN);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -127,7 +130,39 @@ const Freeroam = () => {
   const [boardOrientation, setBoardOrientation] =
     useState<BoardOrientation>("white");
 
-  const isAtLivePosition = positionIndex === moves.length;
+  // The "effective line" the user is currently navigating: the mainline up to
+  // the variation's divergence point, followed by the variation moves. When no
+  // variation is active these are just the mainline arrays. `positionIndex`
+  // always indexes into the effective line.
+  const effectiveMoves = useMemo(
+    () =>
+      variation
+        ? [...moves.slice(0, variation.startPly), ...variation.moves]
+        : moves,
+    [moves, variation],
+  );
+  const effectiveFenByPly = useMemo(
+    () =>
+      variation
+        ? [
+            ...fenByPly.slice(0, variation.startPly + 1),
+            ...variation.fenByPly.slice(1),
+          ]
+        : fenByPly,
+    [fenByPly, variation],
+  );
+  const effectiveLastMoveByPly = useMemo(
+    () =>
+      variation
+        ? [
+            ...lastMoveByPly.slice(0, variation.startPly + 1),
+            ...variation.lastMoveByPly.slice(1),
+          ]
+        : lastMoveByPly,
+    [lastMoveByPly, variation],
+  );
+
+  const isAtMainlineLiveEnd = !variation && positionIndex === moves.length;
 
   const toggleBoardOrientation = useCallback(() => {
     setBoardOrientation((current) =>
@@ -178,15 +213,22 @@ const Freeroam = () => {
     [],
   );
 
-  const applyPly = useCallback(
-    (ply: number, intent: MoveUpdateIntent, liveMoveCount = moves.length) => {
-      const nextFen = fenByPly[ply] ?? STARTING_FEN;
-      const nextLastMove = lastMoveByPly[ply] ?? null;
+  const navigateTo = useCallback(
+    (
+      ply: number,
+      fenArray: string[],
+      lastMoveArray: (BoardMove | null)[],
+      lineMoves: string[],
+      lineLength: number,
+      intent: MoveUpdateIntent,
+    ) => {
+      const nextFen = fenArray[ply] ?? STARTING_FEN;
+      const nextLastMove = lastMoveArray[ply] ?? null;
       const game = createGame(nextFen);
 
       gameRef.current = game;
       setPositionIndex(ply);
-      syncGameOutcome(game, ply === liveMoveCount);
+      syncGameOutcome(game, ply === lineLength);
       commitBoardUpdate(
         game,
         nextLastMove,
@@ -195,22 +237,48 @@ const Freeroam = () => {
       );
 
       if (intent === "historyJump" && ply !== positionIndex) {
-        playHistoryMoveSound(moves, ply, fenByPly[0] ?? STARTING_FEN);
+        playHistoryMoveSound(lineMoves, ply, fenArray[0] ?? STARTING_FEN);
       }
     },
-    [
-      commitBoardUpdate,
-      fenByPly,
-      lastMoveByPly,
-      moves,
-      positionIndex,
-      syncGameOutcome,
-    ],
+    [commitBoardUpdate, positionIndex, syncGameOutcome],
   );
 
-  const goToPly = useCallback(
-    (ply: number) => applyPly(ply, "historyJump"),
-    [applyPly],
+  // Jump to a mainline position. This is the explicit "return to the game"
+  // action, so it discards any active variation (sub-history).
+  const goToMainlinePly = useCallback(
+    (ply: number) => {
+      setVariation(null);
+      navigateTo(ply, fenByPly, lastMoveByPly, moves, moves.length, "historyJump");
+    },
+    [fenByPly, lastMoveByPly, moves, navigateTo],
+  );
+
+  // Step along the current effective line (mainline prefix + variation),
+  // keeping any active variation intact.
+  const goToEffectivePly = useCallback(
+    (ply: number) => {
+      navigateTo(
+        ply,
+        effectiveFenByPly,
+        effectiveLastMoveByPly,
+        effectiveMoves,
+        effectiveMoves.length,
+        "historyJump",
+      );
+    },
+    [effectiveFenByPly, effectiveLastMoveByPly, effectiveMoves, navigateTo],
+  );
+
+  const handleSelectPly = useCallback(
+    (ply: number, kind: HistoryRowKind) => {
+      if (kind === "variation") {
+        goToEffectivePly(ply);
+        return;
+      }
+
+      goToMainlinePly(ply);
+    },
+    [goToEffectivePly, goToMainlinePly],
   );
 
   const handleHistoryKeyDown = useEffectEvent((event: KeyboardEvent) => {
@@ -222,13 +290,16 @@ const Freeroam = () => {
 
     if (keyCode === KEY_CODE.ARROW_LEFT && positionIndex > 0) {
       event.preventDefault();
-      goToPly(positionIndex - 1);
+      goToEffectivePly(positionIndex - 1);
       return;
     }
 
-    if (keyCode === KEY_CODE.ARROW_RIGHT && positionIndex < moves.length) {
+    if (
+      keyCode === KEY_CODE.ARROW_RIGHT &&
+      positionIndex < effectiveMoves.length
+    ) {
       event.preventDefault();
-      goToPly(positionIndex + 1);
+      goToEffectivePly(positionIndex + 1);
     }
   });
 
@@ -246,6 +317,7 @@ const Freeroam = () => {
     setMoves([]);
     setFenByPly([STARTING_FEN]);
     setLastMoveByPly([null]);
+    setVariation(null);
     setPositionIndex(0);
     setFen(STARTING_FEN);
     setSelectedSquare(null);
@@ -268,6 +340,7 @@ const Freeroam = () => {
       setMoves(result.moves);
       setFenByPly(result.fenByPly);
       setLastMoveByPly(result.lastMoveByPly);
+      setVariation(null);
       setPositionIndex(finalPly);
       setSelectedSquare(null);
       setLegalTargets([]);
@@ -287,7 +360,9 @@ const Freeroam = () => {
       promotion?: PromotionPiece,
       skipAnimation = false,
     ) => {
-      const game = createGame(fenByPly[positionIndex] ?? STARTING_FEN);
+      const game = createGame(
+        effectiveFenByPly[positionIndex] ?? STARTING_FEN,
+      );
       const move = tryMove(game, from as Square, to as Square, promotion);
 
       if (!move) {
@@ -298,20 +373,48 @@ const Freeroam = () => {
 
       const nextFen = game.fen();
       const nextLastMove: BoardMove = { from: move.from, to: move.to };
-      const nextMoves = [...moves.slice(0, positionIndex), move.san];
-      const nextPly = positionIndex + 1;
+
+      if (isAtMainlineLiveEnd) {
+        // Extend the real game at its end.
+        setMoves((previous) => [...previous, move.san]);
+        setFenByPly((previous) => [
+          ...previous.slice(0, positionIndex + 1),
+          nextFen,
+        ]);
+        setLastMoveByPly((previous) => [
+          ...previous.slice(0, positionIndex + 1),
+          nextLastMove,
+        ]);
+      } else if (!variation || positionIndex <= variation.startPly) {
+        // We're on a mainline position in the middle of the game (or before the
+        // current variation's start): begin a brand-new sub-history branch.
+        const startPly = positionIndex;
+        const startFen = fenByPly[startPly] ?? STARTING_FEN;
+
+        setVariation({
+          startPly,
+          moves: [move.san],
+          fenByPly: [startFen, nextFen],
+          lastMoveByPly: [null, nextLastMove],
+        });
+      } else {
+        // We're inside the variation: extend it (truncating any forward moves
+        // if we had stepped back into it).
+        const depth = positionIndex - variation.startPly;
+
+        setVariation({
+          startPly: variation.startPly,
+          moves: [...variation.moves.slice(0, depth), move.san],
+          fenByPly: [...variation.fenByPly.slice(0, depth + 1), nextFen],
+          lastMoveByPly: [
+            ...variation.lastMoveByPly.slice(0, depth + 1),
+            nextLastMove,
+          ],
+        });
+      }
 
       gameRef.current = game;
-      setMoves(nextMoves);
-      setFenByPly((previous) => [
-        ...previous.slice(0, positionIndex + 1),
-        nextFen,
-      ]);
-      setLastMoveByPly((previous) => [
-        ...previous.slice(0, positionIndex + 1),
-        nextLastMove,
-      ]);
-      setPositionIndex(nextPly);
+      setPositionIndex(positionIndex + 1);
       syncGameOutcome(game, true);
       commitBoardUpdate(
         game,
@@ -321,7 +424,15 @@ const Freeroam = () => {
       );
       playFreeroamMoveSound(move, game);
     },
-    [commitBoardUpdate, fenByPly, moves, positionIndex, syncGameOutcome],
+    [
+      commitBoardUpdate,
+      effectiveFenByPly,
+      fenByPly,
+      isAtMainlineLiveEnd,
+      positionIndex,
+      syncGameOutcome,
+      variation,
+    ],
   );
 
   const onPromotionSelect = useCallback(
@@ -344,7 +455,7 @@ const Freeroam = () => {
 
   const onSquareClick = useCallback(
     (square: string, options?: { skipAnimation?: boolean }) => {
-      if (!isAtLivePosition || gameOutcome !== "playing") {
+      if (gameOutcome !== "playing") {
         return;
       }
 
@@ -393,7 +504,6 @@ const Freeroam = () => {
     [
       applyMove,
       gameOutcome,
-      isAtLivePosition,
       legalTargets,
       pendingPromotion,
       selectedSquare,
@@ -402,29 +512,37 @@ const Freeroam = () => {
 
   const promotionPicker = useMemo(
     () =>
-      pendingPromotion && isAtLivePosition
+      pendingPromotion
         ? {
             square: pendingPromotion.to,
             color: getSideToMove(fen),
             onSelect: onPromotionSelect,
           }
         : null,
-    [fen, isAtLivePosition, onPromotionSelect, pendingPromotion],
+    [fen, onPromotionSelect, pendingPromotion],
   );
 
   const startingFen = fenByPly[0] ?? STARTING_FEN;
   const hasProgress = hasFreeroamProgress(startingFen, moves);
 
   const openImport = useCallback(() => {
+    const mainlinePly = variation
+      ? variation.startPly
+      : Math.min(positionIndex, moves.length);
+
     setImportSnapshot({
-      pgn: exportFreeroamPgn(
-        startingFen,
-        moves.slice(0, positionIndex),
-        pgnInfo,
-      ),
-      fen: fenByPly[positionIndex] ?? fen,
+      pgn: exportFreeroamPgn(startingFen, moves.slice(0, mainlinePly), pgnInfo),
+      fen: effectiveFenByPly[positionIndex] ?? fen,
     });
-  }, [fen, fenByPly, moves, pgnInfo, positionIndex, startingFen]);
+  }, [
+    effectiveFenByPly,
+    fen,
+    moves,
+    pgnInfo,
+    positionIndex,
+    startingFen,
+    variation,
+  ]);
 
   const closeImport = useCallback(() => {
     setImportSnapshot(null);
@@ -437,16 +555,22 @@ const Freeroam = () => {
   const isLiveGameOver = liveGame.isGameOver();
 
   const capturedPieces = useMemo(
-    () => getCapturedPieces(replayGame(moves, positionIndex, startingFen)),
-    [moves, positionIndex, startingFen],
+    () =>
+      getCapturedPieces(replayGame(effectiveMoves, positionIndex, startingFen)),
+    [effectiveMoves, positionIndex, startingFen],
   );
 
   const moveHistoryRows = useMemo(
-    () => getMoveHistoryRows(moves, positionIndex, isLiveGameOver),
-    [isLiveGameOver, moves, positionIndex],
+    () =>
+      getFreeroamHistoryRows(moves, positionIndex, isLiveGameOver, variation),
+    [isLiveGameOver, moves, positionIndex, variation],
   );
 
-  const liveGameOutcome = isAtLivePosition ? gameOutcome : "playing";
+  // Show the end-of-game payoff (mate highlight + confetti) whenever we're at
+  // the live end of the line currently being viewed — the mainline end or the
+  // tip of an active variation.
+  const isAtEffectiveLiveEnd = positionIndex === effectiveMoves.length;
+  const liveGameOutcome = isAtEffectiveLiveEnd ? gameOutcome : "playing";
   const isCheckmate = liveGameOutcome === "checkmate";
 
   return (
@@ -461,7 +585,7 @@ const Freeroam = () => {
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={lastMove}
-              canInteract={isAtLivePosition && liveGameOutcome === "playing"}
+              canInteract={gameOutcome === "playing"}
               isSolved={isCheckmate}
               promotionPicker={promotionPicker}
               animationRequest={animationRequest}
@@ -488,8 +612,9 @@ const Freeroam = () => {
           <MoveHistory
             rows={moveHistoryRows}
             positionIndex={positionIndex}
-            liveMoveCount={moves.length}
-            onSelectPly={goToPly}
+            liveMoveCount={effectiveMoves.length}
+            onSelectPly={handleSelectPly}
+            onStep={goToEffectivePly}
           />
         </SidebarRoot>
       </Content>

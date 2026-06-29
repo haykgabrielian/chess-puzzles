@@ -26,6 +26,8 @@ export const lightTheme = {
   accent: "#2e7d32",
   accentMuted: "#2e7d3218",
   onAccent: "#ffffff",
+  variation: "#7c5cd6",
+  variationMuted: "#7c5cd614",
   boardHighlight: {
     selected: "rgba(200, 214, 179, 0.9)",
     lastMove: "rgba(155, 199, 0, 0.41)",
@@ -71,6 +73,8 @@ export const darkTheme = {
   accent: "#629a72",
   accentMuted: "#629a7224",
   onAccent: "#ffffff",
+  variation: "#a99bf5",
+  variationMuted: "#a99bf522",
   boardHighlight: {
     selected: "rgba(200, 214, 179, 0.9)",
     lastMove: "rgba(155, 199, 0, 0.41)",
