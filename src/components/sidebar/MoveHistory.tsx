@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 
 import Card from '@/components/ui/Card';
 import { HistoryIcon } from '@/components/ui/CardIcons';
-import type { MoveHistoryRow } from '@/helpers/chess';
+import type { HistoryRowKind, MoveHistoryRow } from '@/helpers/chess';
 
 const Root = styled.div`
   display: flex;
@@ -66,7 +66,7 @@ const HeaderCell = styled.th<{ $align?: 'left' | 'center' }>`
   }
 `;
 
-const BodyRow = styled.tr<{ $active?: boolean }>`
+const BodyRow = styled.tr<{ $active?: boolean; $variation?: boolean }>`
   ${({ $active, theme }) =>
     $active &&
     css`
@@ -90,9 +90,26 @@ const BodyRow = styled.tr<{ $active?: boolean }>`
       }
     `}
 
+  ${({ $variation, theme }) =>
+    $variation &&
+    css`
+      box-shadow: inset 3px 0 0 ${theme.variation};
+      background-color: ${theme.variationMuted};
+    `}
+
   &:not(:last-child) {
     border-bottom: 1px solid ${({ theme }) => theme.border};
   }
+`;
+
+const ContinuationMark = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 30px;
+  font-size: 0.8125rem;
+  color: ${({ theme }) => theme.text.muted};
 `;
 
 const Cell = styled.td<{ $align?: 'left' | 'center' }>`
@@ -176,9 +193,23 @@ const moveCellStyles = css<{
     `}
 `;
 
-const MoveCellButton = styled.button<{ $viewing?: boolean; $pending?: boolean }>`
+const MoveCellButton = styled.button<{
+  $viewing?: boolean;
+  $pending?: boolean;
+  $variation?: boolean;
+}>`
   ${moveCellStyles}
   cursor: pointer;
+
+  ${({ $variation, $viewing, theme }) =>
+    $variation &&
+    css`
+      font-style: italic;
+      font-weight: ${$viewing ? 700 : 500};
+      color: ${theme.variation};
+      background: ${$viewing ? theme.variationMuted : 'transparent'};
+      box-shadow: ${$viewing ? `inset 0 0 0 1px ${theme.variation}66` : 'none'};
+    `}
 
   &:hover {
     background-color: ${({ theme }) => theme.button.background};
@@ -285,10 +316,17 @@ type MoveHistoryProps = {
   rows: MoveHistoryRow[];
   positionIndex: number;
   liveMoveCount: number;
-  onSelectPly: (ply: number) => void;
+  onSelectPly: (ply: number, kind: HistoryRowKind) => void;
+  onStep: (ply: number) => void;
 };
 
-const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHistoryProps) => {
+const MoveHistory = ({
+  rows,
+  positionIndex,
+  liveMoveCount,
+  onSelectPly,
+  onStep,
+}: MoveHistoryProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeMoveRef = useRef<HTMLButtonElement>(null);
   const canGoPrevious = positionIndex > 0;
@@ -322,7 +360,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
                 type="button"
                 aria-label="Previous move"
                 disabled={!canGoPrevious}
-                onClick={() => onSelectPly(positionIndex - 1)}
+                onClick={() => onStep(positionIndex - 1)}
               >
                 <ChevronLeft />
               </NavButton>
@@ -330,7 +368,7 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
                 type="button"
                 aria-label="Next move"
                 disabled={!canGoNext}
-                onClick={() => onSelectPly(positionIndex + 1)}
+                onClick={() => onStep(positionIndex + 1)}
               >
                 <ChevronRight />
               </NavButton>
@@ -349,49 +387,61 @@ const MoveHistory = ({ rows, positionIndex, liveMoveCount, onSelectPly }: MoveHi
                 </tr>
               </TableHead>
               <tbody>
-                {rows.map(row => (
-                  <BodyRow key={row.number} $active={row.isActive}>
-                    <Cell $align="left">
-                      <MoveNumber>{row.number}</MoveNumber>
-                    </Cell>
-                    <Cell>
-                      {row.white && row.whitePly !== null ? (
-                        <MoveCellButton
-                          ref={row.isWhiteViewing ? activeMoveRef : undefined}
-                          type="button"
-                          $viewing={row.isWhiteViewing}
-                          aria-label={`Go to after ${row.white}`}
-                          aria-current={row.isWhiteViewing ? 'true' : undefined}
-                          onClick={() => onSelectPly(row.whitePly!)}
-                        >
-                          {row.white}
-                        </MoveCellButton>
-                      ) : row.pendingWhite ? (
-                        <MoveCellStatic $pending aria-label="White to move">
-                          ···
-                        </MoveCellStatic>
-                      ) : null}
-                    </Cell>
-                    <Cell>
-                      {row.black && row.blackPly !== null ? (
-                        <MoveCellButton
-                          ref={row.isBlackViewing ? activeMoveRef : undefined}
-                          type="button"
-                          $viewing={row.isBlackViewing}
-                          aria-label={`Go to after ${row.black}`}
-                          aria-current={row.isBlackViewing ? 'true' : undefined}
-                          onClick={() => onSelectPly(row.blackPly!)}
-                        >
-                          {row.black}
-                        </MoveCellButton>
-                      ) : row.pendingBlack ? (
-                        <MoveCellStatic $pending aria-label="Black to move">
-                          ···
-                        </MoveCellStatic>
-                      ) : null}
-                    </Cell>
-                  </BodyRow>
-                ))}
+                {rows.map(row => {
+                  const isVariation = row.kind === 'variation';
+
+                  return (
+                    <BodyRow
+                      key={row.key}
+                      $active={row.isActive}
+                      $variation={isVariation}
+                    >
+                      <Cell $align="left">
+                        <MoveNumber>{row.number}</MoveNumber>
+                      </Cell>
+                      <Cell>
+                        {row.white && row.whitePly !== null ? (
+                          <MoveCellButton
+                            ref={row.isWhiteViewing ? activeMoveRef : undefined}
+                            type="button"
+                            $viewing={row.isWhiteViewing}
+                            $variation={isVariation}
+                            aria-label={`Go to after ${row.white}`}
+                            aria-current={row.isWhiteViewing ? 'true' : undefined}
+                            onClick={() => onSelectPly(row.whitePly!, row.kind)}
+                          >
+                            {row.white}
+                          </MoveCellButton>
+                        ) : row.whiteContinuation ? (
+                          <ContinuationMark aria-hidden="true">…</ContinuationMark>
+                        ) : row.pendingWhite ? (
+                          <MoveCellStatic $pending aria-label="White to move">
+                            ···
+                          </MoveCellStatic>
+                        ) : null}
+                      </Cell>
+                      <Cell>
+                        {row.black && row.blackPly !== null ? (
+                          <MoveCellButton
+                            ref={row.isBlackViewing ? activeMoveRef : undefined}
+                            type="button"
+                            $viewing={row.isBlackViewing}
+                            $variation={isVariation}
+                            aria-label={`Go to after ${row.black}`}
+                            aria-current={row.isBlackViewing ? 'true' : undefined}
+                            onClick={() => onSelectPly(row.blackPly!, row.kind)}
+                          >
+                            {row.black}
+                          </MoveCellButton>
+                        ) : row.pendingBlack ? (
+                          <MoveCellStatic $pending aria-label="Black to move">
+                            ···
+                          </MoveCellStatic>
+                        ) : null}
+                      </Cell>
+                    </BodyRow>
+                  );
+                })}
               </tbody>
             </Table>
           </ScrollArea>

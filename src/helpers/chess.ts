@@ -234,7 +234,10 @@ export const formatHintSentence = (fen: string, san: string): string => {
 export const isUserMoveIndex = (moveIndex: number): boolean =>
   moveIndex % 2 === 0;
 
+export type HistoryRowKind = 'mainline' | 'variation';
+
 export type MoveHistoryRow = {
+  key: string;
   number: number;
   white: string | null;
   black: string | null;
@@ -245,6 +248,21 @@ export type MoveHistoryRow = {
   pendingBlack: boolean;
   isWhiteViewing: boolean;
   isBlackViewing: boolean;
+  kind: HistoryRowKind;
+  whiteContinuation: boolean;
+};
+
+/**
+ * A temporary "sub-history" branch. It diverges from the mainline at `startPly`
+ * (the mainline ply the user was viewing when they played the first branch
+ * move). The parallel arrays mirror the mainline ones but are local to the
+ * branch, so the mainline game is never mutated.
+ */
+export type Variation = {
+  startPly: number;
+  moves: string[];
+  fenByPly: string[];
+  lastMoveByPly: (BoardMove | null)[];
 };
 
 const isRowActive = (
@@ -268,14 +286,13 @@ export const replayGame = (
   return game;
 };
 
-export const getMoveHistoryRows = (
+const buildMainlineRows = (
   moves: string[],
-  positionIndex: number,
-  isLiveGameOver: boolean,
+  viewingPly: number,
+  showPending: boolean,
 ): MoveHistoryRow[] => {
   const rows: MoveHistoryRow[] = [];
   const completedPairs = Math.floor(moves.length / 2);
-  const isAtLiveEnd = positionIndex === moves.length;
 
   for (let index = 0; index < completedPairs; index += 1) {
     const rowNumber = index + 1;
@@ -283,16 +300,19 @@ export const getMoveHistoryRows = (
     const blackPly = index * 2 + 2;
 
     rows.push({
+      key: `main-${rowNumber}`,
       number: rowNumber,
       white: moves[index * 2] ?? null,
       black: moves[index * 2 + 1] ?? null,
       whitePly,
       blackPly,
-      isActive: isRowActive(positionIndex, whitePly, blackPly),
+      isActive: isRowActive(viewingPly, whitePly, blackPly),
       pendingWhite: false,
       pendingBlack: false,
-      isWhiteViewing: positionIndex === whitePly,
-      isBlackViewing: positionIndex === blackPly,
+      isWhiteViewing: viewingPly === whitePly,
+      isBlackViewing: viewingPly === blackPly,
+      kind: 'mainline',
+      whiteContinuation: false,
     });
   }
 
@@ -300,18 +320,111 @@ export const getMoveHistoryRows = (
     const rowNumber = completedPairs + 1;
 
     rows.push({
+      key: `main-${rowNumber}`,
       number: rowNumber,
       white: moves[moves.length - 1] ?? null,
       black: null,
       whitePly: moves.length,
       blackPly: null,
-      isActive: positionIndex === moves.length,
+      isActive: viewingPly === moves.length,
       pendingWhite: false,
-      pendingBlack: isAtLiveEnd && !isLiveGameOver,
-      isWhiteViewing: positionIndex === moves.length,
+      pendingBlack: showPending,
+      isWhiteViewing: viewingPly === moves.length,
       isBlackViewing: false,
+      kind: 'mainline',
+      whiteContinuation: false,
     });
   }
 
   return rows;
+};
+
+/**
+ * Builds variation rows. Plies are expressed as positions on the "effective
+ * line" (mainline up to `startPly`, then the branch), so they can be used
+ * directly to navigate. The first branch move follows whichever side is to move
+ * at `startPly`; if that's Black, the row leads with a continuation placeholder.
+ */
+const buildVariationRows = (
+  variation: Variation,
+  positionIndex: number,
+): MoveHistoryRow[] => {
+  const rows: MoveHistoryRow[] = [];
+  const { startPly, moves } = variation;
+  let index = 0;
+
+  while (index < moves.length) {
+    const moveNumber = Math.floor((startPly + index) / 2) + 1;
+    const whiteToMove = (startPly + index) % 2 === 0;
+
+    if (whiteToMove) {
+      const whitePly = startPly + index + 1;
+      const hasBlack = index + 1 < moves.length;
+      const blackPly = hasBlack ? startPly + index + 2 : null;
+
+      rows.push({
+        key: `var-${startPly}-${index}`,
+        number: moveNumber,
+        white: moves[index] ?? null,
+        black: hasBlack ? (moves[index + 1] ?? null) : null,
+        whitePly,
+        blackPly,
+        isActive: isRowActive(positionIndex, whitePly, blackPly),
+        pendingWhite: false,
+        pendingBlack: false,
+        isWhiteViewing: positionIndex === whitePly,
+        isBlackViewing: blackPly !== null && positionIndex === blackPly,
+        kind: 'variation',
+        whiteContinuation: false,
+      });
+      index += 2;
+    } else {
+      const blackPly = startPly + index + 1;
+
+      rows.push({
+        key: `var-${startPly}-${index}`,
+        number: moveNumber,
+        white: null,
+        black: moves[index] ?? null,
+        whitePly: null,
+        blackPly,
+        isActive: positionIndex === blackPly,
+        pendingWhite: false,
+        pendingBlack: false,
+        isWhiteViewing: false,
+        isBlackViewing: positionIndex === blackPly,
+        kind: 'variation',
+        whiteContinuation: true,
+      });
+      index += 1;
+    }
+  }
+
+  return rows;
+};
+
+export const getFreeroamHistoryRows = (
+  moves: string[],
+  positionIndex: number,
+  isLiveGameOver: boolean,
+  variation: Variation | null = null,
+): MoveHistoryRow[] => {
+  const onVariation = variation !== null && positionIndex > variation.startPly;
+  const viewingMainlinePly = onVariation ? -1 : positionIndex;
+  const showPending = !onVariation && positionIndex === moves.length && !isLiveGameOver;
+  const rows = buildMainlineRows(moves, viewingMainlinePly, showPending);
+
+  if (!variation) {
+    return rows;
+  }
+
+  const variationRows = buildVariationRows(variation, positionIndex);
+  const insertAt =
+    variation.startPly === 0 ? 0 : Math.ceil(variation.startPly / 2);
+
+  return [
+    ...rows.slice(0, insertAt),
+    ...variationRows,
+    ...rows.slice(insertAt),
+  ];
 };
