@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 
 import Card from '@/components/ui/Card';
@@ -49,7 +49,7 @@ const TableHead = styled.thead`
 
 const HeaderCell = styled.th<{ $align?: 'left' | 'center' }>`
   padding: 9px 10px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -66,39 +66,89 @@ const HeaderCell = styled.th<{ $align?: 'left' | 'center' }>`
   }
 `;
 
-const BodyRow = styled.tr<{ $active?: boolean; $variation?: boolean }>`
+const BodyRow = styled.tr<{
+  $active?: boolean;
+  $variation?: boolean;
+}>`
+  &:not(:last-child) {
+    border-bottom: 1px solid ${({ theme }) => theme.border};
+  }
+
   ${({ $active, theme }) =>
     $active &&
     css`
       background-color: ${theme.accentMuted};
-
-      td {
-        padding-top: 4px;
-        padding-bottom: 4px;
-      }
-
-      td:first-child {
-        padding-left: 8px;
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-      }
-
-      td:last-child {
-        padding-right: 8px;
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-      }
     `}
 
   ${({ $variation, theme }) =>
     $variation &&
     css`
-      box-shadow: inset 3px 0 0 ${theme.variation};
       background-color: ${theme.variationMuted};
-    `}
 
-  &:not(:last-child) {
-    border-bottom: 1px solid ${({ theme }) => theme.border};
+      &:not(:last-child) {
+        border-bottom-color: ${theme.variation}1f;
+      }
+
+      td:first-child {
+        position: relative;
+        padding-left: 22px;
+      }
+
+      td:first-child::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 3px;
+        background-color: ${theme.variation};
+      }
+    `}
+`;
+
+const VariationHeaderRow = styled.tr`
+  background-color: ${({ theme }) => theme.variationMuted};
+
+  td {
+    position: relative;
+    height: 40px;
+    padding: 0 10px 0 22px;
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+
+  td::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background-color: ${({ theme }) => theme.variation};
+  }
+`;
+
+const BranchBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.variation};
+  background-color: ${({ theme }) => theme.variationMuted};
+  box-shadow: inset 0 0 0 1px ${({ theme }) => `${theme.variation}33`};
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    flex-shrink: 0;
   }
 `;
 
@@ -107,13 +157,15 @@ const ContinuationMark = styled.span`
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 30px;
-  font-size: 0.8125rem;
+  min-height: 28px;
+  font-size: 0.875rem;
   color: ${({ theme }) => theme.text.muted};
 `;
 
 const Cell = styled.td<{ $align?: 'left' | 'center' }>`
   padding: 2px 6px;
+  height: 40px;
+  box-sizing: border-box;
   vertical-align: middle;
   text-align: ${({ $align = 'center' }) => $align};
 
@@ -131,8 +183,9 @@ const MoveNumber = styled.span`
   align-items: center;
   justify-content: flex-start;
   min-width: 28px;
-  padding: 6px 4px;
-  font-size: 0.8125rem;
+  min-height: 36px;
+  padding: 0 4px;
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
   color: ${({ theme }) => theme.text.secondary};
@@ -147,13 +200,13 @@ const moveCellStyles = css<{
   align-items: center;
   justify-content: center;
   min-width: 44px;
-  min-height: 30px;
-  padding: 4px 10px;
+  min-height: 28px;
+  padding: 2px 8px;
   border: none;
   border-radius: 6px;
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: ${({ $viewing, $pending }) => ($viewing || $pending ? 700 : 500)};
+  font-size: 0.875rem;
+  font-weight: ${({ $pending }) => ($pending ? 700 : 500)};
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   color: ${({ theme, $viewing, $pending }) => {
@@ -186,10 +239,6 @@ const moveCellStyles = css<{
       &:hover {
         background-color: ${theme.button.background};
       }
-
-      &:active {
-        background-color: ${theme.button.hover};
-      }
     `}
 `;
 
@@ -200,23 +249,29 @@ const MoveCellButton = styled.button<{
 }>`
   ${moveCellStyles}
   cursor: pointer;
+  outline: none;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
 
   ${({ $variation, $viewing, theme }) =>
     $variation &&
     css`
       font-style: italic;
-      font-weight: ${$viewing ? 700 : 500};
       color: ${theme.variation};
       background: ${$viewing ? theme.variationMuted : 'transparent'};
       box-shadow: ${$viewing ? `inset 0 0 0 1px ${theme.variation}66` : 'none'};
     `}
 
   &:hover {
-    background-color: ${({ theme }) => theme.button.background};
-  }
-
-  &:active {
-    background-color: ${({ theme }) => theme.button.hover};
+    background-color: ${({ theme, $viewing, $variation }) =>
+      $viewing
+        ? $variation
+          ? theme.variationMuted
+          : theme.accentMuted
+        : theme.button.background};
   }
 `;
 
@@ -312,6 +367,24 @@ const ChevronRight = () => (
   </svg>
 );
 
+const BranchIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="6" cy="5" r="2.5" />
+    <circle cx="6" cy="19" r="2.5" />
+    <circle cx="18" cy="12" r="2.5" />
+    <path d="M6 7.5v9" />
+    <path d="M6 12h6.5a3 3 0 0 0 3-3" />
+  </svg>
+);
+
 type MoveHistoryProps = {
   rows: MoveHistoryRow[];
   positionIndex: number;
@@ -387,18 +460,30 @@ const MoveHistory = ({
                 </tr>
               </TableHead>
               <tbody>
-                {rows.map(row => {
+                {rows.map((row, index) => {
                   const isVariation = row.kind === 'variation';
+                  const isVariationStart =
+                    isVariation && rows[index - 1]?.kind !== 'variation';
 
                   return (
-                    <BodyRow
-                      key={row.key}
-                      $active={row.isActive}
-                      $variation={isVariation}
-                    >
-                      <Cell $align="left">
-                        <MoveNumber>{row.number}</MoveNumber>
-                      </Cell>
+                    <Fragment key={row.key}>
+                      {isVariationStart && (
+                        <VariationHeaderRow>
+                          <Cell colSpan={3} $align="left">
+                            <BranchBadge>
+                              <BranchIcon />
+                              Variation
+                            </BranchBadge>
+                          </Cell>
+                        </VariationHeaderRow>
+                      )}
+                      <BodyRow
+                        $active={row.isActive}
+                        $variation={isVariation}
+                      >
+                        <Cell $align="left">
+                          <MoveNumber>{row.number}</MoveNumber>
+                        </Cell>
                       <Cell>
                         {row.white && row.whitePly !== null ? (
                           <MoveCellButton
@@ -440,6 +525,7 @@ const MoveHistory = ({
                         ) : null}
                       </Cell>
                     </BodyRow>
+                    </Fragment>
                   );
                 })}
               </tbody>
