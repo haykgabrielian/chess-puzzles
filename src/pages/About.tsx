@@ -1,22 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { useContext } from "react";
 import styled from "styled-components";
 
+import aboutBannerImg from "@/assets/about_banner.png";
+import aboutBannerBackgroundImg from "@/assets/about_banner_background.png";
 import londonSystemImg from "@/assets/board_annotation_london_system.png";
 import sicilianDefenseImg from "@/assets/board_annotation_sicilian_defense.png";
 import boardAnnotationsImg from "@/assets/board_annotations.png";
 import moveHintsImg from "@/assets/move_hints.png";
 import Header from "@/components/Header";
-import Card from "@/components/ui/Card";
 import {
   CalendarIcon,
   FreeroamIcon,
   HintIcon,
   PuzzleInfoIcon,
 } from "@/components/ui/CardIcons";
-import { PieceSetContext } from "@/context/PieceSetContext";
 import { formatDateForUrl, getToday } from "@/helpers/date";
-import type { Piece } from "@/helpers/fen";
 
 const MOBILE = "@media (max-width: 900px)";
 
@@ -26,48 +24,64 @@ const Page = styled.div`
   color: ${({ theme }) => theme.text.primary};
 `;
 
-const Content = styled.main`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px 72px;
-  box-sizing: border-box;
-
-  @media (max-width: 600px) {
-    padding: 28px 16px 56px;
-  }
-`;
-
 const Hero = styled.section`
-  margin-bottom: 48px;
-  padding-bottom: 40px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  position: relative;
+  background-color: ${({ theme }) => theme.background.secondary};
 
-  @media (max-width: 600px) {
-    margin-bottom: 36px;
-    padding-bottom: 32px;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url(${aboutBannerBackgroundImg});
+    background-repeat: repeat;
+    background-size: min(960px, 92vw) auto;
+    opacity: 0.7;
+    pointer-events: none;
   }
 `;
 
-const HeroInfo = styled.div`
+const HeroInner = styled.div`
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: clamp(12px, 2vw, 24px);
+  align-items: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 52px) 24px;
+
+  ${MOBILE} {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 40px;
+  }
+`;
+
+const HeroCopy = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  text-align: left;
-  max-width: 640px;
+  min-width: 0;
 `;
 
 const HeroTitle = styled.h1`
-  margin: 0 0 10px;
-  font-size: clamp(1.625rem, 3vw, 2.125rem);
+  margin: 0 0 16px;
+  font-size: clamp(1.75rem, 3.5vw, 2.625rem);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: ${({ theme }) => theme.text.primary};
+
+  em {
+    font-style: normal;
+    color: ${({ theme }) => theme.accent};
+  }
 `;
 
 const HeroLead = styled.p`
   margin: 0 0 28px;
-  max-width: 52ch;
-  font-size: 1.0625rem;
+  max-width: 46ch;
+  font-size: clamp(0.9375rem, 1.5vw, 1.0625rem);
   line-height: 1.65;
   color: ${({ theme }) => theme.text.secondary};
 `;
@@ -75,20 +89,50 @@ const HeroLead = styled.p`
 const HeroActions = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 `;
 
-const HeroActionLink = styled.span`
+const PrimaryButton = styled.span`
   & > a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 14px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: ${({ theme }) => theme.onAccent};
+    background-color: ${({ theme }) => theme.accent};
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    span {
+      color: inherit;
+    }
+  }
+`;
+
+const SecondaryButton = styled.span`
+  & > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
     border: 1px solid ${({ theme }) => theme.accent};
     border-radius: 8px;
-    font-size: 0.8125rem;
-    font-weight: 500;
+    font-size: 0.9375rem;
+    font-weight: 600;
     text-decoration: none;
     color: ${({ theme }) => theme.accent};
     background-color: transparent;
@@ -99,151 +143,189 @@ const HeroActionLink = styled.span`
     }
 
     svg {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
     }
   }
 `;
 
-const SectionHeading = styled.h2`
-  margin: 0 0 28px;
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-`;
-
-const ShowcaseList = styled.div`
+const HeroVisual = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 40px;
-  margin-bottom: 48px;
+  justify-content: flex-start;
+  min-width: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    height: auto;
+  }
+
+  ${MOBILE} {
+    order: -1;
+    justify-content: center;
+
+    img {
+      max-width: 280px;
+    }
+  }
 `;
 
-const Showcase = styled.article<{ $reverse?: boolean }>`
+const FeatureSection = styled.section<{ $alt?: boolean }>`
+  background-color: ${({ theme, $alt }) =>
+    $alt ? theme.background.primary : theme.background.secondary};
+`;
+
+const FeatureInner = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 28px;
-  align-items: stretch;
-
-  ${({ $reverse }) =>
-    $reverse
-      ? `
-    direction: rtl;
-
-    & > * {
-      direction: ltr;
-    }
-  `
-      : ""}
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 48px) 24px;
 
   ${MOBILE} {
     grid-template-columns: 1fr;
-    gap: 18px;
-    direction: ltr;
-
-    & > * {
-      direction: ltr;
-    }
+    gap: 20px;
+    padding: 28px 20px;
   }
 `;
 
-const ShowcaseFigure = styled.figure`
-  margin: 0;
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: ${({ theme }) => theme.card.background};
-  box-shadow: 0 10px 28px ${({ theme }) => theme.accentMuted};
-`;
-
-const ShowcaseImage = styled.img`
-  display: block;
-  width: 100%;
-  height: auto;
-  vertical-align: middle;
-`;
-
-const ShowcaseCaption = styled.figcaption`
-  padding: 10px 14px;
-  font-size: 0.8125rem;
-  color: ${({ theme }) => theme.text.muted};
-  border-top: 1px solid ${({ theme }) => theme.border};
-`;
-
-const ShowcaseBody = styled.div`
+const FeatureCopy = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
+  min-width: 0;
 `;
 
-const ShowcaseAccent = styled.div`
-  flex: 1;
-  display: flex;
+const FeatureLabel = styled.p`
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-height: 0;
-  margin-top: 20px;
-`;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.muted};
 
-const ShowcaseAccentPiece = styled.img<{ $opacity: number }>`
-  width: min(176px, 78%);
-  height: auto;
-  opacity: ${({ $opacity }) => $opacity};
-  pointer-events: none;
-  user-select: none;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.12));
-
-  ${MOBILE} {
-    width: min(132px, 64%);
+  svg {
+    width: 16px;
+    height: 16px;
+    color: ${({ theme }) => theme.accent};
   }
 `;
 
-const ShowcaseLabel = styled.p`
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+const FeatureTitle = styled.h2`
   margin: 0 0 10px;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   color: ${({ theme }) => theme.accent};
 `;
 
-const ShowcaseTitle = styled.h3`
-  margin: 0 0 10px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.25;
+const FeatureText = styled.p`
+  margin: 0;
+  max-width: 42ch;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: ${({ theme }) => theme.text.secondary};
+
+  ${MOBILE} {
+    max-width: none;
+  }
 `;
 
-const ShowcaseText = styled.p`
-  margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.65;
-  color: ${({ theme }) => theme.text.secondary};
+const FeatureVisual = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+
+  ${MOBILE} {
+    justify-content: flex-start;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    border-radius: 8px;
+  }
+`;
+
+const SectionBand = styled.section`
+  background-color: ${({ theme }) => theme.background.secondary};
+`;
+
+const SectionInner = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) 24px;
+
+  ${MOBILE} {
+    padding: 40px 20px;
+  }
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0 0 32px;
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: ${({ theme }) => theme.text.primary};
 `;
 
 const ModeGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 20px;
 
   ${MOBILE} {
     grid-template-columns: 1fr;
   }
 `;
 
-const FeatureText = styled.p`
+const ModeCard = styled.article`
+  display: flex;
+  flex-direction: column;
+  padding: clamp(24px, 3vw, 32px);
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  background-color: ${({ theme }) => theme.card.background};
+`;
+
+const ModeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  svg {
+    width: 22px;
+    height: 22px;
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const ModeTitle = styled.h3`
   margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+`;
+
+const ModeText = styled.p`
+  margin: 0 0 18px;
+  flex: 1;
   font-size: 0.9375rem;
   line-height: 1.65;
   color: ${({ theme }) => theme.text.secondary};
 `;
 
-const FeatureLinkWrap = styled.div`
-  margin-top: 14px;
-
+const ModeLink = styled.span`
   & > a {
     display: inline-flex;
     align-items: center;
@@ -265,13 +347,40 @@ const FeatureLinkWrap = styled.div`
   }
 `;
 
+const ExtrasPanel = styled.div`
+  margin-top: clamp(32px, 4vw, 48px);
+  padding: clamp(28px, 4vw, 36px);
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  background-color: ${({ theme }) => theme.card.background};
+`;
+
+const ExtrasHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  svg {
+    width: 22px;
+    height: 22px;
+    color: ${({ theme }) => theme.accent};
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+`;
+
 const InfoList = styled.ul`
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 20px;
+  gap: 12px 28px;
 
   ${MOBILE} {
     grid-template-columns: 1fr;
@@ -297,32 +406,81 @@ const InfoItem = styled.li`
   }
 `;
 
-type ShowcaseAccentKey = "hints" | "arrows" | "sandbox" | "openings";
+const DeviceSection = styled.section`
+  background-color: ${({ theme }) => theme.background.primary};
+`;
 
-const SHOWCASE_ACCENT_PIECES: Record<
-  ShowcaseAccentKey,
-  { piece: Piece; opacity: number }
-> = {
-  hints: { piece: "q", opacity: 0.2 },
-  arrows: { piece: "b", opacity: 0.2 },
-  sandbox: { piece: "k", opacity: 0.2 },
-  openings: { piece: "n", opacity: 0.2 },
-};
+const DeviceInner = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) 24px;
+  text-align: center;
 
-const ShowcasePieceDecor = ({ piece }: { piece: ShowcaseAccentKey }) => {
-  const { pieceSet } = useContext(PieceSetContext);
-  const accent = SHOWCASE_ACCENT_PIECES[piece];
+  ${MOBILE} {
+    padding: 40px 20px;
+  }
+`;
 
-  return (
-    <ShowcaseAccent aria-hidden="true">
-      <ShowcaseAccentPiece
-        src={pieceSet.images[accent.piece]}
-        alt=""
-        $opacity={accent.opacity}
-      />
-    </ShowcaseAccent>
-  );
-};
+const DeviceTitle = styled.h2`
+  margin: 0 0 14px;
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+`;
+
+const DeviceText = styled.p`
+  margin: 0 0 28px;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: ${({ theme }) => theme.text.secondary};
+`;
+
+const DeviceIcons = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+`;
+
+const DeviceBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.text.secondary};
+  background-color: ${({ theme }) => theme.card.background};
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: ${({ theme }) => theme.accent};
+  }
+`;
+
+const BoardToolsIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M7 17L17 7" />
+    <path d="M7 7l3 3" />
+    <path d="M7 7l-3 3" />
+    <path d="M17 17l-3-3" />
+    <path d="M17 17l3-3" />
+  </svg>
+);
 
 const ArrowIcon = () => (
   <svg
@@ -337,206 +495,237 @@ const ArrowIcon = () => (
   </svg>
 );
 
+const DesktopIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M8 21h8" />
+    <path d="M12 17v4" />
+  </svg>
+);
+
+const TabletIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="4" y="2" width="16" height="20" rx="2" />
+    <path d="M12 18h.01" />
+  </svg>
+);
+
+const PhoneIcon = () => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="5" y="2" width="14" height="20" rx="2" />
+    <path d="M12 18h.01" />
+  </svg>
+);
+
+const FEATURES = [
+  {
+    label: "Puzzle mode",
+    icon: <HintIcon />,
+    title: "Hints that nudge, not spoil",
+    text: "Each daily puzzle plays out move by move. When you need help, request a hint to see the next square pair, legal move dots, and capture rings — plus a lightbulb badge on the source square. Wrong tries are marked in red so you can adjust quickly, and confetti celebrates the winning move.",
+    image: moveHintsImg,
+    alt: "Chess board showing move hints with highlighted squares, move dots, and a lightbulb hint badge",
+  },
+  {
+    label: "Board tools",
+    icon: <BoardToolsIcon />,
+    title: "Annotate positions with arrows",
+    text: "Right-click and drag between squares to draw arrows in yellow, green, blue, or red. Use them while solving to trace candidate lines, or in Sandbox to walk through an opening plan. Arrows clear when the position changes so the board stays readable.",
+    image: boardAnnotationsImg,
+    alt: "Chess board with colored annotation arrows showing tactical lines toward the king",
+  },
+  {
+    label: "Sandbox",
+    icon: <FreeroamIcon />,
+    title: "A board for your own lines",
+    text: "Sandbox drops the puzzle rules and gives you a full chess board from the starting position. Move either side, step through move history, track captures, and reset anytime. It's the same polished board — themes, sounds, drag-and-drop — without a clock or scoreboard.",
+    image: londonSystemImg,
+    alt: "Chess board in a London System setup with yellow arrows showing typical development moves",
+  },
+  {
+    label: "Openings",
+    icon: <FreeroamIcon />,
+    title: "Walk through opening ideas",
+    text: "Use Sandbox to set up any opening and mark the plans with arrows. Trace knight development, pawn breaks, and pressure on the center — whether you're studying the Sicilian, the London, or your own repertoire. Annotations stay on the board until you move or reset.",
+    image: sicilianDefenseImg,
+    alt: "Sicilian Defense position after 1.e4 c5 with red arrows showing typical knight development and pressure on the e4 pawn",
+  },
+];
+
 const About = () => {
   const todayDate = formatDateForUrl(getToday());
 
   return (
     <Page>
       <Header />
-      <Content>
-        <Hero>
-          <HeroInfo>
-            <HeroTitle>Daily puzzles &amp; a free board</HeroTitle>
+      <Hero>
+        <HeroInner>
+          <HeroCopy>
+            <HeroTitle>
+              Daily puzzles &amp; a free board for <em>chess practice</em>
+            </HeroTitle>
             <HeroLead>
               Solve Chess.com tactics by date, use hints when you&apos;re stuck,
               or open Sandbox to explore lines — no account required.
             </HeroLead>
             <HeroActions>
-              <HeroActionLink>
+              <PrimaryButton>
                 <Link to="/$date" params={{ date: todayDate }}>
                   <CalendarIcon />
                   Today&apos;s puzzle
                 </Link>
-              </HeroActionLink>
-              <HeroActionLink>
+              </PrimaryButton>
+              <SecondaryButton>
                 <Link to="/freeroam">
                   <FreeroamIcon />
-                  Sandbox
+                  Open Sandbox
                 </Link>
-              </HeroActionLink>
+              </SecondaryButton>
             </HeroActions>
-          </HeroInfo>
-        </Hero>
+          </HeroCopy>
+          <HeroVisual>
+            <img src={aboutBannerImg} alt="Chess puzzle board with hints and annotations" />
+          </HeroVisual>
+        </HeroInner>
+      </Hero>
 
-        <SectionHeading>How it works</SectionHeading>
+      {FEATURES.map((feature, index) => (
+        <FeatureSection key={feature.title} $alt={index % 2 === 1}>
+          <FeatureInner>
+            <FeatureCopy>
+              <FeatureLabel>
+                {feature.icon}
+                {feature.label}
+              </FeatureLabel>
+              <FeatureTitle>{feature.title}</FeatureTitle>
+              <FeatureText>{feature.text}</FeatureText>
+            </FeatureCopy>
+            <FeatureVisual>
+              <img src={feature.image} alt={feature.alt} />
+            </FeatureVisual>
+          </FeatureInner>
+        </FeatureSection>
+      ))}
 
-        <ShowcaseList>
-          <Showcase>
-            <ShowcaseFigure>
-              <ShowcaseImage
-                src={moveHintsImg}
-                alt="Chess board showing move hints with highlighted squares, move dots, and a lightbulb hint badge"
-              />
-              <ShowcaseCaption>
-                Hints highlight the next move, legal targets, and captures.
-              </ShowcaseCaption>
-            </ShowcaseFigure>
-            <ShowcaseBody>
-              <ShowcaseLabel>
-                <HintIcon />
-                Puzzle mode
-              </ShowcaseLabel>
-              <ShowcaseTitle>Hints that nudge, not spoil</ShowcaseTitle>
-              <ShowcaseText>
-                Each daily puzzle plays out move by move. When you need help,
-                request a hint to see the next square pair, legal move dots,
-                and capture rings — plus a lightbulb badge on the source
-                square. Wrong tries are marked in red so you can adjust
-                quickly, and confetti celebrates the winning move.
-              </ShowcaseText>
-              <ShowcasePieceDecor piece="hints" />
-            </ShowcaseBody>
-          </Showcase>
+      <SectionBand>
+        <SectionInner>
+          <SectionTitle>Two ways to play</SectionTitle>
+          <ModeGrid>
+            <ModeCard>
+              <ModeHeader>
+                <CalendarIcon />
+                <ModeTitle>Daily Puzzles</ModeTitle>
+              </ModeHeader>
+              <ModeText>
+                Browse puzzles by date with the calendar sidebar. Each day loads
+                the official daily puzzle — work through the solution line, use
+                hints when you need them, and share or revisit any date via its
+                URL.
+              </ModeText>
+              <ModeLink>
+                <Link to="/$date" params={{ date: todayDate }}>
+                  Play today&apos;s puzzle
+                  <ArrowIcon />
+                </Link>
+              </ModeLink>
+            </ModeCard>
 
-          <Showcase $reverse>
-            <ShowcaseFigure>
-              <ShowcaseImage
-                src={boardAnnotationsImg}
-                alt="Chess board with colored annotation arrows showing tactical lines toward the king"
-              />
-              <ShowcaseCaption>
-                Draw arrows on the board to mark plans and threats.
-              </ShowcaseCaption>
-            </ShowcaseFigure>
-            <ShowcaseBody>
-              <ShowcaseLabel>
-                <PuzzleInfoIcon />
-                Board tools
-              </ShowcaseLabel>
-              <ShowcaseTitle>Annotate positions with arrows</ShowcaseTitle>
-              <ShowcaseText>
-                Right-click and drag between squares to draw arrows in yellow,
-                green, blue, or red. Use them while solving to trace candidate
-                lines, or in Sandbox to walk through an opening plan. Arrows
-                clear when the position changes so the board stays readable.
-              </ShowcaseText>
-              <ShowcasePieceDecor piece="arrows" />
-            </ShowcaseBody>
-          </Showcase>
-
-          <Showcase>
-            <ShowcaseFigure>
-              <ShowcaseImage
-                src={londonSystemImg}
-                alt="Chess board in a London System setup with yellow arrows showing typical development moves"
-              />
-              <ShowcaseCaption>
-                Map out ideas in Sandbox with the same annotation tools.
-              </ShowcaseCaption>
-            </ShowcaseFigure>
-            <ShowcaseBody>
-              <ShowcaseLabel>
+            <ModeCard>
+              <ModeHeader>
                 <FreeroamIcon />
-                Sandbox
-              </ShowcaseLabel>
-              <ShowcaseTitle>A board for your own lines</ShowcaseTitle>
-              <ShowcaseText>
-                Sandbox drops the puzzle rules and gives you a full chess board
-                from the starting position. Move either side, step through move
-                history, track captures, and reset anytime. It&apos;s the same
-                polished board — themes, sounds, drag-and-drop — without a
-                clock or scoreboard.
-              </ShowcaseText>
-              <ShowcasePieceDecor piece="sandbox" />
-            </ShowcaseBody>
-          </Showcase>
+                <ModeTitle>Sandbox</ModeTitle>
+              </ModeHeader>
+              <ModeText>
+                A full chess board with no puzzle rules. Move either side from the
+                starting position, annotate with arrows, track captured pieces,
+                and reset anytime. Perfect for trying ideas at your own pace.
+              </ModeText>
+              <ModeLink>
+                <Link to="/freeroam">
+                  Open Sandbox
+                  <ArrowIcon />
+                </Link>
+              </ModeLink>
+            </ModeCard>
+          </ModeGrid>
 
-          <Showcase $reverse>
-            <ShowcaseFigure>
-              <ShowcaseImage
-                src={sicilianDefenseImg}
-                alt="Sicilian Defense position after 1.e4 c5 with red arrows showing typical knight development and pressure on the e4 pawn"
-              />
-              <ShowcaseCaption>
-                Sicilian Defense after 1.e4 c5 — typical black setup and
-                ideas.
-              </ShowcaseCaption>
-            </ShowcaseFigure>
-            <ShowcaseBody>
-              <ShowcaseLabel>
-                <FreeroamIcon />
-                Openings
-              </ShowcaseLabel>
-              <ShowcaseTitle>Walk through opening ideas</ShowcaseTitle>
-              <ShowcaseText>
-                Use Sandbox to set up any opening and mark the plans with
-                arrows. Trace knight development, pawn breaks, and pressure on
-                the center — whether you&apos;re studying the Sicilian, the
-                London, or your own repertoire. Annotations stay on the board
-                until you move or reset.
-              </ShowcaseText>
-              <ShowcasePieceDecor piece="openings" />
-            </ShowcaseBody>
-          </Showcase>
-        </ShowcaseList>
+          <ExtrasPanel>
+            <ExtrasHeader>
+              <PuzzleInfoIcon />
+              <h3>Everything else</h3>
+            </ExtrasHeader>
+            <InfoList>
+              <InfoItem>
+                Date-based URLs so every puzzle has its own link to share or
+                revisit
+              </InfoItem>
+              <InfoItem>
+                Puzzle data synced locally from Chess.com — no sign-in needed
+              </InfoItem>
+              <InfoItem>
+                Multiple board themes, piece sets, and light or dark mode
+              </InfoItem>
+              <InfoItem>
+                Move sounds for captures, checks, castles, and more
+              </InfoItem>
+              <InfoItem>
+                Drag-and-drop pieces with optional move animation
+              </InfoItem>
+              <InfoItem>
+                Keyboard-friendly move history navigation in Sandbox
+              </InfoItem>
+            </InfoList>
+          </ExtrasPanel>
+        </SectionInner>
+      </SectionBand>
 
-        <SectionHeading>Two ways to play</SectionHeading>
-
-        <ModeGrid>
-          <Card title="Daily Puzzles" icon={<CalendarIcon />}>
-            <FeatureText>
-              Browse puzzles by date with the calendar sidebar. Each day loads
-              the official daily puzzle — work through the solution line, use
-              hints when you need them, and share or revisit any date via its
-              URL.
-            </FeatureText>
-            <FeatureLinkWrap>
-              <Link to="/$date" params={{ date: todayDate }}>
-                Play today&apos;s puzzle
-                <ArrowIcon />
-              </Link>
-            </FeatureLinkWrap>
-          </Card>
-
-          <Card title="Sandbox" icon={<FreeroamIcon />}>
-            <FeatureText>
-              A full chess board with no puzzle rules. Move either side from the
-              starting position, annotate with arrows, track captured pieces,
-              and reset anytime. Perfect for trying ideas at your own pace.
-            </FeatureText>
-            <FeatureLinkWrap>
-              <Link to="/freeroam">
-                Open Sandbox
-                <ArrowIcon />
-              </Link>
-            </FeatureLinkWrap>
-          </Card>
-        </ModeGrid>
-
-        <Card title="Everything else" icon={<PuzzleInfoIcon />}>
-          <InfoList>
-            <InfoItem>
-              Date-based URLs so every puzzle has its own link to share or
-              revisit
-            </InfoItem>
-            <InfoItem>
-              Puzzle data synced locally from Chess.com — no sign-in needed
-            </InfoItem>
-            <InfoItem>
-              Multiple board themes, piece sets, and light or dark mode
-            </InfoItem>
-            <InfoItem>
-              Move sounds for captures, checks, castles, and more
-            </InfoItem>
-            <InfoItem>
-              Drag-and-drop pieces with optional move animation
-            </InfoItem>
-            <InfoItem>
-              Keyboard-friendly move history navigation in Sandbox
-            </InfoItem>
-          </InfoList>
-        </Card>
-      </Content>
+      <DeviceSection>
+        <DeviceInner>
+          <DeviceTitle>Play on any device</DeviceTitle>
+          <DeviceText>
+            The board adapts to your screen — solve puzzles on desktop, review
+            lines on a tablet, or grab a quick tactic on your phone.
+          </DeviceText>
+          <DeviceIcons>
+            <DeviceBadge>
+              <DesktopIcon />
+              Desktop
+            </DeviceBadge>
+            <DeviceBadge>
+              <TabletIcon />
+              Tablet
+            </DeviceBadge>
+            <DeviceBadge>
+              <PhoneIcon />
+              Mobile
+            </DeviceBadge>
+          </DeviceIcons>
+        </DeviceInner>
+      </DeviceSection>
     </Page>
   );
 };
