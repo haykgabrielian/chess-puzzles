@@ -4,7 +4,7 @@ export const lightTheme = {
     secondary: "#ffffff",
   },
   text: {
-    primary: "#222222",
+    primary: "#282828",
     secondary: "#555555",
     muted: "#888888",
   },
@@ -15,7 +15,7 @@ export const lightTheme = {
   },
   header: {
     background: "#FDFDFD",
-    text: "#222222",
+    text: "#282828",
   },
   card: {
     background: "#ffffff",
@@ -23,8 +23,8 @@ export const lightTheme = {
   popover: {
     background: "#ffffff",
   },
-  accent: "#2e7d32",
-  accentMuted: "#2e7d3218",
+  accent: "#3A7859",
+  accentMuted: "#3A785918",
   onAccent: "#ffffff",
   variation: "#1565c0",
   variationMuted: "#1565c016",
@@ -70,8 +70,8 @@ export const darkTheme = {
   popover: {
     background: "#40414F",
   },
-  accent: "#629a72",
-  accentMuted: "#629a7224",
+  accent: "#3A7859",
+  accentMuted: "#3A785924",
   onAccent: "#ffffff",
   variation: "#90caf9",
   variationMuted: "#1565c028",

@@ -218,11 +218,16 @@ const FeatureLabel = styled.p`
 
 const FeatureTitle = styled.h2`
   margin: 0 0 10px;
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.02em;
-  color: ${({ theme }) => theme.accent};
+  color: ${({ theme }) => theme.text.primary};
+
+  em {
+    font-style: normal;
+    color: ${({ theme }) => theme.accent};
+  }
 `;
 
 const FeatureText = styled.p`
@@ -545,7 +550,11 @@ const FEATURES = [
   {
     label: "Puzzle mode",
     icon: <HintIcon />,
-    title: "Hints that nudge, not spoil",
+    title: (
+      <>
+        <em>Hints</em> that nudge, not spoil
+      </>
+    ),
     text: "Each daily puzzle plays out move by move. When you need help, request a hint to see the next square pair, legal move dots, and capture rings — plus a lightbulb badge on the source square. Wrong tries are marked in red so you can adjust quickly, and confetti celebrates the winning move.",
     image: moveHintsImg,
     alt: "Chess board showing move hints with highlighted squares, move dots, and a lightbulb hint badge",
@@ -553,7 +562,11 @@ const FEATURES = [
   {
     label: "Board tools",
     icon: <BoardToolsIcon />,
-    title: "Annotate positions with arrows",
+    title: (
+      <>
+        Annotate positions with <em>arrows</em>
+      </>
+    ),
     text: "Right-click and drag between squares to draw arrows in yellow, green, blue, or red. Use them while solving to trace candidate lines, or in Sandbox to walk through an opening plan. Arrows clear when the position changes so the board stays readable.",
     image: boardAnnotationsImg,
     alt: "Chess board with colored annotation arrows showing tactical lines toward the king",
@@ -561,7 +574,11 @@ const FEATURES = [
   {
     label: "Sandbox",
     icon: <FreeroamIcon />,
-    title: "A board for your own lines",
+    title: (
+      <>
+        A <em>board</em> for your own lines
+      </>
+    ),
     text: "Sandbox drops the puzzle rules and gives you a full chess board from the starting position. Move either side, step through move history, track captures, and reset anytime. It's the same polished board — themes, sounds, drag-and-drop — without a clock or scoreboard.",
     image: londonSystemImg,
     alt: "Chess board in a London System setup with yellow arrows showing typical development moves",
@@ -569,7 +586,11 @@ const FEATURES = [
   {
     label: "Openings",
     icon: <FreeroamIcon />,
-    title: "Walk through opening ideas",
+    title: (
+      <>
+        Walk through <em>opening</em> ideas
+      </>
+    ),
     text: "Use Sandbox to set up any opening and mark the plans with arrows. Trace knight development, pawn breaks, and pressure on the center — whether you're studying the Sicilian, the London, or your own repertoire. Annotations stay on the board until you move or reset.",
     image: sicilianDefenseImg,
     alt: "Sicilian Defense position after 1.e4 c5 with red arrows showing typical knight development and pressure on the e4 pawn",
@@ -614,7 +635,7 @@ const About = () => {
       </Hero>
 
       {FEATURES.map((feature, index) => (
-        <FeatureSection key={feature.title} $alt={index % 2 === 1}>
+        <FeatureSection key={feature.label} $alt={index % 2 === 1}>
           <FeatureInner>
             <FeatureCopy>
               <FeatureLabel>
