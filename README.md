@@ -45,27 +45,28 @@ npm run dev
 
 Open `http://localhost:5173`. The app redirects to today's date, for example `/2026-05-27`.
 
-### Puzzle data
-
-The `puzzle/` folder is **not** included in this repository. It contains monthly JSON files fetched from Chess.com and is listed in `.gitignore` so puzzle data stays local.
-
-Generate it before running the app:
+The frontend loads puzzles from the backend API. Start the backend first:
 
 ```sh
-cd job
+cd ../chess-puzzles-backend
 npm install
+cp .env.example .env
 npm run sync
+npm run dev
 ```
 
-This creates `puzzle/{year}/{year}-{month}.json` at the project root. The dev server and production build serve files from that folder.
+Then run the frontend (`npm run dev` in this repo). Vite proxies `/api` to `http://localhost:3001`.
 
-Useful job commands:
+### Puzzle data
 
-| Command | Description |
-|---------|-------------|
-| `npm run sync` | Fetch missing months |
+Puzzle sync now runs in **`chess-puzzles-backend`**. It fetches from Chess.com, saves JSON under `chess-puzzles-backend/puzzle/`, and upserts into MongoDB.
+
+| Command (in backend repo) | Description |
+|---------------------------|-------------|
+| `npm run sync` | Fetch missing/outdated months and save to DB |
 | `npm run sync:check` | Dry run — show what would be fetched |
 | `npm run sync:force` | Re-fetch all months |
+| `npm run migrate` | Import existing local JSON files into DB |
 
 ## Scripts
 
@@ -83,7 +84,7 @@ Useful job commands:
 - React 19 + TypeScript
 - Vite
 - TanStack Router — date-based URLs (`/YYYY-MM-DD`)
-- TanStack Query — monthly puzzle fetching
+- TanStack Query — puzzle fetching from backend API
 - styled-components — UI and themes
 
 ## Project structure
@@ -99,10 +100,10 @@ src/
 ├── pages/         # Home
 └── router.tsx     # /$date routes
 
-job/               # Chess.com puzzle sync script
-puzzle/            # Generated puzzle JSON (local only, gitignored)
 screenshot/        # App screenshots (page.png, page1.png, page2.png, page3.png)
 ```
+
+Backend repo: `chess-puzzles-backend/` — API, MongoDB, Chess.com sync job.
 
 ## License
 

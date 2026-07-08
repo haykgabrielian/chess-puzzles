@@ -1,26 +1,25 @@
 import type { Puzzle } from '@/types/puzzle';
 
-export const getMonthKey = (dateString: string): string => dateString.slice(0, 7);
+const apiBaseUrl = import.meta.env.VITE_API_URL ?? '';
 
-export const getMonthPuzzleUrl = (dateString: string): string => {
-  const year = dateString.slice(0, 4);
-  const monthKey = getMonthKey(dateString);
-  return `/puzzle/${year}/${monthKey}.json`;
-};
+export const getPuzzleByDateUrl = (dateString: string): string =>
+  `${apiBaseUrl}/api/puzzles/${dateString}`;
 
-export const fetchMonthPuzzles = async (dateString: string): Promise<Puzzle[]> => {
-  const url = getMonthPuzzleUrl(dateString);
+export const fetchPuzzleByDate = async (
+  dateString: string,
+): Promise<Puzzle | undefined> => {
+  const url = getPuzzleByDateUrl(dateString);
   console.log('[puzzle] GET', url);
 
   const response = await fetch(url);
 
-  if (!response.ok) {
-    throw new Error(`Failed to load puzzles for ${getMonthKey(dateString)}`);
+  if (response.status === 404) {
+    return undefined;
   }
 
-  return response.json() as Promise<Puzzle[]>;
+  if (!response.ok) {
+    throw new Error(`Failed to load puzzle for ${dateString}`);
+  }
+
+  return response.json() as Promise<Puzzle>;
 };
-
-export const findPuzzleByDate = (puzzles: Puzzle[], dateString: string): Puzzle | undefined =>
-  puzzles.find(puzzle => puzzle.date === dateString);
-

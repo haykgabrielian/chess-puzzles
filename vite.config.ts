@@ -1,70 +1,32 @@
 import react from "@vitejs/plugin-react";
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
-const puzzleDir = path.resolve(projectRoot, "puzzle");
+const defaultApiUrl = "http://localhost:3001";
 
-const servePuzzleFiles = (): Plugin => {
-  const handleRequest = (
-    req: { url?: string },
-    res: {
-      statusCode: number;
-      setHeader: (name: string, value: string) => void;
-      end: (body?: string) => void;
-    },
-    next: () => void,
-  ) => {
-    if (!req.url?.startsWith("/puzzle/")) {
-      next();
-      return;
-    }
-
-    const relativePath = decodeURIComponent(req.url.slice("/puzzle/".length));
-    const filePath = path.resolve(puzzleDir, relativePath);
-
-    if (
-      !filePath.startsWith(puzzleDir) ||
-      !fs.existsSync(filePath) ||
-      !fs.statSync(filePath).isFile()
-    ) {
-      res.statusCode = 404;
-      res.end("Not found");
-      return;
-    }
-
-    res.setHeader("Content-Type", "application/json");
-    fs.createReadStream(filePath).pipe(res as NodeJS.WritableStream);
-  };
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, projectRoot, "");
+  const apiUrl = env.VITE_API_URL || defaultApiUrl;
 
   return {
-    name: "serve-puzzle-files",
-    configureServer(server) {
-      server.middlewares.use(handleRequest);
+    plugins: [react()],
+
+    resolve: {
+      alias: {
+        "@": path.resolve(projectRoot, "./src"),
+      },
     },
-    configurePreviewServer(server) {
-      server.middlewares.use(handleRequest);
-    },
-    closeBundle() {
-      fs.cpSync(puzzleDir, path.resolve(projectRoot, "dist/puzzle"), {
-        recursive: true,
-      });
+
+    server: {
+      port: 5173,
+      proxy: {
+        "/api": {
+          target: apiUrl,
+          changeOrigin: true,
+        },
+      },
     },
   };
-};
-
-export default defineConfig({
-  plugins: [react(), servePuzzleFiles()],
-
-  resolve: {
-    alias: {
-      "@": path.resolve(projectRoot, "./src"),
-    },
-  },
-
-  server: {
-    port: 5173,
-  },
 });

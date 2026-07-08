@@ -1,36 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 
-import {
-  fetchMonthPuzzles,
-  findPuzzleByDate,
-  getMonthKey,
-} from "@/api/puzzles";
-import type { Puzzle } from "@/types/puzzle";
+import { fetchPuzzleByDate } from "@/api/puzzles";
 
 export const puzzleQueryKeys = {
-  month: (dateString: string) =>
-    ["puzzles", "month", getMonthKey(dateString)] as const,
+  date: (dateString: string) => ["puzzles", "date", dateString] as const,
 };
 
 export const usePuzzleForDate = (dateString: string) => {
-  const monthQuery = useQuery({
-    queryKey: puzzleQueryKeys.month(dateString),
-    queryFn: () => fetchMonthPuzzles(dateString),
+  const query = useQuery({
+    queryKey: puzzleQueryKeys.date(dateString),
+    queryFn: () => fetchPuzzleByDate(dateString),
   });
 
-  const puzzle = useMemo<Puzzle | undefined>(() => {
-    if (!monthQuery.data) {
-      return undefined;
-    }
-
-    return findPuzzleByDate(monthQuery.data, dateString);
-  }, [monthQuery.data, dateString]);
-
   return {
-    puzzle,
-    isLoading: monthQuery.isLoading,
-    isError: monthQuery.isError || (monthQuery.isSuccess && !puzzle),
-    error: monthQuery.error,
+    puzzle: query.data,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
   };
 };
