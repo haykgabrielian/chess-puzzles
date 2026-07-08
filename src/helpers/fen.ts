@@ -3,6 +3,8 @@ export type Piece = 'K' | 'Q' | 'R' | 'B' | 'N' | 'P' | 'k' | 'q' | 'r' | 'b' | 
 export const STARTING_FEN =
   'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+export const EMPTY_FEN = '8/8/8/8/8/8/8/8 w - - 0 1';
+
 export const parseFenBoard = (fen: string): (Piece | null)[][] => {
   const ranks = fen.split(' ')[0].split('/');
 

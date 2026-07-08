@@ -34,7 +34,7 @@ import {
   getCheckmatedKingSquare,
   type PromotionPiece,
 } from "@/helpers/chess";
-import { getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
+import { EMPTY_FEN, getSideToMove, parseFenBoard, type Piece } from "@/helpers/fen";
 import {
   MOVE_ANIMATION_MS,
   type MoveAnimationRequest,
@@ -84,6 +84,7 @@ type ChessBoardProps = {
   wrongMoveSquares?: BoardMove | null;
   canInteract?: boolean;
   isSolved?: boolean;
+  hidePieces?: boolean;
   promotionPicker?: PromotionPickerState | null;
   animationRequest?: MoveAnimationRequest | null;
   onSquareClick?: (square: string, options?: SquareClickOptions) => void;
@@ -385,6 +386,7 @@ const ChessBoard = ({
   wrongMoveSquares = null,
   canInteract = false,
   isSolved = false,
+  hidePieces = false,
   promotionPicker = null,
   animationRequest = null,
   onSquareClick,
@@ -401,7 +403,10 @@ const ChessBoard = ({
     animateMoves,
   } = useContext(BoardSettingsContext);
   const { pieceSet } = useContext(PieceSetContext);
-  const board = useMemo(() => parseFenBoard(fen), [fen]);
+  const board = useMemo(
+    () => parseFenBoard(hidePieces ? EMPTY_FEN : fen),
+    [fen, hidePieces],
+  );
   const checkmatedKingSquare = useMemo(() => {
     if (!isSolved) {
       return null;
@@ -449,7 +454,7 @@ const ChessBoard = ({
     hiddenSquares,
     onPieceTransitionEnd,
   } = useMoveAnimation({
-    request: animationRequest,
+    request: hidePieces ? null : animationRequest,
     board,
     orientation,
     animateMoves,

@@ -5,7 +5,7 @@ import ChessBoard from "@/components/board/ChessBoard";
 import SolveConfetti from "@/components/board/SolveConfetti";
 import Header from "@/components/Header";
 import Sidebar from "@/components/sidebar/Sidebar";
-import PuzzleProvider from "@/context/PuzzleContext";
+import PuzzleProvider, { usePuzzle } from "@/context/PuzzleContext";
 import PuzzleGameProvider, { usePuzzleGame } from "@/context/PuzzleGameContext";
 import { getSideToMove } from "@/helpers/fen";
 
@@ -61,6 +61,7 @@ const BoardColumn = styled.div`
 `;
 
 const HomeContent = () => {
+  const { isLoading } = usePuzzle();
   const {
     fen,
     orientation,
@@ -95,6 +96,7 @@ const HomeContent = () => {
                 wrongMoveSquares={wrongMoveSquares}
                 canInteract={canInteract}
                 isSolved={status === "solved"}
+                hidePieces={isLoading}
                 promotionPicker={
                   pendingPromotion
                     ? {
