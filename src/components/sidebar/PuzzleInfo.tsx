@@ -150,7 +150,8 @@ const ActionButton = styled.button<{ $variant?: "danger" | "accent" }>`
 `;
 
 const PuzzleInfo = () => {
-  const { puzzle, hasPuzzle, selectedDate, setSelectedDate } = usePuzzle();
+  const { puzzle, hasPuzzle, isLoading, selectedDate, setSelectedDate } =
+    usePuzzle();
   const { fen, status, gameOutcome, hasProgress, resetGame, retryMove } =
     usePuzzleGame();
   const sideToMove = `${getSideLabel(fen)} to move`;
@@ -158,6 +159,16 @@ const PuzzleInfo = () => {
   const previousDay = addDays(selectedDate, -1);
   const nextDay = addDays(selectedDate, 1);
   const canGoNext = canNavigateToNextDay(selectedDate);
+
+  if (isLoading) {
+    return (
+      <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
+        <Content>
+          <PuzzleTitle>Loading puzzle…</PuzzleTitle>
+        </Content>
+      </Card>
+    );
+  }
 
   return (
     <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
