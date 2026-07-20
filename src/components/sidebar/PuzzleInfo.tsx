@@ -1,7 +1,6 @@
 import styled from "styled-components";
 
 import Card from "@/components/ui/Card";
-import { PuzzleInfoIcon } from "@/components/ui/CardIcons";
 import { usePuzzle } from "@/context/PuzzleContext";
 import { usePuzzleGame } from "@/context/PuzzleGameContext";
 import {
@@ -9,7 +8,6 @@ import {
   type GameOutcome,
   getCheckmateWinner,
 } from "@/helpers/chess";
-import { addDays, canNavigateToNextDay } from "@/helpers/date";
 import { getSideLabel } from "@/helpers/fen";
 
 const Content = styled.div`
@@ -18,29 +16,6 @@ const Content = styled.div`
   justify-content: flex-start;
   gap: 12px;
   min-height: 100%;
-`;
-
-const PuzzleActions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-`;
-
-const PuzzleActionsHeading = styled.span`
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.text.muted};
-`;
-
-const PuzzleActionsButtons = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 `;
 
 const PuzzleSummary = styled.div`
@@ -86,6 +61,35 @@ const DrawMessage = styled.span`
   color: ${({ theme }) => theme.text.secondary};
 `;
 
+const WrongMessage = styled.p`
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.boardHighlight.danger};
+`;
+
+const ActionButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid ${({ theme }) => theme.boardHighlight.danger};
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.boardHighlight.danger};
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background-color: ${({ theme }) => theme.boardHighlight.dangerMuted};
+  }
+`;
+
 const getSolvedMessage = (
   gameOutcome: GameOutcome,
   fen: string,
@@ -107,62 +111,15 @@ const getSolvedMessage = (
   return { title: "Puzzle solved!", detail: null };
 };
 
-const WrongMessage = styled.p`
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.boardHighlight.danger};
-`;
-
-const ActionButton = styled.button<{ $variant?: "danger" | "accent" }>`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 1px solid
-    ${({ $variant, theme }) =>
-      $variant === "danger" ? theme.boardHighlight.danger : theme.accent};
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: ${({ $variant, theme }) =>
-    $variant === "danger" ? theme.boardHighlight.danger : theme.accent};
-  background-color: transparent;
-  transition:
-    background-color 0.2s ease,
-    opacity 0.2s ease;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background-color: ${({ $variant, theme }) =>
-      $variant === "danger"
-        ? theme.boardHighlight.dangerMuted
-        : theme.accentMuted};
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-`;
-
 const PuzzleInfo = () => {
-  const { puzzle, hasPuzzle, isLoading, selectedDate, setSelectedDate } =
-    usePuzzle();
-  const { fen, status, gameOutcome, hasProgress, resetGame, retryMove } =
-    usePuzzleGame();
+  const { puzzle, hasPuzzle, isLoading } = usePuzzle();
+  const { fen, status, gameOutcome, retryMove } = usePuzzleGame();
   const sideToMove = `${getSideLabel(fen)} to move`;
   const solvedMessage = getSolvedMessage(gameOutcome, fen);
-  const previousDay = addDays(selectedDate, -1);
-  const nextDay = addDays(selectedDate, 1);
-  const canGoNext = canNavigateToNextDay(selectedDate);
 
   if (isLoading) {
     return (
-      <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
+      <Card title="Puzzle Info" collapsibleOnMobile>
         <Content>
           <PuzzleTitle>Loading puzzle…</PuzzleTitle>
         </Content>
@@ -171,36 +128,8 @@ const PuzzleInfo = () => {
   }
 
   return (
-    <Card title="Puzzle Info" icon={<PuzzleInfoIcon />} collapsibleOnMobile>
+    <Card title="Puzzle Info" collapsibleOnMobile>
       <Content>
-        {hasPuzzle && (
-          <PuzzleActions aria-label="Puzzle actions">
-            <PuzzleActionsHeading>Actions</PuzzleActionsHeading>
-            <PuzzleActionsButtons>
-              <ActionButton
-                type="button"
-                onClick={resetGame}
-                disabled={!hasProgress}
-              >
-                Reset puzzle
-              </ActionButton>
-              <ActionButton
-                type="button"
-                onClick={() => setSelectedDate(previousDay)}
-              >
-                ← Previous day
-              </ActionButton>
-              <ActionButton
-                type="button"
-                disabled={!canGoNext}
-                onClick={() => setSelectedDate(nextDay)}
-              >
-                Next day →
-              </ActionButton>
-            </PuzzleActionsButtons>
-          </PuzzleActions>
-        )}
-
         {hasPuzzle ? (
           <PuzzleSummary>
             <PuzzleTitle>{puzzle.title}</PuzzleTitle>
@@ -221,7 +150,7 @@ const PuzzleInfo = () => {
         {hasPuzzle && status === "wrong" && (
           <StatusBlock>
             <WrongMessage>Wrong move. Try again.</WrongMessage>
-            <ActionButton type="button" $variant="danger" onClick={retryMove}>
+            <ActionButton type="button" onClick={retryMove}>
               Retry
             </ActionButton>
           </StatusBlock>

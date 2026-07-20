@@ -13,10 +13,6 @@ export const lightTheme = {
     background: "#f0f0f0",
     hover: "#e0e0e0",
   },
-  header: {
-    background: "#FDFDFD",
-    text: "#282828",
-  },
   card: {
     background: "#ffffff",
   },
@@ -59,10 +55,6 @@ export const darkTheme = {
   button: {
     background: "#4a4a4a",
     hover: "#525252",
-  },
-  header: {
-    background: "#40414F",
-    text: "#e8eaed",
   },
   card: {
     background: "#40414F",

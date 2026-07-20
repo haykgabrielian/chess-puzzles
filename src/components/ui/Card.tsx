@@ -6,56 +6,55 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 const MOBILE = '@media (max-width: 900px)';
 
 const CardRoot = styled.section`
-  background-color: ${({ theme }) => theme.card.background};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  overflow: hidden;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+
+  &:not(:last-child) {
+    position: relative;
+  }
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    border-bottom: 1px solid ${({ theme }) => theme.border};
+  }
 `;
 
-const cardHeaderStyles = `
+const CardHeader = styled.header`
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 12px 14px;
-  font-size: 0.875rem;
+  padding: 16px 14px 2px;
+  font-size: 0.6875rem;
   font-weight: 600;
-  color: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.muted};
   box-sizing: border-box;
 `;
 
-const CardHeader = styled.header<{ $collapsed?: boolean }>`
-  ${cardHeaderStyles}
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text.primary};
-
-  ${MOBILE} {
-    ${({ $collapsed }) =>
-      $collapsed
-        ? `
-      border-bottom: none;
-    `
-        : ''}
-  }
-`;
-
-const CardHeaderButton = styled.button<{ $collapsed?: boolean }>`
-  ${cardHeaderStyles}
+const CardHeaderButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 16px 14px 2px;
   border: none;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  background-color: ${({ theme }) => theme.card.background};
-  color: ${({ theme }) => theme.text.primary};
+  background-color: transparent;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.text.muted};
   cursor: pointer;
   text-align: left;
-
-  ${MOBILE} {
-    ${({ $collapsed }) =>
-      $collapsed
-        ? `
-      border-bottom: none;
-    `
-        : ''}
-  }
+  box-sizing: border-box;
 `;
 
 const CardHeaderMain = styled.span`
@@ -115,7 +114,6 @@ const ChevronDown = () => (
 
 type CardProps = {
   title: ReactNode;
-  icon?: ReactNode;
   children: ReactNode;
   className?: string;
   bodyHeight?: string;
@@ -125,7 +123,6 @@ type CardProps = {
 
 const Card = ({
   title,
-  icon,
   children,
   className,
   bodyHeight,
@@ -139,10 +136,7 @@ const Card = ({
 
   const headerContent = (
     <>
-      <CardHeaderMain>
-        {icon}
-        {title}
-      </CardHeaderMain>
+      <CardHeaderMain>{title}</CardHeaderMain>
       {isCollapsible && (
         <CollapseChevron $expanded={!isCollapsed} aria-hidden="true">
           <ChevronDown />
@@ -156,14 +150,13 @@ const Card = ({
       {isCollapsible ? (
         <CardHeaderButton
           type="button"
-          $collapsed={isCollapsed}
           aria-expanded={!isCollapsed}
           onClick={() => setMobileCollapsed(prev => !prev)}
         >
           {headerContent}
         </CardHeaderButton>
       ) : (
-        <CardHeader $collapsed={isCollapsed}>{headerContent}</CardHeader>
+        <CardHeader>{headerContent}</CardHeader>
       )}
       <CardBody $bodyHeight={bodyHeight} $hiddenOnMobile={isCollapsed}>
         {children}

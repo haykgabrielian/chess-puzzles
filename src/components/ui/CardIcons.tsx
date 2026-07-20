@@ -14,23 +14,6 @@ const IconWrapper = styled.span`
   }
 `;
 
-export const StatisticsIcon = () => (
-  <IconWrapper>
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 3v18h18" />
-      <path d="M7 16l4-4 4 4 5-6" />
-    </svg>
-  </IconWrapper>
-);
-
 export const CalendarIcon = () => (
   <IconWrapper>
     <svg
@@ -87,23 +70,6 @@ export const HintIcon = () => (
       <path d="M9 18h6" />
       <path d="M10 22h4" />
       <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
-    </svg>
-  </IconWrapper>
-);
-
-export const HistoryIcon = () => (
-  <IconWrapper>
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
     </svg>
   </IconWrapper>
 );

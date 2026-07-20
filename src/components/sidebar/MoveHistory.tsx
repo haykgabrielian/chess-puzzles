@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef } from 'react';
 import styled, { css } from 'styled-components';
 
 import Card from '@/components/ui/Card';
-import { HistoryIcon } from '@/components/ui/CardIcons';
 import type { HistoryRowKind, MoveHistoryRow } from '@/helpers/chess';
 
 const Root = styled.div`
@@ -420,7 +419,7 @@ const MoveHistory = ({
   }, [positionIndex, rows]);
 
   return (
-    <Card title="Move History" icon={<HistoryIcon />} collapsibleOnMobile>
+    <Card title="Move History" collapsibleOnMobile>
       {rows.length === 0 ? (
         <EmptyState>
           <EmptyText>Moves will appear here as you play.</EmptyText>

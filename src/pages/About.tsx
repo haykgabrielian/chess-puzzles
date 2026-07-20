@@ -7,7 +7,6 @@ import londonSystemImg from "@/assets/board_annotation_london_system.png";
 import sicilianDefenseImg from "@/assets/board_annotation_sicilian_defense.png";
 import boardAnnotationsImg from "@/assets/board_annotations.png";
 import moveHintsImg from "@/assets/move_hints.png";
-import Header from "@/components/Header";
 import {
   CalendarIcon,
   FreeroamIcon,
@@ -602,7 +601,6 @@ const About = () => {
 
   return (
     <Page>
-      <Header />
       <Hero>
         <HeroInner>
           <HeroCopy>

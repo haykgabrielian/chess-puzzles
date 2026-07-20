@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import styled from "styled-components";
 
 import Card from "@/components/ui/Card";
-import { CalendarIcon } from "@/components/ui/CardIcons";
 import { usePuzzle } from "@/context/PuzzleContext";
 import { canNavigateToNextMonth, getToday, isFutureDate } from "@/helpers/date";
 
@@ -230,7 +229,6 @@ const Calendar = () => {
   return (
     <Card
       title="Calendar"
-      icon={<CalendarIcon />}
       collapsibleOnMobile
       defaultMobileCollapsed={false}
     >

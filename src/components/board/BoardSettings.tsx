@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext } from "react";
 import styled from "styled-components";
 
 import { BoardSettingsContext } from "@/context/BoardSettingsContext";
@@ -11,30 +11,6 @@ import {
   getSquareBackground,
 } from "@/helpers/boardThemes";
 import { pieceSets } from "@/helpers/pieceSets";
-
-const Wrapper = styled.div`
-  position: relative;
-  z-index: 100;
-`;
-
-const Menu = styled.div`
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 400px;
-  max-width: calc(100vw - 24px);
-  max-height: calc(100dvh - 88px);
-  overflow-y: auto;
-  padding: 16px;
-  background-color: ${({ theme }) => theme.popover.background};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
-  -webkit-overflow-scrolling: touch;
-
-  @media (max-width: 600px) {
-    width: min(400px, calc(100vw - 24px));
-  }
-`;
 
 const MenuTitle = styled.p`
   margin: 0 0 14px;
@@ -515,53 +491,6 @@ const InsidePreviewBoard = styled.div<{
   }
 `;
 
-const TriggerWrapper = styled.div`
-  position: relative;
-  display: flex;
-  justify-content: center;
-`;
-
-const MenuTail = styled.div`
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid ${({ theme }) => theme.popover.background};
-`;
-
-const TriggerButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  color: ${({ theme }) => theme.accent};
-  background-color: ${({ theme }) => theme.accentMuted};
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: ${({ theme }) => `${theme.accent}33`};
-  }
-
-  svg {
-    width: 30px;
-    height: 30px;
-    display: block;
-  }
-`;
-
-const SettingsIcon = () => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 15.6 12 3.6 3.6 0 0 1 12 15.6z" />
-  </svg>
-);
-
 const CheckIcon = () => (
   <svg
     viewBox="0 0 12 12"
@@ -610,7 +539,7 @@ const PieceSetPreview = ({
   </PiecePreviewSquare>
 );
 
-const BoardSettings = () => {
+export const BoardSettingsPanel = () => {
   const {
     boardTheme,
     setBoardThemeId,
@@ -629,29 +558,9 @@ const BoardSettings = () => {
   } = useContext(BoardSettingsContext);
   const { pieceSet, setPieceSetId } = useContext(PieceSetContext);
   const { isDarkMode, toggleTheme } = useContext(ThemeToggleContext);
-  const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
 
   return (
-    <Wrapper ref={wrapperRef}>
-      {isOpen && (
-        <Menu role="dialog" aria-label="Settings">
+    <>
           <CoordinateSectionTitle>Appearance</CoordinateSectionTitle>
           <SettingsList>
             <SettingsRow>
@@ -902,21 +811,6 @@ const BoardSettings = () => {
               />
             </SettingsRow>
           </SettingsList>
-        </Menu>
-      )}
-      <TriggerWrapper>
-        {isOpen && <MenuTail aria-hidden="true" />}
-        <TriggerButton
-          type="button"
-          aria-label="Settings"
-          aria-expanded={isOpen}
-          onClick={() => setIsOpen((prev) => !prev)}
-        >
-          <SettingsIcon />
-        </TriggerButton>
-      </TriggerWrapper>
-    </Wrapper>
+    </>
   );
 };
-
-export default BoardSettings;

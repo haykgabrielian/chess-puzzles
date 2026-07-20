@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 
 import Card from '@/components/ui/Card';
-import { HintIcon } from '@/components/ui/CardIcons';
 import { usePuzzle } from '@/context/PuzzleContext';
 import { usePuzzleGame } from '@/context/PuzzleGameContext';
 import { formatHintSentence, isUserMoveIndex } from '@/helpers/chess';
@@ -65,7 +64,7 @@ const Hint = () => {
   const isSolved = status === 'solved';
 
   const revealedHint =
-    hasPuzzle && isUserMoveIndex(moveIndex)
+    hasPuzzle && isHintRevealed && isUserMoveIndex(moveIndex)
       ? formatHintSentence(fen, puzzle.parsed.moves[moveIndex])
       : null;
 
@@ -74,7 +73,7 @@ const Hint = () => {
   }
 
   return (
-    <Card title="Hint" icon={<HintIcon />} bodyHeight={HINT_BODY_HEIGHT}>
+    <Card title="Hint" bodyHeight={HINT_BODY_HEIGHT}>
       <HintBody>
         {isHintRevealed ? (
           <RevealedHint>{revealedHint}</RevealedHint>

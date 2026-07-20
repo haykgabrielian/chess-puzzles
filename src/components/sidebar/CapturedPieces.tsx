@@ -1,24 +1,15 @@
 import { useContext } from 'react';
 import styled from 'styled-components';
 
+import Card from '@/components/ui/Card';
 import { PieceSetContext } from '@/context/PieceSetContext';
 import type { CapturedPieces } from '@/helpers/chess';
 import type { Piece } from '@/helpers/fen';
 
-const CapturedSection = styled.div`
+const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid ${({ theme }) => theme.border};
-`;
-
-const CapturedHeading = styled.span`
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.text.muted};
 `;
 
 const CapturedRow = styled.div`
@@ -33,7 +24,8 @@ const SideLabel = styled.span<{ $tone: 'light' | 'dark' }>`
   padding-top: 4px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: ${({ theme, $tone }) => ($tone === 'light' ? theme.text.primary : theme.text.secondary)};
+  color: ${({ theme, $tone }) =>
+    $tone === 'light' ? theme.text.primary : theme.text.secondary};
   opacity: ${({ $tone }) => ($tone === 'light' ? 0.85 : 0.7)};
 `;
 
@@ -104,25 +96,26 @@ const CapturedPiecesDisplay = ({ captured }: CapturedPiecesProps) => {
   }
 
   return (
-    <CapturedSection aria-label="Captured pieces">
-      <CapturedHeading>Captured</CapturedHeading>
-      {captured.byBlack.length > 0 && (
-        <CapturedSideRow
-          label="Black"
-          tone="dark"
-          pieces={captured.byBlack}
-          capturedBy="b"
-        />
-      )}
-      {captured.byWhite.length > 0 && (
-        <CapturedSideRow
-          label="White"
-          tone="light"
-          pieces={captured.byWhite}
-          capturedBy="w"
-        />
-      )}
-    </CapturedSection>
+    <Card title="Captured" collapsibleOnMobile>
+      <Content>
+        {captured.byBlack.length > 0 && (
+          <CapturedSideRow
+            label="Black"
+            tone="dark"
+            pieces={captured.byBlack}
+            capturedBy="b"
+          />
+        )}
+        {captured.byWhite.length > 0 && (
+          <CapturedSideRow
+            label="White"
+            tone="light"
+            pieces={captured.byWhite}
+            capturedBy="w"
+          />
+        )}
+      </Content>
+    </Card>
   );
 };
 

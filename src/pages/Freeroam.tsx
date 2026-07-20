@@ -1,13 +1,14 @@
 import type { Square } from "chess.js";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
-import styled from "styled-components";
 
 import BoardSizer from "@/components/board/BoardSizer";
 import ChessBoard from "@/components/board/ChessBoard";
 import SolveConfetti from "@/components/board/SolveConfetti";
 import GameFormatsModal from "@/components/freeroam/GameFormatsModal";
-import Header from "@/components/Header";
+import BoardLayout from "@/components/layout/BoardLayout";
+import FreeroamActions from "@/components/sidebar/FreeroamActions";
 import FreeroamInfo from "@/components/sidebar/FreeroamInfo";
+import CapturedPiecesDisplay from "@/components/sidebar/CapturedPieces";
 import MoveHistory from "@/components/sidebar/MoveHistory";
 import {
   type BoardMove,
@@ -40,67 +41,10 @@ import {
 } from "@/helpers/moveAnimation";
 import { playFreeroamMoveSound, playHistoryMoveSound } from "@/helpers/moveSound";
 
-const MOBILE = "@media (max-width: 900px)";
-
 const KEY_CODE = {
   ARROW_LEFT: 37,
   ARROW_RIGHT: 39,
 } as const;
-
-const Page = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  background-color: ${({ theme }) => theme.background.primary};
-  color: ${({ theme }) => theme.text.primary};
-  overflow-x: clip;
-`;
-
-const Content = styled.main`
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr min(440px, 40%);
-  gap: 24px;
-  padding: 24px 24px 0;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-  align-items: start;
-
-  ${MOBILE} {
-    grid-template-columns: 1fr;
-    align-items: start;
-    gap: 16px;
-    padding: 24px 0 0;
-  }
-`;
-
-const BoardSection = styled.section`
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-width: 0;
-  width: 100%;
-
-  ${MOBILE} {
-    justify-content: stretch;
-  }
-`;
-
-const SidebarRoot = styled.aside`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-
-  ${MOBILE} {
-    padding: 0 12px;
-    box-sizing: border-box;
-  }
-`;
 
 const Freeroam = () => {
   const gameRef = useRef(createGame(STARTING_FEN));
@@ -574,10 +518,10 @@ const Freeroam = () => {
   const isCheckmate = liveGameOutcome === "checkmate";
 
   return (
-    <Page>
-      <Header />
-      <Content>
-        <BoardSection aria-label="Freeroam chess board">
+    <>
+      <BoardLayout
+        boardLabel="Freeroam chess board"
+        board={
           <BoardSizer>
             <ChessBoard
               fen={fen}
@@ -597,27 +541,29 @@ const Freeroam = () => {
               lastMoveTo={lastMove?.to ?? null}
             />
           </BoardSizer>
-        </BoardSection>
-        <SidebarRoot aria-label="Freeroam sidebar">
-          <FreeroamInfo
-            fen={fen}
-            captured={capturedPieces}
-            gameOutcome={liveGameOutcome}
-            hasProgress={hasProgress}
-            pgnInfo={pgnInfo}
-            onImport={openImport}
-            onReset={resetGame}
-            onFlipBoard={toggleBoardOrientation}
-          />
-          <MoveHistory
-            rows={moveHistoryRows}
-            positionIndex={positionIndex}
-            liveMoveCount={effectiveMoves.length}
-            onSelectPly={handleSelectPly}
-            onStep={goToEffectivePly}
-          />
-        </SidebarRoot>
-      </Content>
+        }
+      >
+        <FreeroamActions
+          hasProgress={hasProgress}
+          onImport={openImport}
+          onReset={resetGame}
+          onFlipBoard={toggleBoardOrientation}
+        />
+        <FreeroamInfo
+          fen={fen}
+          gameOutcome={liveGameOutcome}
+          hasProgress={hasProgress}
+          pgnInfo={pgnInfo}
+        />
+        <CapturedPiecesDisplay captured={capturedPieces} />
+        <MoveHistory
+          rows={moveHistoryRows}
+          positionIndex={positionIndex}
+          liveMoveCount={effectiveMoves.length}
+          onSelectPly={handleSelectPly}
+          onStep={goToEffectivePly}
+        />
+      </BoardLayout>
       {importSnapshot && (
         <GameFormatsModal
           currentPgn={importSnapshot.pgn}
@@ -631,7 +577,7 @@ const Freeroam = () => {
           onApply={loadImportedGame}
         />
       )}
-    </Page>
+    </>
   );
 };
 

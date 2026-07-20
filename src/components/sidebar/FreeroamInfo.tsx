@@ -1,9 +1,7 @@
 import styled from "styled-components";
 
-import CapturedPiecesDisplay from "@/components/sidebar/CapturedPieces";
 import Card from "@/components/ui/Card";
-import { FreeroamIcon } from "@/components/ui/CardIcons";
-import type { CapturedPieces, GameOutcome } from "@/helpers/chess";
+import type { GameOutcome } from "@/helpers/chess";
 import { createGame, getCheckmateWinner } from "@/helpers/chess";
 import { getSideLabel } from "@/helpers/fen";
 import type { PgnGameInfo } from "@/helpers/gameImport";
@@ -12,29 +10,6 @@ const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
-`;
-
-const GameActions = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-`;
-
-const GameActionsHeading = styled.span`
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.text.muted};
-`;
-
-const GameActionsButtons = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 `;
 
 const GameSummary = styled.div`
@@ -81,42 +56,11 @@ const GameOverMessage = styled.span`
   color: ${({ theme }) => theme.accent};
 `;
 
-const ActionButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 1px solid ${({ theme }) => theme.accent};
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.accent};
-  background-color: transparent;
-  transition: background-color 0.2s ease;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background-color: ${({ theme }) => theme.accentMuted};
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-`;
-
 type FreeroamInfoProps = {
   fen: string;
-  captured: CapturedPieces;
   gameOutcome: GameOutcome;
   hasProgress: boolean;
   pgnInfo: PgnGameInfo | null;
-  onImport: () => void;
-  onReset: () => void;
-  onFlipBoard: () => void;
 };
 
 const formatPlayersLine = (pgnInfo: PgnGameInfo): string | null => {
@@ -163,13 +107,9 @@ const getFullMoveNumber = (fen: string): number => {
 
 const FreeroamInfo = ({
   fen,
-  captured,
   gameOutcome,
   hasProgress,
   pgnInfo,
-  onImport,
-  onReset,
-  onFlipBoard,
 }: FreeroamInfoProps) => {
   const fullMoveNumber = getFullMoveNumber(fen);
   const sideToMove = `${getSideLabel(fen)} to move`;
@@ -178,23 +118,8 @@ const FreeroamInfo = ({
   const gameMeta = pgnInfo ? formatGameMeta(pgnInfo) : null;
 
   return (
-    <Card title="Game Info" icon={<FreeroamIcon />} collapsibleOnMobile>
+    <Card title="Game Info" collapsibleOnMobile>
       <Content>
-        <GameActions aria-label="Game actions">
-          <GameActionsHeading>Actions</GameActionsHeading>
-          <GameActionsButtons>
-            <ActionButton type="button" onClick={onImport}>
-              Import / Export
-            </ActionButton>
-            <ActionButton type="button" onClick={onFlipBoard}>
-              Flip board
-            </ActionButton>
-            <ActionButton type="button" onClick={onReset} disabled={!hasProgress}>
-              New game
-            </ActionButton>
-          </GameActionsButtons>
-        </GameActions>
-
         <GameSummary>
           <GameTitle>{pgnInfo?.event ?? "Freeroam"}</GameTitle>
           {playersLine && <PlayersLine>{playersLine}</PlayersLine>}
@@ -211,7 +136,6 @@ const FreeroamInfo = ({
         ) : (
           <SideToMove>{sideToMove}</SideToMove>
         )}
-        <CapturedPiecesDisplay captured={captured} />
       </Content>
     </Card>
   );
