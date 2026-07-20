@@ -34,7 +34,7 @@ const TopBar = styled.div`
   padding: 8px 12px;
   background-color: ${({ theme }) => theme.card.background};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
+  border-radius: 8px;
 `;
 
 const LogoLink = styled.div`
@@ -86,7 +86,7 @@ const IconButton = styled.button<{ $active: boolean }>`
 const PanelCard = styled.div`
   background-color: ${({ theme }) => theme.card.background};
   border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
 `;
 
