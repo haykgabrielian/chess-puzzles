@@ -5,6 +5,7 @@ import styled from "styled-components";
 import logo from "@/assets/logo.png";
 import logoDarkMode from "@/assets/logo_dark_mode.png";
 import { BoardSettingsPanel } from "@/components/board/BoardSettings";
+import { BOARD_VIEWPORT_INSET } from "@/components/board/BoardSizer";
 import PanelMenu from "@/components/layout/PanelMenu";
 import { ThemeToggleContext } from "@/context/ThemeContext";
 import { formatDateForUrl, getToday } from "@/helpers/date";
@@ -12,6 +13,7 @@ import { formatDateForUrl, getToday } from "@/helpers/date";
 type PanelMode = "content" | "menu" | "settings";
 
 const MOBILE = "@media (max-width: 900px)";
+const PANEL_MAX = `calc(100dvh - ${BOARD_VIEWPORT_INSET * 2}px)`;
 
 const PanelRoot = styled.aside`
   display: flex;
@@ -19,8 +21,10 @@ const PanelRoot = styled.aside`
   gap: 12px;
   width: 100%;
   min-width: 0;
+  max-height: ${PANEL_MAX};
 
   ${MOBILE} {
+    max-height: none;
     padding: 0 12px;
     box-sizing: border-box;
   }
@@ -33,8 +37,8 @@ const TopBar = styled.div`
   gap: 12px;
   padding: 8px 12px;
   background-color: ${({ theme }) => theme.card.background};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 8px;
+  flex-shrink: 0;
 `;
 
 const LogoLink = styled.div`
@@ -56,7 +60,7 @@ const Logo = styled.img`
 const Actions = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
 `;
 
 const IconButton = styled.button<{ $active: boolean }>`
@@ -67,13 +71,15 @@ const IconButton = styled.button<{ $active: boolean }>`
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  color: ${({ theme }) => theme.accent};
-  background-color: ${({ $active, theme }) =>
-    $active ? `${theme.accent}33` : theme.accentMuted};
-  transition: background-color 0.2s ease;
+  color: ${({ $active, theme }) =>
+    $active ? theme.text.primary : theme.accent};
+  background-color: transparent;
+  transition:
+    color 0.2s ease,
+    opacity 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => `${theme.accent}33`};
+    opacity: 0.85;
   }
 
   svg {
@@ -85,9 +91,15 @@ const IconButton = styled.button<{ $active: boolean }>`
 
 const PanelCard = styled.div`
   background-color: ${({ theme }) => theme.card.background};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 8px;
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+
+  ${MOBILE} {
+    overflow-y: visible;
+    flex: none;
+  }
 `;
 
 const SettingsCard = styled(PanelCard)`
