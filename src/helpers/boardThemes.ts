@@ -64,6 +64,14 @@ export const createBoardHighlight = (
 
 const baseBoardThemes = [
   {
+    id: "stone-gray",
+    name: "Stone Gray",
+    light: "#E6E6E6",
+    dark: "#757575",
+    coordinate: "#757575",
+    frame: "#ffffff",
+  },
+  {
     id: "classic-wood",
     name: "Classic Wood",
     light: "#f0d9b5",
@@ -80,6 +88,14 @@ const baseBoardThemes = [
     frame: "#ffffff",
   },
   {
+    id: "sage-green",
+    name: "Sage Green",
+    light: "#E8F0E8",
+    dark: "#6F8872",
+    coordinate: "#6F8872",
+    frame: "#ffffff",
+  },
+  {
     id: "emerald",
     name: "Emerald",
     light: "#EBECD0",
@@ -93,6 +109,14 @@ const baseBoardThemes = [
     light: "#FAF6EB",
     dark: "#B2C2AD",
     coordinate: "#B2C2AD",
+    frame: "#ffffff",
+  },
+  {
+    id: "silent-blue",
+    name: "Silent Blue",
+    light: "#E9EDF2",
+    dark: "#5E7C99",
+    coordinate: "#5E7C99",
     frame: "#ffffff",
   },
   {
