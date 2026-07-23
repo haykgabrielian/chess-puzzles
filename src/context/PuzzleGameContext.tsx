@@ -38,7 +38,7 @@ import {
   playMoveSound,
 } from "@/helpers/moveSound";
 
-const OPPONENT_MOVE_DELAY_MS = 350;
+const OPPONENT_MOVE_DELAY_MS = 400;
 
 export type PuzzleStatus = "idle" | "playing" | "wrong" | "solved";
 
