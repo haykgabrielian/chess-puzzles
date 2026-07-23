@@ -94,6 +94,18 @@ import newspaperKnightWhite from "@/assets/newspaper/wn.png";
 import newspaperPawnWhite from "@/assets/newspaper/wp.png";
 import newspaperQueenWhite from "@/assets/newspaper/wq.png";
 import newspaperRookWhite from "@/assets/newspaper/wr.png";
+import imperialBishopBlack from "@/assets/Imperial/bb.png";
+import imperialKingBlack from "@/assets/Imperial/bk.png";
+import imperialKnightBlack from "@/assets/Imperial/bn.png";
+import imperialPawnBlack from "@/assets/Imperial/bp.png";
+import imperialQueenBlack from "@/assets/Imperial/bq.png";
+import imperialRookBlack from "@/assets/Imperial/br.png";
+import imperialBishopWhite from "@/assets/Imperial/wb.png";
+import imperialKingWhite from "@/assets/Imperial/wk.png";
+import imperialKnightWhite from "@/assets/Imperial/wn.png";
+import imperialPawnWhite from "@/assets/Imperial/wp.png";
+import imperialQueenWhite from "@/assets/Imperial/wq.png";
+import imperialRookWhite from "@/assets/Imperial/wr.png";
 import type { Piece } from "@/helpers/fen";
 
 export type PieceSet = {
@@ -222,6 +234,21 @@ const newspaperImages: Record<Piece, string> = {
   p: newspaperPawnBlack,
 };
 
+const imperialImages: Record<Piece, string> = {
+  K: imperialKingWhite,
+  Q: imperialQueenWhite,
+  R: imperialRookWhite,
+  B: imperialBishopWhite,
+  N: imperialKnightWhite,
+  P: imperialPawnWhite,
+  k: imperialKingBlack,
+  q: imperialQueenBlack,
+  r: imperialRookBlack,
+  b: imperialBishopBlack,
+  n: imperialKnightBlack,
+  p: imperialPawnBlack,
+};
+
 export const pieceSets: PieceSet[] = [
   { id: "classic", name: "Classic", images: classicImages },
   { id: "modern", name: "Modern", images: modernImages },
@@ -231,6 +258,7 @@ export const pieceSets: PieceSet[] = [
   { id: "club", name: "Club", images: clubImages },
   { id: "maya", name: "Maya", images: mayaImages },
   { id: "condal", name: "Condal", images: condalImages },
+  { id: "imperial", name: "Imperial", images: imperialImages },
 ];
 
 export const defaultPieceSetId = "classic";
