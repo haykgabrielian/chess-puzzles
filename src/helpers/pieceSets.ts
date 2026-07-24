@@ -1,15 +1,3 @@
-import threeDBishopBlack from "@/assets/3d/bb.png";
-import threeDKingBlack from "@/assets/3d/bk.png";
-import threeDKnightBlack from "@/assets/3d/bn.png";
-import threeDPawnBlack from "@/assets/3d/bp.png";
-import threeDQueenBlack from "@/assets/3d/bq.png";
-import threeDRookBlack from "@/assets/3d/br.png";
-import threeDBishopWhite from "@/assets/3d/wb.png";
-import threeDKingWhite from "@/assets/3d/wk.png";
-import threeDKnightWhite from "@/assets/3d/wn.png";
-import threeDPawnWhite from "@/assets/3d/wp.png";
-import threeDQueenWhite from "@/assets/3d/wq.png";
-import threeDRookWhite from "@/assets/3d/wr.png";
 import classicBishopBlack from "@/assets/classic/bishop_black.svg";
 import classicBishopWhite from "@/assets/classic/bishop_white.svg";
 import classicKingBlack from "@/assets/classic/king_black.svg";
@@ -144,21 +132,6 @@ const modernImages: Record<Piece, string> = {
   p: modernPawnBlack,
 };
 
-const threeDImages: Record<Piece, string> = {
-  K: threeDKingWhite,
-  Q: threeDQueenWhite,
-  R: threeDRookWhite,
-  B: threeDBishopWhite,
-  N: threeDKnightWhite,
-  P: threeDPawnWhite,
-  k: threeDKingBlack,
-  q: threeDQueenBlack,
-  r: threeDRookBlack,
-  b: threeDBishopBlack,
-  n: threeDKnightBlack,
-  p: threeDPawnBlack,
-};
-
 const gothicImages: Record<Piece, string> = {
   K: gothicKingWhite,
   Q: gothicQueenWhite,
@@ -250,15 +223,14 @@ const imperialImages: Record<Piece, string> = {
 };
 
 export const pieceSets: PieceSet[] = [
+  { id: "imperial", name: "Imperial", images: imperialImages },
   { id: "classic", name: "Classic", images: classicImages },
   { id: "modern", name: "Modern", images: modernImages },
-  { id: "3d", name: "3D", images: threeDImages },
   { id: "gotic", name: "Gothic", images: gothicImages },
   { id: "newspaper", name: "Newspaper", images: newspaperImages },
   { id: "club", name: "Club", images: clubImages },
   { id: "maya", name: "Maya", images: mayaImages },
   { id: "condal", name: "Condal", images: condalImages },
-  { id: "imperial", name: "Imperial", images: imperialImages },
 ];
 
 export const defaultPieceSetId = "classic";
